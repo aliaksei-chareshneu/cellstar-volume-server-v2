@@ -11,6 +11,25 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "Store OME Zarr sample",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--single_entry",
+                "/sw/cellstar-volume-server/test-data/preprocessor/raw_input_files/idr/idr-6001240/6001240.zarr",
+                "--ome_zarr_path",
+                "/sw/cellstar-volume-server/test-data/preprocessor/raw_input_files/idr/idr-6001240/6001240.zarr",
+                "--entry_id",
+                "6001240",
+                "--source_db",
+                "idr",
+                "--source_db_id", "6001240",
+                "--source_db_name", "OME"
+            ]
+        },
+        {
             "name": "Python: adding single entry (emd-1832) to db folder+ u2 quantization",
             "type": "python",
             "request": "launch",

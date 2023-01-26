@@ -34,13 +34,15 @@ class SegmentationSliceData(TypedDict):
     category_set_ids: np.ndarray
     # dict mapping set ids to the actual segment ids (e.g. for set id=1, there may be several segment ids)
     category_set_dict: Dict
-
+    channel_id: int
+    time: int
 
 class VolumeSliceData(TypedDict):
     # changed segm slice to another typeddict
     segmentation_slice: Optional[SegmentationSliceData]
     volume_slice: Optional[np.ndarray]
-
+    channel_id: int
+    time: int
 
 class VolumeMetadata(Protocol):
     def json_metadata(self) -> str:

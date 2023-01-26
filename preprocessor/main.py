@@ -305,43 +305,199 @@ def _compose_voxel_sizes_in_downsamplings_dict(ome_zarr_root):
 
     return d
 
+def get_origins(ome_zarr_root):
+    multiscales = ome_zarr_root.attrs["multiscales"]
+    # NOTE: can be multiple multiscales, here picking just 1st
+    axes = multiscales[0]['axes']
+    datasets_meta = multiscales[0]["datasets"]
+    d = {}
+    for index, level in enumerate(datasets_meta):
+        if len(level['coordinateTransformations']) == 2 and level['coordinateTransformations'][1]['type'] == 'translation':
+            translation_arr = level['coordinateTransformations'][1]['translation']
+            # instead of swapaxes, -1, -2, -3
+            d[level['path']] = (
+                translation_arr[-1],
+                translation_arr[-2],
+                translation_arr[-3]
+            )
+        else:
+            d[level['path']] = (0, 0, 0)
+
+    return d
+
+def get_channel_color(ome_zarr_root, channel_id):
+    channel_color_hex = ome_zarr_root.attrs['omero']['channels'][int(channel_id)]['color']
+    channel_color_rgba = ImageColor.getcolor(f'#{channel_color_hex}', "RGBA")
+    channel_color_rgba_fractional = [i/255 for i in channel_color_rgba]
+    return channel_color_rgba_fractional
+
+def get_time_scale_factors(ome_zarr_root):
+    multiscales = ome_zarr_root.attrs["multiscales"]
+    # NOTE: can be multiple multiscales, here picking just 1st
+    axes = multiscales[0]['axes']
+    datasets_meta = multiscales[0]["datasets"]
+    d = {}
+    if axes[0]['name'] == 't':
+        for index, level in enumerate(datasets_meta):
+            scale_arr = level['coordinateTransformations'][0]['scale']
+            if len(scale_arr) == 5:
+                d[level['path']] = scale_arr[0]
+            else:
+                raise Exception('Length of scale arr is not supported')
+        return d
+    else:
+        return 1.0
+
+def get_voxel_sizes_in_downsamplings(ome_zarr_root):
+    root_zattrs = ome_zarr_root.attrs
+    multiscales = root_zattrs["multiscales"]
+    datasets_meta = multiscales[0]["datasets"]
+
+    d = {}
+    
+    for index, level in enumerate(datasets_meta):
+        scale_arr = level['coordinateTransformations'][0]['scale']
+        # *micrometers to angstroms
+        if len(scale_arr) == 5:
+            scale_arr = scale_arr[2:]
+        elif len(scale_arr) == 4:
+            scale_arr = scale_arr[1:]
+        else:
+            raise Exception('Length of scale arr is not supported')
+
+        scale_arr = [i*10000 for i in scale_arr]
+        # x and z swapped
+        d[level['path']] = (
+            scale_arr[2],
+            scale_arr[1],
+            scale_arr[0]
+        )
+
+    return d
+    
+def get_time_units(ome_zarr_root):
+    # NOTE: default is milliseconds if time axes is not present
+    multiscales = ome_zarr_root.attrs["multiscales"]
+    # NOTE: can be multiple multiscales, here picking just 1st
+    axes = multiscales[0]['axes']
+    if axes[0]['name'] == 't':
+        # NOTE: may not have it, then we default to ms
+        if 'unit' in axes[0]:
+            return axes[0]['unit']
+    else:
+        return "millisecond"
+
 # NOTE: one volume_force_dtype for all resolutions
+# NOTE: does not account for coordinateTransformations that are same for all
 def extract_ome_zarr_metadata(our_zarr_structure: zarr.hierarchy.group, volume_force_dtype: np.dtype,
         source_db_id: str,
         source_db_name: str,
         ome_zarr_root: zarr.hierarchy.group) -> dict:
     root = our_zarr_structure
     
-    volume_downsamplings = sorted(root[VOLUME_DATA_GROUPNAME].array_keys())
+    
+
+    volume_downsamplings = []
+    for gr_name, gr in root[VOLUME_DATA_GROUPNAME].groups():
+        volume_downsamplings.append(gr_name)
+        volume_downsamplings = sorted(volume_downsamplings)
+
     # convert to ints
     volume_downsamplings = sorted([int(x) for x in volume_downsamplings])
+    
+    
 
-    mean_dict = {}
-    std_dict = {}
-    max_dict = {}
-    min_dict = {}
-    grid_dimensions_dict = {}
+    channel_ids = sorted(root[VOLUME_DATA_GROUPNAME][0][0].array_keys())
+    channel_ids = sorted(int(x) for x in channel_ids)
 
-    for arr_name, arr in root[VOLUME_DATA_GROUPNAME].arrays():
-        arr_view = arr[...]
-        # if QUANTIZATION_DATA_DICT_ATTR_NAME in arr.attrs:
-        #     data_dict = arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
-        #     data_dict['data'] = arr_view
-        #     arr_view = decode_quantized_data(data_dict)
-        #     if isinstance(arr_view, da.Array):
-        #         arr_view = arr_view.compute()
+    time_intervals = sorted(root[VOLUME_DATA_GROUPNAME][0].group_keys())
+    time_intervals = sorted(int(x) for x in time_intervals)
 
-        mean_val = float(str(np.mean(arr_view)))
-        std_val = float(str(np.std(arr_view)))
-        max_val = float(str(arr_view.max()))
-        min_val = float(str(arr_view.min()))
-        grid_dimensions_val: tuple[int, int, int] = arr.shape
+    voxel_sizes_in_downsamplings = get_voxel_sizes_in_downsamplings(ome_zarr_root=ome_zarr_root)
+    time_scale_factors = get_time_scale_factors(ome_zarr_root)
 
-        mean_dict[str(arr_name)] = mean_val
-        std_dict[str(arr_name)] = std_val
-        max_dict[str(arr_name)] = max_val
-        min_dict[str(arr_name)] = min_val
-        grid_dimensions_dict[str(arr_name)] = grid_dimensions_val
+    # 1. Collect common metadata
+    metadata_dict = {
+        'general': {
+            'source_db_name': source_db_name,
+            'source_db_id': source_db_id,
+        },
+        'volumes': {
+            'volume_downsamplings': volume_downsamplings,
+            'channel_ids': channel_ids,
+            'time_intervals': time_intervals,
+            'time_scale_factors': time_scale_factors,
+            'voxel_sizes_in_downsamplings': voxel_sizes_in_downsamplings,
+            'time_units': get_time_units(ome_zarr_root),
+            'individual_volumes_metadata': {}
+        },
+        'segmentation_lattices': {
+            'segmentation_lattice_ids': None,
+            'segmentation_downsamplings': None
+        },
+        'segmentation_meshes': {
+            'mesh_component_numbers': {},
+            'detail_lvl_to_fraction': {}
+        }
+    }
+
+
+    # 2. Change code below to collect metadata for individual volumes
+    for res_gr_name, res_gr in root[VOLUME_DATA_GROUPNAME].groups():
+        # create layers (time gr, channel gr)
+        metadata_dict['volumes']['individual_volumes_metadata'][res_gr_name] = {}
+        for time_gr_name, time_gr in res_gr.groups():
+            metadata_dict['volumes']['individual_volumes_metadata'][res_gr_name][time_gr_name] = {}
+            for channel_arr_name, channel_arr in time_gr.arrays():
+
+                # TODO: change
+                # mean_dict = {}
+                # std_dict = {}
+                # max_dict = {}
+                # min_dict = {}
+
+            
+                
+                arr_view = channel_arr[...]
+                # if QUANTIZATION_DATA_DICT_ATTR_NAME in arr.attrs:
+                #     data_dict = arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
+                #     data_dict['data'] = arr_view
+                #     arr_view = decode_quantized_data(data_dict)
+                #     if isinstance(arr_view, da.Array):
+                #         arr_view = arr_view.compute()
+
+                mean_val = float(str(np.mean(arr_view)))
+                std_val = float(str(np.std(arr_view)))
+                max_val = float(str(arr_view.max()))
+                min_val = float(str(arr_view.min()))
+                grid_dimensions_val: tuple[int, int, int] = channel_arr.shape
+
+                # mean_dict[str(arr_name)] = mean_val
+                # std_dict[str(arr_name)] = std_val
+                # max_dict[str(arr_name)] = max_val
+                # min_dict[str(arr_name)] = min_val
+
+                origins = get_origins(ome_zarr_root=ome_zarr_root)
+
+                individual_volume_dict = {
+                    'origins': origins,
+                    'channel_color': get_channel_color(ome_zarr_root=ome_zarr_root, channel_id=channel_arr_name),
+                    'channel_id': channel_arr_name,
+                    'grid_dimensions': grid_dimensions_val,
+                    'mean': mean_val,
+                    'std': std_val,
+                    'max': max_val,
+                    'min': min_val,
+                    'volume_force_dtype': volume_force_dtype
+                }
+
+                metadata_dict['volumes']['individual_volumes_metadata'][res_gr_name][time_gr_name][channel_arr_name] = individual_volume_dict
+
+                
+
+
+
+    
 
     lattice_dict = {}
     lattice_ids = []
@@ -363,37 +519,38 @@ def extract_ome_zarr_metadata(our_zarr_structure: zarr.hierarchy.group, volume_f
     # I do 0,1,2
     voxel_sizes_in_downsamplings = _compose_voxel_sizes_in_downsamplings_dict(ome_zarr_root=ome_zarr_root)
 
+    # TODO: account for translation
     # origin is probably (0, 0, 0), as there is no 'translation' in zattrs
     # Ctrl+F 'origin' https://ngff.openmicroscopy.org/latest/#multiscale-md
     origin = (0, 0, 0)
 
-    return {
-        'general': {
-            'source_db_name': source_db_name,
-            'source_db_id': source_db_id,
-        },
-        'volumes': {
-            'volume_downsamplings': volume_downsamplings,
-            # downsamplings have different voxel size so it is a dict
-            'voxel_size': voxel_sizes_in_downsamplings,
-            'origin': origin,
-            'grid_dimensions': grid_dimensions_dict['0'],
-            'sampled_grid_dimensions': grid_dimensions_dict,
-            'mean': mean_dict,
-            'std': std_dict,
-            'max': max_dict,
-            'min': min_dict,
-            'volume_force_dtype': volume_force_dtype.str
-        },
-        'segmentation_lattices': {
-            'segmentation_lattice_ids': lattice_ids,
-            'segmentation_downsamplings': lattice_dict
-        },
-        'segmentation_meshes': {
-            'mesh_component_numbers': {},
-            'detail_lvl_to_fraction': {}
-        }
-    }
+    # return {
+    #     'general': {
+    #         'source_db_name': source_db_name,
+    #         'source_db_id': source_db_id,
+    #     },
+    #     'volumes': {
+    #         'volume_downsamplings': volume_downsamplings,
+    #         # downsamplings have different voxel size so it is a dict
+    #         'voxel_size': voxel_sizes_in_downsamplings,
+    #         'origin': origin,
+    #         'grid_dimensions': grid_dimensions_dict['0'],
+    #         'sampled_grid_dimensions': grid_dimensions_dict,
+    #         'mean': mean_dict,
+    #         'std': std_dict,
+    #         'max': max_dict,
+    #         'min': min_dict,
+    #         'volume_force_dtype': volume_force_dtype.str
+    #     },
+    #     'segmentation_lattices': {
+    #         'segmentation_lattice_ids': lattice_ids,
+    #         'segmentation_downsamplings': lattice_dict
+    #     },
+    #     'segmentation_meshes': {
+    #         'mesh_component_numbers': {},
+    #         'detail_lvl_to_fraction': {}
+    #     }
+    # }
 
 # NOTE: To be clarified how to get actual annotations:
 # https://github.com/ome/ngff/issues/163#issuecomment-1328009660
@@ -446,15 +603,50 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
     # PROCESSING VOLUME
     # NOTE: just Dapi channel (second in sample_ome_zarr_from_ome_zarr_py_docs/6001240.zarr/.zattrs)
     volume_data_gr = our_zarr_structure.create_group(VOLUME_DATA_GROUPNAME)
+    root_zattrs = ome_zarr_root.attrs
+    multiscales = root_zattrs["multiscales"]
+    # NOTE: can be multiple multiscales, here picking just 1st
+    axes = multiscales[0]['axes']
     for volume_arr_resolution, volume_arr in ome_zarr_root.arrays():
-        # hardcoded only second channel
-        # TODO: ask if swapaxes is correct
-        corrected_volume_arr_data = volume_arr[...][1].swapaxes(0,2)
-        our_volume_resolution_arr = volume_data_gr.create_dataset(
-            name=volume_arr_resolution,
-            shape=corrected_volume_arr_data.shape,
-            data=corrected_volume_arr_data
-        )
+        # if time is first and there are 5 axes = read as it is, create groups accordingly
+        # if there are 4 axes - add time group
+        # if there are 3 axes - check if 1st is time
+        # if yes, create 1st layer groups from it, 2nd layer group = 1, in 3rd layer
+        # create array with added Z dimension = 1
+        # if not time - create 1st and 2nd layer groups == 1
+
+        resolution_group = volume_data_gr.create_group(volume_arr_resolution)
+        if len(axes) == 5 and axes[0]['name'] == 't':
+            for i in range(volume_arr.shape[0]):
+                time_group = resolution_group.create_group(str(i))
+                for j in range(volume_arr.shape[1]):
+                    corrected_volume_arr_data = volume_arr[...][i][j].swapaxes(0,2)
+                    our_channel_arr = time_group.create_dataset(
+                        name=j,
+                        shape=corrected_volume_arr_data.shape,
+                        data=corrected_volume_arr_data
+                    )
+        elif len(axes) == 4 and axes[0]['name'] == 'c':
+            time_group = resolution_group.create_group('0')
+            for j in range(volume_arr.shape[0]):
+                corrected_volume_arr_data = volume_arr[...][j].swapaxes(0,2)
+                our_channel_arr = time_group.create_dataset(
+                    name=j,
+                    shape=corrected_volume_arr_data.shape,
+                    data=corrected_volume_arr_data
+                )
+        # TODO: later
+        # elif len(axes) == 3:
+        #     if axes[0] == 't':
+        #         pass
+        #     else:
+        #         pass
+        else:
+            raise Exception('Axes number/order is not recognized')
+        
+        
+
+
 
     
 
@@ -463,35 +655,67 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
     segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
     lattice_id_gr = segmentation_data_gr.create_group('0')
 
-    # hardcoded labels [0], should iterate over them, but for sample file ok (just 0 label is here)
+    # NOTE: hardcoded labels [0], should iterate over them, but for sample file ok (just 0 label is here)
     # arr_name is resolution
     for arr_name, arr in ome_zarr_root.labels[0].arrays():
-        # swapaxes (ZYX to XYZ), and no channel dimension (there is just single channel dimension)
-        corrected_arr_data = arr[...][0].swapaxes(0,2)
         our_resolution_gr = lattice_id_gr.create_group(arr_name)
-        our_arr = our_resolution_gr.create_dataset(
-            name='grid',
-            shape=corrected_arr_data.shape,
-            data=corrected_arr_data
-        )
-        
-        our_set_table = our_resolution_gr.create_dataset(
-            name='set_table',
-            dtype=object,
-            object_codec=numcodecs.JSON(),
-            shape=1
-        )
-        
-        d = {}
-        for value in np.unique(our_arr[...]):
-            d[str(value)] = [int(value)]
+        if len(axes) == 5 and axes[0]['name'] == 't':
+            for i in range(arr.shape[0]):
+                time_group = our_resolution_gr.create_group(str(i))
+                for j in range(arr.shape[1]):
+                    corrected_arr_data = arr[...][i][j].swapaxes(0,2)
+                    our_channel_group = time_group.create_group(str(j))
+                    our_arr = our_channel_group.create_dataset(
+                        name='grid',
+                        shape=corrected_arr_data.shape,
+                        data=corrected_arr_data
+                    )
 
-        our_set_table[...] = [d]
+                    our_set_table = our_channel_group.create_dataset(
+                        name='set_table',
+                        dtype=object,
+                        object_codec=numcodecs.JSON(),
+                        shape=1
+                    )
+
+                    d = {}
+                    for value in np.unique(our_arr[...]):
+                        d[str(value)] = [int(value)]
+
+                    our_set_table[...] = [d]
+
+        elif len(axes) == 4 and axes[0]['name'] == 'c':
+            time_group = our_resolution_gr.create_group('0')
+            for j in range(arr.shape[0]):
+                corrected_arr_data = arr[...][j].swapaxes(0,2)
+                our_channel_group = time_group.create_group(str(j))
+                our_arr = our_channel_group.create_dataset(
+                    name='grid',
+                    shape=corrected_arr_data.shape,
+                    data=corrected_arr_data
+                )
+
+                our_set_table = our_channel_group.create_dataset(
+                    name='set_table',
+                    dtype=object,
+                    object_codec=numcodecs.JSON(),
+                    shape=1
+                )
+
+                d = {}
+                for value in np.unique(our_arr[...]):
+                    d[str(value)] = [int(value)]
+
+                our_set_table[...] = [d]
+
+        
+        
+        
 
     # NOTE: single volume_force_dtype 
     grid_metadata = extract_ome_zarr_metadata(
         our_zarr_structure=our_zarr_structure,
-        volume_force_dtype=volume_data_gr[0].dtype,
+        volume_force_dtype=ome_zarr_root[0].dtype.str,
         source_db_id=source_db_id,
         source_db_name=source_db_name,
         ome_zarr_root=ome_zarr_root
