@@ -384,6 +384,8 @@ def get_time_units(ome_zarr_root):
         # NOTE: may not have it, then we default to ms
         if 'unit' in axes[0]:
             return axes[0]['unit']
+        else:
+            return "millisecond"
     else:
         return "millisecond"
 
@@ -503,69 +505,36 @@ def extract_ome_zarr_metadata(our_zarr_structure: zarr.hierarchy.group, volume_f
     lattice_ids = []
     
     if SEGMENTATION_DATA_GROUPNAME in root:
-        for gr_name, gr in root[SEGMENTATION_DATA_GROUPNAME].groups():
-            # each key is lattice id
-            lattice_id = int(gr_name)
+        for label_gr_name, label_gr in root[SEGMENTATION_DATA_GROUPNAME].groups():
+            # each label group is lattice id
+            lattice_id = int(label_gr_name)
 
-            segm_downsamplings = sorted(gr.group_keys())
+            segm_downsamplings = sorted(label_gr.group_keys())
             # convert to ints
             segm_downsamplings = sorted([int(x) for x in segm_downsamplings])
 
-            lattice_dict[lattice_id] = segm_downsamplings
+            lattice_dict[str(lattice_id)] = segm_downsamplings
             lattice_ids.append(lattice_id)
-                        
-    # Sampled grid dimensions: in zattrs, they have 0,1,2 downsampling levels (XY is cut x2, Z stays)
-    # We have 1, 2, 4 (according to downsampling factor)
-    # I do 0,1,2
-    voxel_sizes_in_downsamplings = _compose_voxel_sizes_in_downsamplings_dict(ome_zarr_root=ome_zarr_root)
 
-    # TODO: account for translation
-    # origin is probably (0, 0, 0), as there is no 'translation' in zattrs
-    # Ctrl+F 'origin' https://ngff.openmicroscopy.org/latest/#multiscale-md
-    origin = (0, 0, 0)
+    metadata_dict['segmentation_lattices']['segmentation_lattice_ids'] = lattice_ids
+    metadata_dict['segmentation_lattices']['segmentation_downsamplings'] = lattice_dict
 
-    # return {
-    #     'general': {
-    #         'source_db_name': source_db_name,
-    #         'source_db_id': source_db_id,
-    #     },
-    #     'volumes': {
-    #         'volume_downsamplings': volume_downsamplings,
-    #         # downsamplings have different voxel size so it is a dict
-    #         'voxel_size': voxel_sizes_in_downsamplings,
-    #         'origin': origin,
-    #         'grid_dimensions': grid_dimensions_dict['0'],
-    #         'sampled_grid_dimensions': grid_dimensions_dict,
-    #         'mean': mean_dict,
-    #         'std': std_dict,
-    #         'max': max_dict,
-    #         'min': min_dict,
-    #         'volume_force_dtype': volume_force_dtype.str
-    #     },
-    #     'segmentation_lattices': {
-    #         'segmentation_lattice_ids': lattice_ids,
-    #         'segmentation_downsamplings': lattice_dict
-    #     },
-    #     'segmentation_meshes': {
-    #         'mesh_component_numbers': {},
-    #         'detail_lvl_to_fraction': {}
-    #     }
-    # }
+    return metadata_dict
 
-# NOTE: To be clarified how to get actual annotations:
-# https://github.com/ome/ngff/issues/163#issuecomment-1328009660
-# This one just uses label-value originated from .zattrs and copied to set_table of 0th resolution
-def extract_ome_zarr_annotations(our_zarr_structure, ome_zarr_root):
-    dapi_channel_color_hex = ome_zarr_root.attrs['omero']['channels'][1]['color']
-    dapi_channel_color_rgba = ImageColor.getcolor(f'#{dapi_channel_color_hex}', "RGBA")
-    dapi_channel_color_rgba_fractional = [i/255 for i in dapi_channel_color_rgba]
+# NOTE: Lattice IDs = Label groups
+def extract_ome_zarr_annotations(ome_zarr_root):
     d = {
         "segment_list": []
     }
     segment_list = d['segment_list']
-    set_table = our_zarr_structure[SEGMENTATION_DATA_GROUPNAME][0][0].set_table[...][0]
-    for label_value in set_table.keys():
-        if label_value != '0':
+
+
+    for label_gr_name, label_gr in ome_zarr_root.labels.groups():
+        labels_metadata_list = label_gr.attrs['image-label']['colors']
+        for ind_label_meta in labels_metadata_list:
+            label_value = ind_label_meta['label-value']
+            ind_label_color_rgba = ind_label_meta['rgba']
+            ind_label_color_fractional = [i/255 for i in ind_label_color_rgba]
             segment_list.append(
                 {
                     "id": int(label_value),
@@ -573,14 +542,14 @@ def extract_ome_zarr_annotations(our_zarr_structure, ome_zarr_root):
                     "biological_annotation": {
                         "name": f"segment {label_value}",
                         "description": None,
-                        "number_of_instances": 1,
+                        "number_of_instances": None,
                         "external_references": [
                         ]
                     },
-                    "colour": dapi_channel_color_rgba_fractional,
+                    "colour": ind_label_color_fractional,
                     "mesh_list": [],
                     "three_d_volume": {
-                        "lattice_id": 0,
+                        "lattice_id": label_gr_name,
                         "value": float(label_value),
                         "transform_id": None
                     },
@@ -601,7 +570,6 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
     our_zarr_structure = zarr.open_group(temp_zarr_hierarchy_storage_path / entry_id, mode='w')
 
     # PROCESSING VOLUME
-    # NOTE: just Dapi channel (second in sample_ome_zarr_from_ome_zarr_py_docs/6001240.zarr/.zattrs)
     volume_data_gr = our_zarr_structure.create_group(VOLUME_DATA_GROUPNAME)
     root_zattrs = ome_zarr_root.attrs
     multiscales = root_zattrs["multiscales"]
@@ -653,17 +621,42 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
     
     # PROCESSING SEGMENTATION
     segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
-    lattice_id_gr = segmentation_data_gr.create_group('0')
+    
+    # Lattice IDs = Label groups
+    for label_gr_name, label_gr in ome_zarr_root.labels.groups():
+        lattice_id_gr = segmentation_data_gr.create_group(label_gr_name)
+        # arr_name is resolution
+        for arr_name, arr in label_gr.arrays():
+            our_resolution_gr = lattice_id_gr.create_group(arr_name)
+            if len(axes) == 5 and axes[0]['name'] == 't':
+                for i in range(arr.shape[0]):
+                    time_group = our_resolution_gr.create_group(str(i))
+                    for j in range(arr.shape[1]):
+                        corrected_arr_data = arr[...][i][j].swapaxes(0,2)
+                        our_channel_group = time_group.create_group(str(j))
+                        our_arr = our_channel_group.create_dataset(
+                            name='grid',
+                            shape=corrected_arr_data.shape,
+                            data=corrected_arr_data
+                        )
 
-    # NOTE: hardcoded labels [0], should iterate over them, but for sample file ok (just 0 label is here)
-    # arr_name is resolution
-    for arr_name, arr in ome_zarr_root.labels[0].arrays():
-        our_resolution_gr = lattice_id_gr.create_group(arr_name)
-        if len(axes) == 5 and axes[0]['name'] == 't':
-            for i in range(arr.shape[0]):
-                time_group = our_resolution_gr.create_group(str(i))
-                for j in range(arr.shape[1]):
-                    corrected_arr_data = arr[...][i][j].swapaxes(0,2)
+                        our_set_table = our_channel_group.create_dataset(
+                            name='set_table',
+                            dtype=object,
+                            object_codec=numcodecs.JSON(),
+                            shape=1
+                        )
+
+                        d = {}
+                        for value in np.unique(our_arr[...]):
+                            d[str(value)] = [int(value)]
+
+                        our_set_table[...] = [d]
+
+            elif len(axes) == 4 and axes[0]['name'] == 'c':
+                time_group = our_resolution_gr.create_group('0')
+                for j in range(arr.shape[0]):
+                    corrected_arr_data = arr[...][j].swapaxes(0,2)
                     our_channel_group = time_group.create_group(str(j))
                     our_arr = our_channel_group.create_dataset(
                         name='grid',
@@ -684,30 +677,6 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
 
                     our_set_table[...] = [d]
 
-        elif len(axes) == 4 and axes[0]['name'] == 'c':
-            time_group = our_resolution_gr.create_group('0')
-            for j in range(arr.shape[0]):
-                corrected_arr_data = arr[...][j].swapaxes(0,2)
-                our_channel_group = time_group.create_group(str(j))
-                our_arr = our_channel_group.create_dataset(
-                    name='grid',
-                    shape=corrected_arr_data.shape,
-                    data=corrected_arr_data
-                )
-
-                our_set_table = our_channel_group.create_dataset(
-                    name='set_table',
-                    dtype=object,
-                    object_codec=numcodecs.JSON(),
-                    shape=1
-                )
-
-                d = {}
-                for value in np.unique(our_arr[...]):
-                    d[str(value)] = [int(value)]
-
-                our_set_table[...] = [d]
-
         
         
         
@@ -722,7 +691,6 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
     )
 
     annotation_metadata = extract_ome_zarr_annotations(
-        our_zarr_structure=our_zarr_structure,
         ome_zarr_root=ome_zarr_root
     )
 
