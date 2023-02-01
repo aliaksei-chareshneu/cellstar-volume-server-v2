@@ -1,5 +1,5 @@
-from typing import Optional, Union
-
+from typing import Dict, Optional, TypedDict, Union
+import numpy as np
 
 class VolumeDescriptiveStatistics:
     mean: float
