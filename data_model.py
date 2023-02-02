@@ -12,7 +12,7 @@ class VolumeDescriptiveStatistics:
 class BoxScaleTransformation:
     # to which downsampling level it is applied: can be to specific level, can be to all lvls
     downsampling_level: Union[int, str]
-    vector: list[int, int, int]
+    vector: list[float, float, float]
 
 
 class TimeTransformation:
@@ -20,31 +20,45 @@ class TimeTransformation:
     downsampling_level: Union[int, str] 
     factor: float
 
-class ChannelsMetadata:
-    ids: list[int]
+class ChannelsAnnotations:
     # channel_id -> channel color
     colors: dict[int, list[int, int, int]]
     # channel_id -> channel label; from omero - channels (e.g. "DAPI")
     labels: Optional[dict[int, str]]
 
-class VolumesMetadata:
-    channels: ChannelsMetadata
-    # Values of time dimension
-    time_info: { 'kind': 'range', start: int, end: int }
-    time_units: str
-    transformations: list[Union[BoxScaleTransformation, TimeTransformation]]
+class TimeInfo(TypedDict):
+    kind: range
+    start: int
+    end: int
+    units: str
+
+class SamplingBox:
+    origin: list[int, int, int],
+    voxel_size: list[float, float, float]
+    grid_dimensions: list[int, int, int]
+    volume_force_dtype: str
+
+class VolumeSamplingInfo:
     # Info about "downsampling dimension"
     spatial_downsampling_levels: list[int]
     # the only thing with changes with SPATIAL downsampling is box!
-    sampling_boxes: dict[int, {
-        'origin': list[int, int, int],
-        'voxel_size': list[int, int, int],
-        'grid_dimensions': list[int, int, int],
-        'volume_force_dtype': str
-    }]
+    sampling_boxes: dict[int, SamplingBox]
     # time -> channel_id
     descriptive_statistics: dict[int, dict[int, VolumeDescriptiveStatistics]]
+    box_transformations: list[BoxScaleTransformation]
+    time_transformations: list[TimeTransformation]
+
+class VolumesMetadata:
+    channel_ids: list[int]
+    # Values of time dimension
+    time_info: TimeInfo
+    volume_sampling_info: VolumeSamplingInfo
     
+    
+
+
+
+
 class SegmentationsMetadata(VolumesMetadata):
     # N of label groups (Cell, Chromosomes)
     segmentation_lattice_ids: dict[list[int]]
@@ -94,6 +108,8 @@ class AnnotationsMetadata:
     segment_list: list[Segment]
     # Only in SFF
     details: Optional[str]
+    volume_channels_annotations: ChannelsAnnotations
+    
 
 class SegmentationSliceData(TypedDict):
     # array with set ids
