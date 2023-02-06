@@ -25,6 +25,8 @@ class FileSystemDBReadContext(DBReadContext):
         self,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
+        channel_id: int,
+        time: int,
         mode: str = "dask",
         timer_printout=False,
         lattice_id: int = 0,
@@ -46,20 +48,20 @@ class FileSystemDBReadContext(DBReadContext):
             if SEGMENTATION_DATA_GROUPNAME in root and (lattice_id is not None):
                 segm_arr = root[SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
-                ].grid
+                ][time][channel_id].grid
                 assert (
                     np.array(box[1]) <= np.array(segm_arr.shape)
                 ).all(), f"requested box {box} does not correspond to arr dimensions"
                 segm_dict = root[SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
-                ].set_table[0]
+                ][time][channel_id].set_table[0]
             else:
                 raise HTTPException(status_code=404, detail="No segmentation data is available for the the given entry or lattice_id is None")
 
             if VOLUME_DATA_GROUPNAME in root and (down_sampling_ratio is not None):
                 volume_arr: zarr.core.Array = root[VOLUME_DATA_GROUPNAME][
                     down_sampling_ratio
-                ]
+                ][time][channel_id]
             else:
                 raise HTTPException(status_code=404, detail="No volume data is available for the the given entry or down_sampling_ratio is None")
 
@@ -139,6 +141,8 @@ class FileSystemDBReadContext(DBReadContext):
         self,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
+        channel_id: int,
+        time: int,
         mode: str = "dask",
         timer_printout=False,
     ) -> VolumeSliceData:
@@ -150,7 +154,7 @@ class FileSystemDBReadContext(DBReadContext):
             if VOLUME_DATA_GROUPNAME in root and (down_sampling_ratio is not None):
                 volume_arr: zarr.core.Array = root[VOLUME_DATA_GROUPNAME][
                     down_sampling_ratio
-                ]
+                ][time][channel_id]
 
                 assert (
                     np.array(box[0]) >= np.array([0, 0, 0])
@@ -190,6 +194,8 @@ class FileSystemDBReadContext(DBReadContext):
         lattice_id: int,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
+        channel_id: int,
+        time: int,
         mode: str = "dask",
         timer_printout=False,
     ) -> VolumeSliceData:
@@ -204,13 +210,13 @@ class FileSystemDBReadContext(DBReadContext):
             if SEGMENTATION_DATA_GROUPNAME in root and (lattice_id is not None):
                 segm_arr = root[SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
-                ].grid
+                ][time][channel_id].grid
                 assert (
                     np.array(box[1]) <= np.array(segm_arr.shape)
                 ).all(), f"requested box {box} does not correspond to arr dimensions"
                 segm_dict = root[SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
-                ].set_table[0]
+                ][time][channel_id].set_table[0]
             else:
                 raise HTTPException(status_code=404, detail="No segmentation data is available for the the given entry or lattice_id is None")
             
