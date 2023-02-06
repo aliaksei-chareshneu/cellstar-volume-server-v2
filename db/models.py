@@ -1,7 +1,98 @@
-from typing import Dict, List, Optional, Protocol, TypedDict
+from typing import Dict, List, Optional, Protocol, TypedDict, Union
 
 import numpy as np
 
+class EntryId(TypedDict):
+    source_db_name: str
+    source_db_id: str
+
+class ExternalReference(TypedDict):
+    id: int
+    resource: str
+    accession: str
+    label: str
+    description: str
+
+class BiologicalAnnotation(TypedDict):
+    name: str
+    external_references: list[ExternalReference]
+
+class Segment(TypedDict):
+    # label-value in NGFF
+    id: int
+    color: Optional[list[int, int, int]]
+    biological_annotation: Optional[list[BiologicalAnnotation]]
+
+
+class ChannelsAnnotations(TypedDict):
+    # channel_id -> channel color
+    colors: dict[str, list[int, int, int]]
+    # channel_id -> channel label; from omero - channels (e.g. "DAPI")
+    labels: Optional[dict[str, str]]
+
+class AnnotationsMetadata(TypedDict):
+    entry_id: EntryId
+    segment_list: list[Segment]
+    # Only in SFF
+    details: Optional[str]
+    volume_channels_annotations: ChannelsAnnotations
+
+class MeshesMetadata(TypedDict):
+    mesh_component_numbers: dict
+    detail_lvl_to_fraction: dict
+
+class TimeTransformation(TypedDict):
+    # to which downsampling level it is applied: can be to specific level, can be to all lvls
+    downsampling_level: Union[int, str] 
+    factor: float
+
+class VolumeDescriptiveStatistics(TypedDict):
+    mean: float
+    min: float
+    max: float
+    std: float
+
+class TimeInfo(TypedDict):
+    kind: str
+    start: int
+    end: int
+    units: str
+
+class SamplingBox(TypedDict):
+    origin: tuple[int, int, int]
+    voxel_size: tuple[float, float, float]
+    grid_dimensions: list[int, int, int]
+    volume_force_dtype: str
+
+class VolumeSamplingInfo(TypedDict):
+    # Info about "downsampling dimension"
+    spatial_downsampling_levels: list[int]
+    # the only thing with changes with SPATIAL downsampling is box!
+    sampling_boxes: dict[int, SamplingBox]
+    # time -> channel_id
+    descriptive_statistics: dict[int, dict[int, VolumeDescriptiveStatistics]]
+    # box_transformations: list[BoxScaleTransformation]
+    time_transformations: list[TimeTransformation]
+
+
+
+class VolumesMetadata(TypedDict):
+    channel_ids: list[int]
+    # Values of time dimension
+    time_info: TimeInfo
+    volume_sampling_info: VolumeSamplingInfo
+
+class SegmentationLatticesMetadata(VolumesMetadata):
+    # N of label groups (Cell, Chromosomes)
+    segmentation_lattice_ids: list[str]
+    # N = lattice ids x downsamplings
+    segmentation_downsamplings: dict[str, list[int]]
+
+class Metadata(TypedDict):
+    entry_id: EntryId
+    volumes: VolumesMetadata
+    segmentation_lattices: SegmentationLatticesMetadata
+    segmentation_meshes: MeshesMetadata
 
 class MeshMetadata(TypedDict):
     num_vertices: int
@@ -34,9 +125,8 @@ class SegmentationSliceData(TypedDict):
     category_set_ids: np.ndarray
     # dict mapping set ids to the actual segment ids (e.g. for set id=1, there may be several segment ids)
     category_set_dict: Dict
-    channel_id: int
-    time: int
 
+# NOTE: channel_id and time are added
 class VolumeSliceData(TypedDict):
     # changed segm slice to another typeddict
     segmentation_slice: Optional[SegmentationSliceData]
@@ -75,7 +165,7 @@ class VolumeMetadata(Protocol):
         """
         ...
 
-    def grid_dimensions(self) -> List[int]:
+    def grid_dimensions(self, downsampling_rate: int) -> List[int]:
         """
         Returns the number of points along each axis (X, Y, Z)
         """

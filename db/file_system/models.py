@@ -41,10 +41,11 @@ class FileSystemVolumeMedatada(VolumeMetadata):
     def voxel_size(self, downsampling_rate: int) -> List[float]:
         return self.raw_metadata["volumes"]["voxel_size"][str(downsampling_rate)]
 
-    def grid_dimensions(self) -> List[int]:
-        return self.raw_metadata["volumes"]["grid_dimensions"]
+    def grid_dimensions(self, downsampling_rate: int) -> List[int]:
+        return self.raw_metadata["volumes"]["volume_sampling_info"]["sampling_boxes"][str(downsampling_rate)]["grid_dimensions"]
 
     def sampled_grid_dimensions(self, level: int) -> List[int]:
+        # TODO: change to use same structure as grid_dimensions
         return self.raw_metadata["volumes"]["sampled_grid_dimensions"][str(level)]
 
     def mean(self, level: int) -> np.float32:
