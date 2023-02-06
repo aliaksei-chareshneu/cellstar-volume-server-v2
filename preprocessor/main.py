@@ -14,6 +14,7 @@ from numcodecs import Blosc
 from typing import Dict, Optional, Union
 from db.file_system.db import FileSystemVolumeServerDB
 from db.file_system.constants import ANNOTATION_METADATA_FILENAME, GRID_METADATA_FILENAME, SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
+from db.models import Metadata
 from preprocessor.params_for_storing_db import CHUNKING_MODES, COMPRESSORS
 from preprocessor.src.service.implementations.preprocessor_service import PreprocessorService
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import \
@@ -27,6 +28,9 @@ from preprocessor.src.tools.write_dict_to_file.write_dict_to_json import write_d
 from preprocessor.src.tools.write_dict_to_file.write_dict_to_txt import write_dict_to_txt
 
 OME_ZARR_DEFAULT_PATH = Path('sample_ome_zarr_from_ome_zarr_py_docs/6001240.zarr')
+SPACE_UNITS_CONVERSION_DICT = {
+    'micrometer': 10000
+}
 
 def obtain_paths_to_single_entry_files(input_files_dir: Path) -> Dict:
     d = {}
@@ -305,59 +309,65 @@ def _compose_voxel_sizes_in_downsamplings_dict(ome_zarr_root):
 
     return d
 
-def get_origins(ome_zarr_root):
-    multiscales = ome_zarr_root.attrs["multiscales"]
+def get_origins(ome_zarr_attrs, sampling_boxes_dict):
+    multiscales = ome_zarr_attrs["multiscales"]
     # NOTE: can be multiple multiscales, here picking just 1st
     axes = multiscales[0]['axes']
     datasets_meta = multiscales[0]["datasets"]
-    d = {}
     for index, level in enumerate(datasets_meta):
         if len(level['coordinateTransformations']) == 2 and level['coordinateTransformations'][1]['type'] == 'translation':
             translation_arr = level['coordinateTransformations'][1]['translation']
             # instead of swapaxes, -1, -2, -3
-            d[level['path']] = (
-                translation_arr[-1],
-                translation_arr[-2],
-                translation_arr[-3]
+            sampling_boxes_dict[level['path']]['origin'] = (
+                _convert_to_angstroms(translation_arr[-1], input_unit=axes[-1]['unit']),
+                _convert_to_angstroms(translation_arr[-2], input_unit=axes[-2]['unit']),
+                _convert_to_angstroms(translation_arr[-3], input_unit=axes[-3]['unit']),
             )
         else:
-            d[level['path']] = (0, 0, 0)
+            sampling_boxes_dict[level['path']]['origin'] = (0, 0, 0)
 
-    return d
+    return sampling_boxes_dict
 
-def get_channel_color(ome_zarr_root, channel_id):
-    channel_color_hex = ome_zarr_root.attrs['omero']['channels'][int(channel_id)]['color']
+def _convert_hex_to_rgba_fractional(channel_color_hex):
     channel_color_rgba = ImageColor.getcolor(f'#{channel_color_hex}', "RGBA")
     channel_color_rgba_fractional = [i/255 for i in channel_color_rgba]
     return channel_color_rgba_fractional
 
-def get_time_scale_factors(ome_zarr_root):
-    multiscales = ome_zarr_root.attrs["multiscales"]
+def get_channel_annotations(ome_zarr_attrs, volume_channel_annotations_dict):
+    for channel_id, channel in enumerate(ome_zarr_attrs['omero']['channels']):
+        volume_channel_annotations_dict['colors'][str(channel_id)] = _convert_hex_to_rgba_fractional(channel['color'])
+        volume_channel_annotations_dict['labels'][str(channel_id)] = channel['label']
+
+
+def get_time_transformations(ome_zarr_attrs, time_transformations_list: list):
+    multiscales = ome_zarr_attrs["multiscales"]
     # NOTE: can be multiple multiscales, here picking just 1st
     axes = multiscales[0]['axes']
     datasets_meta = multiscales[0]["datasets"]
-    d = {}
     if axes[0]['name'] == 't':
         for index, level in enumerate(datasets_meta):
             scale_arr = level['coordinateTransformations'][0]['scale']
             if len(scale_arr) == 5:
-                d[level['path']] = scale_arr[0]
+                time_transformations_list.append(
+                    {
+                        'downsampling_level': level['path'],
+                        'factor': scale_arr[0]
+                    }
+                )
             else:
                 raise Exception('Length of scale arr is not supported')
-        return d
+        return time_transformations_list
     else:
-        return 1.0
+        return time_transformations_list
 
-def get_voxel_sizes_in_downsamplings(ome_zarr_root):
-    root_zattrs = ome_zarr_root.attrs
-    multiscales = root_zattrs["multiscales"]
+# Does not support coordinateTransformations applied to all resolutions
+def get_voxel_sizes_in_downsamplings(ome_zarr_attrs, sampling_boxes_dict):
+    multiscales = ome_zarr_attrs["multiscales"]
     datasets_meta = multiscales[0]["datasets"]
-
-    d = {}
+    axes = multiscales[0]['axes']
     
     for index, level in enumerate(datasets_meta):
         scale_arr = level['coordinateTransformations'][0]['scale']
-        # *micrometers to angstroms
         if len(scale_arr) == 5:
             scale_arr = scale_arr[2:]
         elif len(scale_arr) == 4:
@@ -365,19 +375,27 @@ def get_voxel_sizes_in_downsamplings(ome_zarr_root):
         else:
             raise Exception('Length of scale arr is not supported')
 
-        scale_arr = [i*10000 for i in scale_arr]
+        # scale_arr = [_convert_to_angstroms(i, input_unit=time_units) for i in scale_arr]
         # x and z swapped
-        d[level['path']] = (
-            scale_arr[2],
-            scale_arr[1],
-            scale_arr[0]
+        sampling_boxes_dict[level['path']]['voxel_size'] = (
+            _convert_to_angstroms(scale_arr[2], input_unit=axes[-1]['unit']),
+            _convert_to_angstroms(scale_arr[1], input_unit=axes[-2]['unit']),
+            _convert_to_angstroms(scale_arr[0], input_unit=axes[-3]['unit'])
         )
 
-    return d
-    
-def get_time_units(ome_zarr_root):
+    return sampling_boxes_dict
+
+def _convert_to_angstroms(value, input_unit: str):
+    # TODO: support other units
+    if input_unit in SPACE_UNITS_CONVERSION_DICT:
+        return value*SPACE_UNITS_CONVERSION_DICT[input_unit]
+    else:
+        raise Exception(f'{input_unit} space unit is not supported')
+
+
+def get_time_units(ome_zarr_attrs):
     # NOTE: default is milliseconds if time axes is not present
-    multiscales = ome_zarr_root.attrs["multiscales"]
+    multiscales = ome_zarr_attrs["multiscales"]
     # NOTE: can be multiple multiscales, here picking just 1st
     axes = multiscales[0]['axes']
     if axes[0]['name'] == 't':
@@ -389,77 +407,54 @@ def get_time_units(ome_zarr_root):
     else:
         return "millisecond"
 
-# NOTE: one volume_force_dtype for all resolutions
-# NOTE: does not account for coordinateTransformations that are same for all
-def extract_ome_zarr_metadata(our_zarr_structure: zarr.hierarchy.group, volume_force_dtype: np.dtype,
-        source_db_id: str,
-        source_db_name: str,
-        ome_zarr_root: zarr.hierarchy.group) -> dict:
-    root = our_zarr_structure
-    
-    
-
+def _get_downsamplings(data_group) -> list:
     volume_downsamplings = []
-    for gr_name, gr in root[VOLUME_DATA_GROUPNAME].groups():
+    for gr_name, gr in data_group.groups():
         volume_downsamplings.append(gr_name)
         volume_downsamplings = sorted(volume_downsamplings)
 
     # convert to ints
     volume_downsamplings = sorted([int(x) for x in volume_downsamplings])
-    
-    
+    return volume_downsamplings
 
-    channel_ids = sorted(root[VOLUME_DATA_GROUPNAME][0][0].array_keys())
+def _get_channel_ids(time_data_group) -> list:
+    channel_ids = sorted(time_data_group.array_keys())
     channel_ids = sorted(int(x) for x in channel_ids)
 
-    time_intervals = sorted(root[VOLUME_DATA_GROUPNAME][0].group_keys())
+    return channel_ids
+
+def _get_start_end_time(resolution_data_group) -> tuple[int, int]:
+    time_intervals = sorted(resolution_data_group.group_keys())
     time_intervals = sorted(int(x) for x in time_intervals)
+    start_time = min(time_intervals)
+    end_time = max(time_intervals)
+    return (start_time, end_time)
 
-    voxel_sizes_in_downsamplings = get_voxel_sizes_in_downsamplings(ome_zarr_root=ome_zarr_root)
-    time_scale_factors = get_time_scale_factors(ome_zarr_root)
-
-    # 1. Collect common metadata
-    metadata_dict = {
-        'general': {
-            'source_db_name': source_db_name,
-            'source_db_id': source_db_id,
-        },
-        'volumes': {
-            'volume_downsamplings': volume_downsamplings,
-            'channel_ids': channel_ids,
-            'time_intervals': time_intervals,
-            'time_scale_factors': time_scale_factors,
-            'voxel_sizes_in_downsamplings': voxel_sizes_in_downsamplings,
-            'time_units': get_time_units(ome_zarr_root),
-            'individual_volumes_metadata': {}
-        },
-        'segmentation_lattices': {
-            'segmentation_lattice_ids': None,
-            'segmentation_downsamplings': None
-        },
-        'segmentation_meshes': {
-            'mesh_component_numbers': {},
-            'detail_lvl_to_fraction': {}
-        }
-    }
-
-
-    # 2. Change code below to collect metadata for individual volumes
-    for res_gr_name, res_gr in root[VOLUME_DATA_GROUPNAME].groups():
+def _get_sampling_info(root_data_group, sampling_info_dict):
+    for res_gr_name, res_gr in root_data_group.groups():
         # create layers (time gr, channel gr)
-        metadata_dict['volumes']['individual_volumes_metadata'][res_gr_name] = {}
+        sampling_info_dict['sampling_boxes'][res_gr_name] = {
+            'origin': None,
+            'voxel_size': None,
+            'grid_dimensions': None,
+            'volume_force_dtype': None
+        }
+
+
+
+        
+
         for time_gr_name, time_gr in res_gr.groups():
-            metadata_dict['volumes']['individual_volumes_metadata'][res_gr_name][time_gr_name] = {}
-            for channel_arr_name, channel_arr in time_gr.arrays():
+            first_group_key = sorted(time_gr.array_keys())[0]
 
-                # TODO: change
-                # mean_dict = {}
-                # std_dict = {}
-                # max_dict = {}
-                # min_dict = {}
-
+            sampling_info_dict['sampling_boxes'][res_gr_name]['grid_dimensions'] = time_gr[first_group_key].shape
+            sampling_info_dict['sampling_boxes'][res_gr_name]['volume_force_dtype'] = time_gr[first_group_key].dtype.str
             
-                
+            sampling_info_dict['descriptive_statistics'][time_gr_name] = {}
+            for channel_arr_name, channel_arr in time_gr.arrays():
+                assert sampling_info_dict['sampling_boxes'][res_gr_name]['grid_dimensions'] == channel_arr.shape
+                assert sampling_info_dict['sampling_boxes'][res_gr_name]['volume_force_dtype'] == channel_arr.dtype.str
+
                 arr_view = channel_arr[...]
                 # if QUANTIZATION_DATA_DICT_ATTR_NAME in arr.attrs:
                 #     data_dict = arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
@@ -472,34 +467,118 @@ def extract_ome_zarr_metadata(our_zarr_structure: zarr.hierarchy.group, volume_f
                 std_val = float(str(np.std(arr_view)))
                 max_val = float(str(arr_view.max()))
                 min_val = float(str(arr_view.min()))
-                grid_dimensions_val: tuple[int, int, int] = channel_arr.shape
 
-                # mean_dict[str(arr_name)] = mean_val
-                # std_dict[str(arr_name)] = std_val
-                # max_dict[str(arr_name)] = max_val
-                # min_dict[str(arr_name)] = min_val
-
-                origins = get_origins(ome_zarr_root=ome_zarr_root)
-
-                individual_volume_dict = {
-                    'origins': origins,
-                    'channel_color': get_channel_color(ome_zarr_root=ome_zarr_root, channel_id=channel_arr_name),
-                    'channel_id': channel_arr_name,
-                    'grid_dimensions': grid_dimensions_val,
+                sampling_info_dict['descriptive_statistics']\
+                    [time_gr_name][channel_arr_name] = {
                     'mean': mean_val,
                     'std': std_val,
                     'max': max_val,
                     'min': min_val,
-                    'volume_force_dtype': volume_force_dtype
                 }
 
-                metadata_dict['volumes']['individual_volumes_metadata'][res_gr_name][time_gr_name][channel_arr_name] = individual_volume_dict
-
-                
-
-
-
+# NOTE: does not account for coordinateTransformations that are same for all
+# NOTE: does not extract origin, sampling boxes etc. for segmentation data
+def extract_ome_zarr_metadata(our_zarr_structure: zarr.hierarchy.group,
+        source_db_id: str,
+        source_db_name: str,
+        ome_zarr_root: zarr.hierarchy.group) -> Metadata:
+    root = our_zarr_structure
     
+    volume_downsamplings = _get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
+    channel_ids = _get_channel_ids(time_data_group=root[VOLUME_DATA_GROUPNAME][0][0])
+    start_time, end_time = _get_start_end_time(resolution_data_group=root[VOLUME_DATA_GROUPNAME][0])
+
+    # time_scale_factors = get_time_scale_factors(ome_zarr_root)
+
+    # 1. Collect common metadata
+    metadata_dict = {
+        'entry_id': {
+            'source_db_name': source_db_name,
+            'source_db_id': source_db_id
+
+        },
+        'volumes': {
+            'channel_ids': channel_ids,
+            # Values of time dimension
+            'time_info': {
+                'kind': "range",
+                'start': start_time,
+                'end': end_time,
+                'units': get_time_units(ome_zarr_attrs=ome_zarr_root.attrs)
+            },
+            'volume_sampling_info': {
+                # Info about "downsampling dimension"
+                'spatial_downsampling_levels': volume_downsamplings,
+                # the only thing with changes with SPATIAL downsampling is box!
+                'sampling_boxes': {},
+                # time -> channel_id
+                'descriptive_statistics': {},
+                'time_transformations': []
+            }
+        },
+        'segmentation_lattices': {},
+        'segmentation_meshes': {
+            'mesh_component_numbers': {},
+            'detail_lvl_to_fraction': {}
+        }
+    }
+    
+    get_time_transformations(ome_zarr_attrs=ome_zarr_root.attrs,
+        time_transformations_list=metadata_dict['volumes']['volume_sampling_info']['time_transformations'])
+
+    _get_sampling_info(root_data_group=root[VOLUME_DATA_GROUPNAME],
+        sampling_info_dict=metadata_dict['volumes']['volume_sampling_info'])
+
+    # for res_gr_name, res_gr in root[VOLUME_DATA_GROUPNAME].groups():
+    #     # create layers (time gr, channel gr)
+    #     metadata_dict['volumes']['volume_sampling_info']['sampling_boxes'][res_gr_name] = {
+    #         'origin': None,
+    #         'voxel_size': None,
+    #         'grid_dimensions': None,
+    #         'volume_force_dtype': None
+    #     }
+
+
+
+        
+
+    #     for time_gr_name, time_gr in res_gr.groups():
+    #         first_group_key = sorted(time_gr.array_keys())[0]
+
+    #         metadata_dict['volumes']['volume_sampling_info']['sampling_boxes'][res_gr_name]['grid_dimensions'] = time_gr[first_group_key].shape
+    #         metadata_dict['volumes']['volume_sampling_info']['sampling_boxes'][res_gr_name]['volume_force_dtype'] = time_gr[first_group_key].dtype.str
+            
+    #         metadata_dict['volumes']['volume_sampling_info']['descriptive_statistics'][time_gr_name] = {}
+    #         for channel_arr_name, channel_arr in time_gr.arrays():
+    #             assert metadata_dict['volumes']['volume_sampling_info']['sampling_boxes'][res_gr_name]['grid_dimensions'] == channel_arr.shape
+    #             assert metadata_dict['volumes']['volume_sampling_info']['sampling_boxes'][res_gr_name]['volume_force_dtype'] == channel_arr.dtype.str
+
+    #             arr_view = channel_arr[...]
+    #             # if QUANTIZATION_DATA_DICT_ATTR_NAME in arr.attrs:
+    #             #     data_dict = arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
+    #             #     data_dict['data'] = arr_view
+    #             #     arr_view = decode_quantized_data(data_dict)
+    #             #     if isinstance(arr_view, da.Array):
+    #             #         arr_view = arr_view.compute()
+
+    #             mean_val = float(str(np.mean(arr_view)))
+    #             std_val = float(str(np.std(arr_view)))
+    #             max_val = float(str(arr_view.max()))
+    #             min_val = float(str(arr_view.min()))
+
+    #             metadata_dict['volumes']['volume_sampling_info']['descriptive_statistics']\
+    #                 [time_gr_name][channel_arr_name] = {
+    #                 'mean': mean_val,
+    #                 'std': std_val,
+    #                 'max': max_val,
+    #                 'min': min_val,
+    #             }
+
+    get_origins(ome_zarr_attrs=ome_zarr_root.attrs,
+        sampling_boxes_dict=metadata_dict['volumes']['volume_sampling_info']['sampling_boxes'])
+    get_voxel_sizes_in_downsamplings(ome_zarr_attrs=ome_zarr_root.attrs,
+        sampling_boxes_dict=metadata_dict['volumes']['volume_sampling_info']['sampling_boxes'])
+
 
     lattice_dict = {}
     lattice_ids = []
@@ -507,7 +586,7 @@ def extract_ome_zarr_metadata(our_zarr_structure: zarr.hierarchy.group, volume_f
     if SEGMENTATION_DATA_GROUPNAME in root:
         for label_gr_name, label_gr in root[SEGMENTATION_DATA_GROUPNAME].groups():
             # each label group is lattice id
-            lattice_id = int(label_gr_name)
+            lattice_id = label_gr_name
 
             segm_downsamplings = sorted(label_gr.group_keys())
             # convert to ints
@@ -519,15 +598,28 @@ def extract_ome_zarr_metadata(our_zarr_structure: zarr.hierarchy.group, volume_f
     metadata_dict['segmentation_lattices']['segmentation_lattice_ids'] = lattice_ids
     metadata_dict['segmentation_lattices']['segmentation_downsamplings'] = lattice_dict
 
+    # TODO: extract other metadata
+
     return metadata_dict
 
 # NOTE: Lattice IDs = Label groups
-def extract_ome_zarr_annotations(ome_zarr_root):
+def extract_ome_zarr_annotations(ome_zarr_root, source_db_id: str, source_db_name: str,):
     d = {
-        "segment_list": []
+        'entry_id': {
+            'source_db_name': source_db_name,
+            'source_db_id': source_db_id
+        },
+        'segment_list': [],
+        'details': None,
+        'volume_channels_annotations': {
+            'colors': {},
+            'labels': {}
+        }
     }
     segment_list = d['segment_list']
 
+    get_channel_annotations(ome_zarr_attrs=ome_zarr_root.attrs,
+        volume_channel_annotations_dict=d['volume_channels_annotations'])
 
     for label_gr_name, label_gr in ome_zarr_root.labels.groups():
         labels_metadata_list = label_gr.attrs['image-label']['colors']
@@ -538,7 +630,6 @@ def extract_ome_zarr_annotations(ome_zarr_root):
             segment_list.append(
                 {
                     "id": int(label_value),
-                    "parent_id": 0,
                     "biological_annotation": {
                         "name": f"segment {label_value}",
                         "description": None,
@@ -546,14 +637,7 @@ def extract_ome_zarr_annotations(ome_zarr_root):
                         "external_references": [
                         ]
                     },
-                    "colour": ind_label_color_fractional,
-                    "mesh_list": [],
-                    "three_d_volume": {
-                        "lattice_id": label_gr_name,
-                        "value": float(label_value),
-                        "transform_id": None
-                    },
-                    "shape_primitive_list": []
+                    "color": ind_label_color_fractional,
                 }
             )
 
@@ -681,17 +765,17 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
         
         
 
-    # NOTE: single volume_force_dtype 
     grid_metadata = extract_ome_zarr_metadata(
         our_zarr_structure=our_zarr_structure,
-        volume_force_dtype=ome_zarr_root[0].dtype.str,
         source_db_id=source_db_id,
         source_db_name=source_db_name,
         ome_zarr_root=ome_zarr_root
     )
 
     annotation_metadata = extract_ome_zarr_annotations(
-        ome_zarr_root=ome_zarr_root
+        ome_zarr_root=ome_zarr_root,
+        source_db_id=source_db_id,
+        source_db_name=source_db_name
     )
 
     SFFPreprocessor.temp_save_metadata(grid_metadata, GRID_METADATA_FILENAME, our_zarr_structure_path)
