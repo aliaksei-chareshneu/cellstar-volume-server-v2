@@ -9,6 +9,8 @@ class DBReadContext(Protocol):
         self,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
+        channel_id: int,
+        time: int,
         mode: str = "dask",
         timer_printout=False,
         lattice_id: int = 0,
@@ -31,6 +33,8 @@ class DBReadContext(Protocol):
         self,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
+        channel_id: int,
+        time: int,
         mode: str = "dask",
         timer_printout=False,
     ) -> VolumeSliceData:
@@ -41,6 +45,8 @@ class DBReadContext(Protocol):
         lattice_id: int,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
+        channel_id: int,
+        time: int,
         mode: str = "dask",
         timer_printout=False,
     ) -> VolumeSliceData:
