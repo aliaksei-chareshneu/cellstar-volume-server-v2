@@ -99,6 +99,7 @@ class FileSystemDBReadContext(DBReadContext):
                     "segmentation_slice": {
                         "category_set_ids": segm_slice,
                         "category_set_dict": segm_dict,
+                        "lattice_id": lattice_id
                     },
                     "volume_slice": volume_slice,
                 }
@@ -107,6 +108,7 @@ class FileSystemDBReadContext(DBReadContext):
                     "segmentation_slice": {
                         "category_set_ids": None,
                         "category_set_dict": None,
+                        "lattice_id": lattice_id
                     },
                     "volume_slice": volume_slice,
                 }
@@ -232,6 +234,7 @@ class FileSystemDBReadContext(DBReadContext):
                 "segmentation_slice": {
                     "category_set_ids": segm_slice,
                     "category_set_dict": segm_dict,
+                    "lattice_id": lattice_id
                 }
             }
 

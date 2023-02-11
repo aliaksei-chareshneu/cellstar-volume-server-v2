@@ -62,19 +62,19 @@ class SamplingBox(TypedDict):
     origin: tuple[int, int, int]
     voxel_size: tuple[float, float, float]
     grid_dimensions: list[int, int, int]
-    volume_force_dtype: str
 
-class VolumeSamplingInfo(TypedDict):
+class SamplingInfo(TypedDict):
     # Info about "downsampling dimension"
     spatial_downsampling_levels: list[int]
     # the only thing with changes with SPATIAL downsampling is box!
-    sampling_boxes: dict[int, SamplingBox]
+    boxes: dict[int, SamplingBox]
+    time_transformations: list[TimeTransformation]
+    # NOTE: what if units are not known for some axes?
+    source_axes_units: dict[str, str]
+
+class VolumeSamplingInfo(SamplingInfo):
     # time -> channel_id
     descriptive_statistics: dict[int, dict[int, VolumeDescriptiveStatistics]]
-    # box_transformations: list[BoxScaleTransformation]
-    time_transformations: list[TimeTransformation]
-
-
 
 class VolumesMetadata(TypedDict):
     channel_ids: list[int]
@@ -82,11 +82,15 @@ class VolumesMetadata(TypedDict):
     time_info: TimeInfo
     volume_sampling_info: VolumeSamplingInfo
 
-class SegmentationLatticesMetadata(VolumesMetadata):
+
+class SegmentationLatticesMetadata(TypedDict):
     # N of label groups (Cell, Chromosomes)
     segmentation_lattice_ids: list[str]
-    # N = lattice ids x downsamplings
-    segmentation_downsamplings: dict[str, list[int]]
+    
+    segmentation_sampling_info: dict[str, SamplingInfo]
+    channel_ids: dict[str, list[int]]
+    time_info: dict[str, TimeInfo]
+
 
 class Metadata(TypedDict):
     entry_id: EntryId
@@ -125,6 +129,7 @@ class SegmentationSliceData(TypedDict):
     category_set_ids: np.ndarray
     # dict mapping set ids to the actual segment ids (e.g. for set id=1, there may be several segment ids)
     category_set_dict: Dict
+    lattice_id: int
 
 # NOTE: channel_id and time are added
 class VolumeSliceData(TypedDict):
