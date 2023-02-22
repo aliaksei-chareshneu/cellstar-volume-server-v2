@@ -69,8 +69,6 @@ class SamplingInfo(TypedDict):
     # the only thing with changes with SPATIAL downsampling is box!
     boxes: dict[int, SamplingBox]
     time_transformations: list[TimeTransformation]
-    # NOTE: what if units are not known for some axes?
-    source_axes_units: dict[str, str]
 
 class VolumeSamplingInfo(SamplingInfo):
     # time -> channel_id
@@ -81,6 +79,8 @@ class VolumesMetadata(TypedDict):
     # Values of time dimension
     time_info: TimeInfo
     volume_sampling_info: VolumeSamplingInfo
+    # NOTE: what if units are not known for some axes?
+    source_axes_units: dict[str, str]
 
 
 class SegmentationLatticesMetadata(TypedDict):
@@ -158,7 +158,7 @@ class VolumeMetadata(Protocol):
     def volume_downsamplings(self) -> List[int]:
         ...
 
-    def origin(self) -> List[float]:
+    def origin(self, downsampling_rate: int) -> List[float]:
         """
         Returns the coordinates of the initial point in Angstroms
         """
