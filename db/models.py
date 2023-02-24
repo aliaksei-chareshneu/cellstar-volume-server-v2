@@ -71,8 +71,8 @@ class SamplingInfo(TypedDict):
     time_transformations: list[TimeTransformation]
 
 class VolumeSamplingInfo(SamplingInfo):
-    # time -> channel_id
-    descriptive_statistics: dict[int, dict[int, VolumeDescriptiveStatistics]]
+    # resolution -> time -> channel_id
+    descriptive_statistics: dict[int, dict[int, dict[int, VolumeDescriptiveStatistics]]]
 
 class VolumesMetadata(TypedDict):
     channel_ids: list[int]
