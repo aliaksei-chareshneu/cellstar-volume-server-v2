@@ -3,8 +3,8 @@
 from ciftools.models.writer import CIFCategoryDesc
 from ciftools.models.writer import CIFFieldDesc as Field
 
-from app.serialization.data.meshes_for_cif import MeshesForCif
-from app.serialization.volume_cif_categories import encoders
+from server.app.serialization.data.meshes_for_cif import MeshesForCif
+from server.app.serialization.volume_cif_categories import encoders
 
 
 class CategoryWriterProvider_Mesh(CIFCategoryDesc):

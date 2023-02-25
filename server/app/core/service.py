@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 from db.models import VolumeMetadata
 from db.protocol import VolumeServerDB
 
-from app.api.requests import (
+from server.app.api.requests import (
     EntriesRequest,
     MeshRequest,
     MetadataRequest,
@@ -14,9 +14,9 @@ from app.api.requests import (
     VolumeRequestDataKind,
     VolumeRequestInfo,
 )
-from app.core.models import GridSliceBox
-from app.core.timing import Timing
-from app.serialization.cif import serialize_meshes, serialize_volume_info, serialize_volume_slice
+from server.app.core.models import GridSliceBox
+from server.app.core.timing import Timing
+from server.app.serialization.cif import serialize_meshes, serialize_volume_info, serialize_volume_slice
 
 __MAX_DOWN_SAMPLING_VALUE__ = 1000000
 
@@ -108,6 +108,8 @@ class VolumeServerService:
                     lattice_id=lattice_id,
                     down_sampling_ratio=slice_box.downsampling_rate,
                     box=(slice_box.bottom_left, slice_box.top_right),
+                    channel_id=req.channel_id,
+                    time=req.time
                 )
             else:
                 # This should be validated on the Pydantic data model level, but one never knows...
@@ -207,7 +209,7 @@ def calc_slice_box(
     downsampling_rate: int,
 ) -> Optional[GridSliceBox]:
     origin, voxel_size, grid_dimensions = (
-        meta.origin(),
+        meta.origin(downsampling_rate),
         meta.voxel_size(downsampling_rate),
         meta.sampled_grid_dimensions(downsampling_rate),
     )

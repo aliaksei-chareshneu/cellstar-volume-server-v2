@@ -102,6 +102,8 @@ class FileSystemDBReadContext(DBReadContext):
                         "lattice_id": lattice_id
                     },
                     "volume_slice": volume_slice,
+                    "time": time,
+                    "channel_id": channel_id
                 }
             else:
                 d = {
@@ -111,6 +113,8 @@ class FileSystemDBReadContext(DBReadContext):
                         "lattice_id": lattice_id
                     },
                     "volume_slice": volume_slice,
+                    "time": time,
+                    "channel_id": channel_id
                 }
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
@@ -183,7 +187,10 @@ class FileSystemDBReadContext(DBReadContext):
                 if timer_printout == True:
                     print(f"read_volume_slice with mode {mode}: {end - start}")
 
-                return {"volume_slice": volume_slice}
+                return {
+                    "volume_slice": volume_slice,
+                    "time": time,
+                    "channel_id": channel_id}
             else:
                 raise HTTPException(status_code=404, detail="No volume data is available for the the given entry or down_sampling_ratio is None")
 
@@ -235,7 +242,9 @@ class FileSystemDBReadContext(DBReadContext):
                     "category_set_ids": segm_slice,
                     "category_set_dict": segm_dict,
                     "lattice_id": lattice_id
-                }
+                },
+                "time": time,
+                "channel_id": channel_id
             }
 
         except Exception as e:

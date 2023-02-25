@@ -491,7 +491,8 @@ def _get_volume_sampling_info(root_data_group, sampling_info_dict):
             'grid_dimensions': None,
             # 'force_dtype': None
         }
-
+        
+        sampling_info_dict['descriptive_statistics'][res_gr_name] = {}
 
 
         
@@ -502,7 +503,7 @@ def _get_volume_sampling_info(root_data_group, sampling_info_dict):
             sampling_info_dict['boxes'][res_gr_name]['grid_dimensions'] = time_gr[first_group_key].shape
             # sampling_info_dict['boxes'][res_gr_name]['force_dtype'] = time_gr[first_group_key].dtype.str
             
-            sampling_info_dict['descriptive_statistics'][time_gr_name] = {}
+            sampling_info_dict['descriptive_statistics'][res_gr_name][time_gr_name] = {}
             for channel_arr_name, channel_arr in time_gr.arrays():
                 assert sampling_info_dict['boxes'][res_gr_name]['grid_dimensions'] == channel_arr.shape
                 # assert sampling_info_dict['boxes'][res_gr_name]['force_dtype'] == channel_arr.dtype.str
@@ -521,7 +522,7 @@ def _get_volume_sampling_info(root_data_group, sampling_info_dict):
                 min_val = float(str(arr_view.min()))
 
                 sampling_info_dict['descriptive_statistics']\
-                    [time_gr_name][channel_arr_name] = {
+                    [res_gr_name][time_gr_name][channel_arr_name] = {
                     'mean': mean_val,
                     'std': std_val,
                     'max': max_val,
@@ -810,6 +811,9 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
                     time_group = our_resolution_gr.create_group(str(i))
                     for j in range(arr.shape[1]):
                         corrected_arr_data = arr[...][i][j].swapaxes(0,2)
+                        # i8 is not supported by CIFTools
+                        if corrected_arr_data.dtype == 'i8':
+                            corrected_arr_data = corrected_arr_data.astype('i4')
                         our_channel_group = time_group.create_group(str(j))
                         our_arr = our_channel_group.create_dataset(
                             name='grid',

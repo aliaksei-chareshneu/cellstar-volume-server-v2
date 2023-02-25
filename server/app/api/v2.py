@@ -49,19 +49,23 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         source: str,
         id: str,
         segmentation: int,
+        channel_id: int,
+        time: int,
         a1: float,
         a2: float,
         a3: float,
         b1: float,
         b2: float,
         b3: float,
-        max_points: Optional[int] = Query(0),
+        max_points: Optional[int] = Query(0)
     ):
         response = await volume_server.get_volume_data(
             req=VolumeRequestInfo(
                 source=source,
                 structure_id=id,
                 segmentation_id=segmentation,
+                channel_id=channel_id,
+                time=time,
                 max_points=max_points,
                 data_kind=VolumeRequestDataKind.segmentation,
             ),

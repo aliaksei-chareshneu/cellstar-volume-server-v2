@@ -14,6 +14,8 @@ class VolumeRequestInfo(BaseModel):
     source: str
     structure_id: str
     segmentation_id: Optional[int] = None
+    channel_id: int
+    time: int
     max_points: int
     data_kind: VolumeRequestDataKind = VolumeRequestDataKind.all
 

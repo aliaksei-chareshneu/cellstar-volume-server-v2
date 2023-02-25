@@ -4,20 +4,20 @@ import numpy as np
 from ciftools.serialization import create_binary_writer
 from db.models import MeshesData, VolumeMetadata, VolumeSliceData
 
-from app.core.models import GridSliceBox
-from app.core.timing import Timing
-from app.serialization.data.meshes_for_cif import MeshesForCif
-from app.serialization.data.segment_set_table import SegmentSetTable
-from app.serialization.data.volume_info import VolumeInfo
-from app.serialization.volume_cif_categories.meshes import (
+from server.app.core.models import GridSliceBox
+from server.app.core.timing import Timing
+from server.app.serialization.data.meshes_for_cif import MeshesForCif
+from server.app.serialization.data.segment_set_table import SegmentSetTable
+from server.app.serialization.data.volume_info import VolumeInfo
+from server.app.serialization.volume_cif_categories.meshes import (
     CategoryWriterProvider_Mesh,
     CategoryWriterProvider_MeshTriangle,
     CategoryWriterProvider_MeshVertex,
 )
-from app.serialization.volume_cif_categories.segmentation_data_3d import SegmentationData3dCategory
-from app.serialization.volume_cif_categories.segmentation_table import SegmentationDataTableCategory
-from app.serialization.volume_cif_categories.volume_data_3d import VolumeData3dCategory
-from app.serialization.volume_cif_categories.volume_data_3d_info import VolumeData3dInfoCategory
+from server.app.serialization.volume_cif_categories.segmentation_data_3d import SegmentationData3dCategory
+from server.app.serialization.volume_cif_categories.segmentation_table import SegmentationDataTableCategory
+from server.app.serialization.volume_cif_categories.volume_data_3d import VolumeData3dCategory
+from server.app.serialization.volume_cif_categories.volume_data_3d_info import VolumeData3dInfoCategory
 
 
 def serialize_volume_slice(slice: VolumeSliceData, metadata: VolumeMetadata, box: GridSliceBox) -> Union[bytes, str]:
@@ -28,7 +28,7 @@ def serialize_volume_slice(slice: VolumeSliceData, metadata: VolumeMetadata, box
     # TODO: create new category with request and responce info (e.g. query region, timing info, etc.)
     # writer.write_category(volume_info_category, [volume_info])
 
-    volume_info = VolumeInfo(name="volume", metadata=metadata, box=box)
+    volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=slice['time'], channel_id=slice["channel_id"])
 
     # volume
     if "volume_slice" in slice:

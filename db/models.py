@@ -182,25 +182,25 @@ class VolumeMetadata(Protocol):
         """
         ...
 
-    def mean(self, level: int) -> np.float32:
+    def mean(self, level: int, time: int, channel_id: int) -> np.float32:
         """
         Return mean for data at given downsampling level
         """
         ...
 
-    def std(self, level: int) -> np.float32:
+    def std(self, level: int, time: int, channel_id: int) -> np.float32:
         """
         Return standard deviation for data at given downsampling level
         """
         ...
 
-    def max(self, level: int) -> np.float32:
+    def max(self, level: int, time: int, channel_id: int) -> np.float32:
         """
         Return max for data at given downsampling level
         """
         ...
 
-    def min(self, level: int) -> np.float32:
+    def min(self, level: int, time: int, channel_id: int) -> np.float32:
         """
         Return min for data at given downsampling level
         """

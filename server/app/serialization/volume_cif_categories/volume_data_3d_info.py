@@ -1,8 +1,8 @@
 from ciftools.models.writer import CIFCategoryDesc
 from ciftools.models.writer import CIFFieldDesc as Field
 
-from app.serialization.data.volume_info import VolumeInfo
-from app.serialization.volume_cif_categories import encoders
+from server.app.serialization.data.volume_info import VolumeInfo
+from server.app.serialization.volume_cif_categories import encoders
 
 
 class VolumeData3dInfoCategory(CIFCategoryDesc):
@@ -15,6 +15,8 @@ class VolumeData3dInfoCategory(CIFCategoryDesc):
     @staticmethod
     def get_field_descriptors(ctx: VolumeInfo):
         byte_array = encoders.bytearray_encoder
+        available_downsamplings = ctx.metadata.volume_downsamplings()
+        source_resolution = available_downsamplings[0]
         return [
             Field.strings(name="name", value=lambda d, i: ctx.name),
             # TODO: would be nice to use i as index of axis order instead of index in the
@@ -52,31 +54,31 @@ class VolumeData3dInfoCategory(CIFCategoryDesc):
             Field.numbers(name="spacegroup_cell_angles[1]", value=lambda d, i: 90, encoder=byte_array, dtype="f8"),
             Field.numbers(name="spacegroup_cell_angles[2]", value=lambda d, i: 90, encoder=byte_array, dtype="f8"),
             # misc
-            Field.numbers(name="mean_source", value=lambda d, i: ctx.metadata.mean(1), encoder=byte_array, dtype="f8"),
+            Field.numbers(name="mean_source", value=lambda d, i: ctx.metadata.mean(source_resolution, time=ctx.time, channel_id=ctx.channel_id), encoder=byte_array, dtype="f8"),
             Field.numbers(
                 name="mean_sampled",
-                value=lambda d, i: ctx.metadata.mean(ctx.box.downsampling_rate),
+                value=lambda d, i: ctx.metadata.mean(ctx.box.downsampling_rate, time=ctx.time, channel_id=ctx.channel_id),
                 encoder=byte_array,
                 dtype="f8",
             ),
-            Field.numbers(name="sigma_source", value=lambda d, i: ctx.metadata.std(1), encoder=byte_array, dtype="f8"),
+            Field.numbers(name="sigma_source", value=lambda d, i: ctx.metadata.std(source_resolution, time=ctx.time, channel_id=ctx.channel_id), encoder=byte_array, dtype="f8"),
             Field.numbers(
                 name="sigma_sampled",
-                value=lambda d, i: ctx.metadata.std(ctx.box.downsampling_rate),
+                value=lambda d, i: ctx.metadata.std(ctx.box.downsampling_rate, time=ctx.time, channel_id=ctx.channel_id),
                 encoder=byte_array,
                 dtype="f8",
             ),
-            Field.numbers(name="min_source", value=lambda d, i: ctx.metadata.min(1), encoder=byte_array, dtype="f8"),
+            Field.numbers(name="min_source", value=lambda d, i: ctx.metadata.min(source_resolution, time=ctx.time, channel_id=ctx.channel_id), encoder=byte_array, dtype="f8"),
             Field.numbers(
                 name="min_sampled",
-                value=lambda d, i: ctx.metadata.min(ctx.box.downsampling_rate),
+                value=lambda d, i: ctx.metadata.min(ctx.box.downsampling_rate, time=ctx.time, channel_id=ctx.channel_id),
                 encoder=byte_array,
                 dtype="f8",
             ),
-            Field.numbers(name="max_source", value=lambda d, i: ctx.metadata.max(1), encoder=byte_array, dtype="f8"),
+            Field.numbers(name="max_source", value=lambda d, i: ctx.metadata.max(source_resolution, time=ctx.time, channel_id=ctx.channel_id), encoder=byte_array, dtype="f8"),
             Field.numbers(
                 name="max_sampled",
-                value=lambda d, i: ctx.metadata.max(ctx.box.downsampling_rate),
+                value=lambda d, i: ctx.metadata.max(ctx.box.downsampling_rate, time=ctx.time, channel_id=ctx.channel_id),
                 encoder=byte_array,
                 dtype="f8",
             ),
