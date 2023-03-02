@@ -7,10 +7,10 @@ from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, Vol
 from server.app.core.service import VolumeServerService
 
 
-FILENAME = '/home/aaxx/cellstar-volume-server-v2/server/app/dev/test_cif.bcif'
+FILENAME = 'server/app/dev/test_cif.bcif'
 
 # initialize dependencies
-db = FileSystemVolumeServerDB(folder=Path('/home/aaxx/cellstar-volume-server-v2/test-data/db'))
+db = FileSystemVolumeServerDB(folder=Path('test-data/db'))
 
 # initialize server
 VOLUME_SERVER = VolumeServerService(db)

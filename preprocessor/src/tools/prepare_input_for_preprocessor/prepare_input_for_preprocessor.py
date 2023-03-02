@@ -15,7 +15,7 @@ from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants i
 
 # TODO: check if it works with abs path (starting with /)
 # TODO: changed based on Lukas response
-STATIC_INPUT_FILES_DIR = Path('/home/aaxx/cellstar-volume-server-v2/temp/v2_temp_static_entry_files_dir')
+STATIC_INPUT_FILES_DIR = Path('temp/v2_temp_static_entry_files_dir')
 
 TEST_RAW_INPUT_FILES_DIR = Path('temp/test_raw_input_files_dir')
 

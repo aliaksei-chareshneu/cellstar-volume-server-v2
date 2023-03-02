@@ -44,7 +44,7 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
         return response
 
-    @app.get("/v2/{source}/{id}/segmentation/box/{segmentation}/{a1}/{a2}/{a3}/{b1}/{b2}/{b3}")
+    @app.get("/v2/{source}/{id}/segmentation/box/{segmentation}/{channel_id}/{time}/{a1}/{a2}/{a3}/{b1}/{b2}/{b3}")
     async def get_segmentation_box(
         source: str,
         id: str,
@@ -95,13 +95,15 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
         return Response(response, headers={"Content-Disposition": f'attachment;filename="{id}.bcif"'})
 
-    @app.get("/v2/{source}/{id}/segmentation/cell/{segmentation}")
-    async def get_segmentation_cell(source: str, id: str, segmentation: int, max_points: Optional[int] = Query(0)):
+    @app.get("/v2/{source}/{id}/segmentation/cell/{segmentation}/{time}/{channel_id}")
+    async def get_segmentation_cell(source: str, id: str, segmentation: int, channel_id: int, time: int, max_points: Optional[int] = Query(0)):
         response = await volume_server.get_volume_data(
             req=VolumeRequestInfo(
                 source=source,
                 structure_id=id,
                 segmentation_id=segmentation,
+                channel_id=channel_id,
+                time=time,
                 max_points=max_points,
                 data_kind=VolumeRequestDataKind.segmentation,
             ),
