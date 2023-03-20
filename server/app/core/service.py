@@ -102,6 +102,8 @@ class VolumeServerService:
                 db_slice = await reader.read_volume_slice(
                     down_sampling_ratio=slice_box.downsampling_rate,
                     box=(slice_box.bottom_left, slice_box.top_right),
+                    channel_id=req.channel_id,
+                    time=req.time
                 )
             elif req.data_kind == VolumeRequestDataKind.segmentation:
                 db_slice = await reader.read_segmentation_slice(

@@ -31,6 +31,7 @@ class ChannelsAnnotations(TypedDict):
     labels: Optional[dict[str, str]]
 
 class AnnotationsMetadata(TypedDict):
+    name: Optional[str]
     entry_id: EntryId
     segment_list: list[Segment]
     # Only in SFF

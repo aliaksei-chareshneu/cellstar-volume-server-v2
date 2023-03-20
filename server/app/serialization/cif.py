@@ -18,6 +18,7 @@ from server.app.serialization.volume_cif_categories.segmentation_data_3d import 
 from server.app.serialization.volume_cif_categories.segmentation_table import SegmentationDataTableCategory
 from server.app.serialization.volume_cif_categories.volume_data_3d import VolumeData3dCategory
 from server.app.serialization.volume_cif_categories.volume_data_3d_info import VolumeData3dInfoCategory
+from server.app.serialization.volume_cif_categories.volume_data_time_and_channel_info import VolumeDataTimeAndChannelInfo
 
 
 def serialize_volume_slice(slice: VolumeSliceData, metadata: VolumeMetadata, box: GridSliceBox) -> Union[bytes, str]:
@@ -34,14 +35,19 @@ def serialize_volume_slice(slice: VolumeSliceData, metadata: VolumeMetadata, box
     if "volume_slice" in slice:
         writer.start_data_block("volume")  # Currently needs to be EM for
         writer.write_category(VolumeData3dInfoCategory, [volume_info])
+        # which channel_id and time_id is it
+        writer.write_category(VolumeDataTimeAndChannelInfo, [volume_info])
 
         data_category = VolumeData3dCategory()
         writer.write_category(data_category, [np.ravel(slice["volume_slice"], order='F')])
 
     # segmentation
     if "segmentation_slice" in slice and slice["segmentation_slice"]["category_set_ids"] is not None:
+        # TODO: add lattice_id info
         writer.start_data_block("segmentation_data")
         writer.write_category(VolumeData3dInfoCategory, [volume_info])
+        # which channel_id and time_id is it
+        writer.write_category(VolumeDataTimeAndChannelInfo, [volume_info])
 
         segmentation = slice["segmentation_slice"]
 

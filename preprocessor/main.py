@@ -731,6 +731,7 @@ def extract_ome_zarr_annotations(ome_zarr_root, source_db_id: str, source_db_nam
                         "external_references": [
                         ]
                     },
+                    "lattice_id": label_gr_name,
                     "color": ind_label_color_fractional,
                 }
             )
