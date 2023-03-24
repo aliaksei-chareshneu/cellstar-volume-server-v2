@@ -20,23 +20,41 @@ class BiologicalAnnotation(TypedDict):
 class Segment(TypedDict):
     # label-value in NGFF
     id: int
-    color: Optional[list[int, int, int]]
+    color: Optional[tuple[float, float, float, float]]
     biological_annotation: Optional[list[BiologicalAnnotation]]
 
+class ChannelAnnotation(TypedDict):
+    channel_id: str
+    # with transparency
+    color: tuple[float, float, float, float]
+    # alpha: Optional[float]
+    label: Optional[str]
 
-class ChannelsAnnotations(TypedDict):
-    # channel_id -> channel color
-    colors: dict[str, list[int, int, int]]
-    # channel_id -> channel label; from omero - channels (e.g. "DAPI")
-    labels: Optional[dict[str, str]]
+# class ChannelsAnnotations(TypedDict):
+#     # channel_id -> channel color
+#     # TODO: tuple
+#     colors: dict[str, tuple[float, float, float, float]]
+#     # channel_id -> channel label; from omero - channels (e.g. "DAPI")
+#     labels: Optional[dict[str, str]]
+
+class SegmentationLatticeInfo(TypedDict):
+    lattice_id: str
+    segment_list: list[Segment]
+    
 
 class AnnotationsMetadata(TypedDict):
     name: Optional[str]
     entry_id: EntryId
-    segment_list: list[Segment]
+    # segment_list: list[Segment]
+    # lattice_id => list of Segments
+    # segment_list: dict[int, list[Segment]]
+    segmentation_lattices: list[SegmentationLatticeInfo]
+    # lattices: list[LatticeInfo]
     # Only in SFF
     details: Optional[str]
-    volume_channels_annotations: ChannelsAnnotations
+    volume_channels_annotations: list[ChannelAnnotation]
+
+
 
 class MeshesMetadata(TypedDict):
     mesh_component_numbers: dict

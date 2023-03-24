@@ -359,13 +359,20 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
 
 def _convert_hex_to_rgba_fractional(channel_color_hex):
     channel_color_rgba = ImageColor.getcolor(f'#{channel_color_hex}', "RGBA")
-    channel_color_rgba_fractional = [i/255 for i in channel_color_rgba]
+    channel_color_rgba_fractional = tuple([i/255 for i in channel_color_rgba])
     return channel_color_rgba_fractional
 
-def get_channel_annotations(ome_zarr_attrs, volume_channel_annotations_dict):
+def get_channel_annotations(ome_zarr_attrs, volume_channel_annotations):
     for channel_id, channel in enumerate(ome_zarr_attrs['omero']['channels']):
-        volume_channel_annotations_dict['colors'][str(channel_id)] = _convert_hex_to_rgba_fractional(channel['color'])
-        volume_channel_annotations_dict['labels'][str(channel_id)] = channel['label']
+        volume_channel_annotations.append(
+            {
+                'channel_id': channel_id,
+                'color': _convert_hex_to_rgba_fractional(channel['color']),
+                'labels': channel['label']
+            }
+        )
+        # volume_channel_annotations_dict['colors'][str(channel_id)] = _convert_hex_to_rgba_fractional(channel['color'])
+        # volume_channel_annotations_dict['labels'][str(channel_id)] = channel['label']
 
 # TODO: add support for time transformations applied to all resolution
 def get_time_transformations(ome_zarr_attrs, time_transformations_list: list):
@@ -705,15 +712,12 @@ def extract_ome_zarr_annotations(ome_zarr_root, source_db_id: str, source_db_nam
         },
         'segment_list': [],
         'details': None,
-        'volume_channels_annotations': {
-            'colors': {},
-            'labels': {}
-        }
+        'volume_channels_annotations': []
     }
     segment_list = d['segment_list']
 
     get_channel_annotations(ome_zarr_attrs=ome_zarr_root.attrs,
-        volume_channel_annotations_dict=d['volume_channels_annotations'])
+        volume_channel_annotations=d['volume_channels_annotations'])
 
     for label_gr_name, label_gr in ome_zarr_root.labels.groups():
         labels_metadata_list = label_gr.attrs['image-label']['colors']
