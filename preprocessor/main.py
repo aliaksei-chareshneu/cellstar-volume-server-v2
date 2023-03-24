@@ -710,22 +710,28 @@ def extract_ome_zarr_annotations(ome_zarr_root, source_db_id: str, source_db_nam
             'source_db_name': source_db_name,
             'source_db_id': source_db_id
         },
-        'segment_list': [],
+        # 'segment_list': [],
+        'segmentation_lattices': [],
         'details': None,
         'volume_channels_annotations': []
     }
-    segment_list = d['segment_list']
+    # segment_list = d['segment_list']
 
     get_channel_annotations(ome_zarr_attrs=ome_zarr_root.attrs,
         volume_channel_annotations=d['volume_channels_annotations'])
 
     for label_gr_name, label_gr in ome_zarr_root.labels.groups():
+        segmentation_lattice_info = {
+            "lattice_id": label_gr_name,
+            "segment_list": []
+        }
         labels_metadata_list = label_gr.attrs['image-label']['colors']
         for ind_label_meta in labels_metadata_list:
             label_value = ind_label_meta['label-value']
             ind_label_color_rgba = ind_label_meta['rgba']
             ind_label_color_fractional = [i/255 for i in ind_label_color_rgba]
-            segment_list.append(
+
+            segmentation_lattice_info["segment_list"].append(
                 {
                     "id": int(label_value),
                     "biological_annotation": {
@@ -735,10 +741,13 @@ def extract_ome_zarr_annotations(ome_zarr_root, source_db_id: str, source_db_nam
                         "external_references": [
                         ]
                     },
-                    "lattice_id": label_gr_name,
                     "color": ind_label_color_fractional,
                 }
             )
+        # append
+        d['segmentation_lattices'].append(segmentation_lattice_info)
+
+            
 
     return d
 
