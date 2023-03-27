@@ -368,7 +368,7 @@ def get_channel_annotations(ome_zarr_attrs, volume_channel_annotations):
             {
                 'channel_id': channel_id,
                 'color': _convert_hex_to_rgba_fractional(channel['color']),
-                'labels': channel['label']
+                'label': channel['label']
             }
         )
         # volume_channel_annotations_dict['colors'][str(channel_id)] = _convert_hex_to_rgba_fractional(channel['color'])
@@ -720,32 +720,33 @@ def extract_ome_zarr_annotations(ome_zarr_root, source_db_id: str, source_db_nam
     get_channel_annotations(ome_zarr_attrs=ome_zarr_root.attrs,
         volume_channel_annotations=d['volume_channels_annotations'])
 
-    for label_gr_name, label_gr in ome_zarr_root.labels.groups():
-        segmentation_lattice_info = {
-            "lattice_id": label_gr_name,
-            "segment_list": []
-        }
-        labels_metadata_list = label_gr.attrs['image-label']['colors']
-        for ind_label_meta in labels_metadata_list:
-            label_value = ind_label_meta['label-value']
-            ind_label_color_rgba = ind_label_meta['rgba']
-            ind_label_color_fractional = [i/255 for i in ind_label_color_rgba]
+    if 'labels' in ome_zarr_root:    
+        for label_gr_name, label_gr in ome_zarr_root.labels.groups():
+            segmentation_lattice_info = {
+                "lattice_id": label_gr_name,
+                "segment_list": []
+            }
+            labels_metadata_list = label_gr.attrs['image-label']['colors']
+            for ind_label_meta in labels_metadata_list:
+                label_value = ind_label_meta['label-value']
+                ind_label_color_rgba = ind_label_meta['rgba']
+                ind_label_color_fractional = [i/255 for i in ind_label_color_rgba]
 
-            segmentation_lattice_info["segment_list"].append(
-                {
-                    "id": int(label_value),
-                    "biological_annotation": {
-                        "name": f"segment {label_value}",
-                        "description": None,
-                        "number_of_instances": None,
-                        "external_references": [
-                        ]
-                    },
-                    "color": ind_label_color_fractional,
-                }
-            )
-        # append
-        d['segmentation_lattices'].append(segmentation_lattice_info)
+                segmentation_lattice_info["segment_list"].append(
+                    {
+                        "id": int(label_value),
+                        "biological_annotation": {
+                            "name": f"segment {label_value}",
+                            "description": None,
+                            "number_of_instances": None,
+                            "external_references": [
+                            ]
+                        },
+                        "color": ind_label_color_fractional,
+                    }
+                )
+            # append
+            d['segmentation_lattices'].append(segmentation_lattice_info)
 
             
 
@@ -815,17 +816,44 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
     segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
     
     # Lattice IDs = Label groups
-    for label_gr_name, label_gr in ome_zarr_root.labels.groups():
-        lattice_id_gr = segmentation_data_gr.create_group(label_gr_name)
-        # arr_name is resolution
-        for arr_name, arr in label_gr.arrays():
-            our_resolution_gr = lattice_id_gr.create_group(arr_name)
-            if len(axes) == 5 and axes[0]['name'] == 't':
-                for i in range(arr.shape[0]):
-                    time_group = our_resolution_gr.create_group(str(i))
-                    for j in range(arr.shape[1]):
-                        corrected_arr_data = arr[...][i][j].swapaxes(0,2)
-                        # i8 is not supported by CIFTools
+    if 'labels' in ome_zarr_root:
+        for label_gr_name, label_gr in ome_zarr_root.labels.groups():
+            lattice_id_gr = segmentation_data_gr.create_group(label_gr_name)
+            # arr_name is resolution
+            for arr_name, arr in label_gr.arrays():
+                our_resolution_gr = lattice_id_gr.create_group(arr_name)
+                if len(axes) == 5 and axes[0]['name'] == 't':
+                    for i in range(arr.shape[0]):
+                        time_group = our_resolution_gr.create_group(str(i))
+                        for j in range(arr.shape[1]):
+                            corrected_arr_data = arr[...][i][j].swapaxes(0,2)
+                            # i8 is not supported by CIFTools
+                            if corrected_arr_data.dtype == 'i8':
+                                corrected_arr_data = corrected_arr_data.astype('i4')
+                            our_channel_group = time_group.create_group(str(j))
+                            our_arr = our_channel_group.create_dataset(
+                                name='grid',
+                                shape=corrected_arr_data.shape,
+                                data=corrected_arr_data
+                            )
+
+                            our_set_table = our_channel_group.create_dataset(
+                                name='set_table',
+                                dtype=object,
+                                object_codec=numcodecs.JSON(),
+                                shape=1
+                            )
+
+                            d = {}
+                            for value in np.unique(our_arr[...]):
+                                d[str(value)] = [int(value)]
+
+                            our_set_table[...] = [d]
+
+                elif len(axes) == 4 and axes[0]['name'] == 'c':
+                    time_group = our_resolution_gr.create_group('0')
+                    for j in range(arr.shape[0]):
+                        corrected_arr_data = arr[...][j].swapaxes(0,2)
                         if corrected_arr_data.dtype == 'i8':
                             corrected_arr_data = corrected_arr_data.astype('i4')
                         our_channel_group = time_group.create_group(str(j))
@@ -847,32 +875,6 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
                             d[str(value)] = [int(value)]
 
                         our_set_table[...] = [d]
-
-            elif len(axes) == 4 and axes[0]['name'] == 'c':
-                time_group = our_resolution_gr.create_group('0')
-                for j in range(arr.shape[0]):
-                    corrected_arr_data = arr[...][j].swapaxes(0,2)
-                    if corrected_arr_data.dtype == 'i8':
-                        corrected_arr_data = corrected_arr_data.astype('i4')
-                    our_channel_group = time_group.create_group(str(j))
-                    our_arr = our_channel_group.create_dataset(
-                        name='grid',
-                        shape=corrected_arr_data.shape,
-                        data=corrected_arr_data
-                    )
-
-                    our_set_table = our_channel_group.create_dataset(
-                        name='set_table',
-                        dtype=object,
-                        object_codec=numcodecs.JSON(),
-                        shape=1
-                    )
-
-                    d = {}
-                    for value in np.unique(our_arr[...]):
-                        d[str(value)] = [int(value)]
-
-                    our_set_table[...] = [d]
 
         
         
