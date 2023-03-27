@@ -852,6 +852,8 @@ def process_ome_zarr(ome_zarr_path, temp_zarr_hierarchy_storage_path, source_db_
                 time_group = our_resolution_gr.create_group('0')
                 for j in range(arr.shape[0]):
                     corrected_arr_data = arr[...][j].swapaxes(0,2)
+                    if corrected_arr_data.dtype == 'i8':
+                        corrected_arr_data = corrected_arr_data.astype('i4')
                     our_channel_group = time_group.create_group(str(j))
                     our_arr = our_channel_group.create_dataset(
                         name='grid',
