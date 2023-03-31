@@ -83,11 +83,12 @@ def prepare_input_for_preprocessor(config: list[dict], output_dir: Path, db_path
                 shutil.copy2(static_segmentation_file_path, static_sff_output_path)
 
         elif entry['static_input_files'] and entry['source_db'] == 'idr':
-            # NOTE: for ome zarr
+            # NOTE: for ome 
+            static_ome_zarr_dir_path = None
             static_folder_content = sorted((STATIC_INPUT_FILES_DIR / entry['source_db'] / preprocessor_folder_name).glob('*'))
             for item in static_folder_content:
                 if item.is_dir() and item.name.split('.')[1] == 'zarr':
-                    static_ome_zarr_dir_path: Path = item
+                    static_ome_zarr_dir_path = item
                     static_ome_zarr_dir_output_path = entry_folder / static_ome_zarr_dir_path.name
                     entry['ome_zarr_path'] = static_ome_zarr_dir_output_path
             
