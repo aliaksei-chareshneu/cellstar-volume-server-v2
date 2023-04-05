@@ -54,12 +54,6 @@ class AnnotationsMetadata(TypedDict):
     details: Optional[str]
     volume_channels_annotations: list[ChannelAnnotation]
 
-
-
-class MeshesMetadata(TypedDict):
-    mesh_component_numbers: dict
-    detail_lvl_to_fraction: dict
-
 class TimeTransformation(TypedDict):
     # to which downsampling level it is applied: can be to specific level, can be to all lvls
     downsampling_level: Union[int, str] 
@@ -111,11 +105,7 @@ class SegmentationLatticesMetadata(TypedDict):
     time_info: dict[str, TimeInfo]
 
 
-class Metadata(TypedDict):
-    entry_id: EntryId
-    volumes: VolumesMetadata
-    segmentation_lattices: SegmentationLatticesMetadata
-    segmentation_meshes: MeshesMetadata
+
 
 class MeshMetadata(TypedDict):
     num_vertices: int
@@ -157,6 +147,16 @@ class VolumeSliceData(TypedDict):
     volume_slice: Optional[np.ndarray]
     channel_id: int
     time: int
+
+class MeshesMetadata(TypedDict):
+    mesh_component_numbers: MeshComponentNumbers
+    detail_lvl_to_fraction: dict
+
+class Metadata(TypedDict):
+    entry_id: EntryId
+    volumes: VolumesMetadata
+    segmentation_lattices: SegmentationLatticesMetadata
+    segmentation_meshes: MeshesMetadata
 
 class VolumeMetadata(Protocol):
     def json_metadata(self) -> str:
