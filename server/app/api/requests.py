@@ -13,14 +13,14 @@ class VolumeRequestDataKind(str, Enum):
 class VolumeRequestInfo(BaseModel):
     source: str
     structure_id: str
-    segmentation_id: Optional[int] = None
+    segmentation_id: Optional[str] = None
     channel_id: int
     time: int
     max_points: int
     data_kind: VolumeRequestDataKind = VolumeRequestDataKind.all
 
     @validator("segmentation_id")
-    def _validate_segmentation_ui(cls, id: Optional[int], values):
+    def _validate_segmentation_ui(cls, id: Optional[str], values):
         if id is None and values["data_kind"] != "volume":
             raise ValueError("segmentation_id must be defined for segmentation/all queries")
 
