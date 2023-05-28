@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 from preprocessor.main import remove_temp_zarr_hierarchy_storage_folder
-from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import CSV_WITH_ENTRY_IDS_FILE, DEFAULT_DB_PATH, RAW_INPUT_FILES_DIR, TEMP_ZARR_HIERARCHY_STORAGE_PATH
+from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import CSV_WITH_ENTRY_IDS_FILE, DB_NAME_FOR_OME_TIFF, DEFAULT_DB_PATH, RAW_INPUT_FILES_DIR, TEMP_ZARR_HIERARCHY_STORAGE_PATH
 from preprocessor.src.tools.deploy_db.deploy_process_helper import clean_up_processes, clean_up_raw_input_files_dir, clean_up_temp_zarr_hierarchy_storage
 
 from preprocessor.src.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import csv_to_config_list_of_dicts, prepare_input_for_preprocessor
@@ -48,6 +48,10 @@ def _preprocessor_internal_wrapper(entry: dict):
 
     if entry['source_db'] == 'idr':
         lst.extend(['--ome_zarr_path', entry['ome_zarr_path']])
+
+    if entry['source_db'] == DB_NAME_FOR_OME_TIFF:
+        lst.extend(['--ome_tiff_path', entry['ome_tiff_path']])
+
 
     process = subprocess.Popen(lst)
     global PROCESS_IDS_LIST

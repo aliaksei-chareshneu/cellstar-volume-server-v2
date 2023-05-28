@@ -8,6 +8,7 @@ from asgiref.sync import async_to_sync
 import numpy as np
 import numcodecs
 from PIL import ImageColor
+from pyometiff import OMETIFFReader
 
 from pathlib import Path
 from numcodecs import Blosc
@@ -752,6 +753,151 @@ def extract_ome_zarr_annotations(ome_zarr_root, source_db_id: str, source_db_nam
 
     return d
 
+def extract_ome_tiff_annotations(ome_tiff_metadata, source_db_id: str, source_db_name: str):
+    d = {
+        'entry_id': {
+            'source_db_name': source_db_name,
+            'source_db_id': source_db_id
+        },
+        # 'segment_list': [],
+        'segmentation_lattices': [],
+        'details': None,
+        'volume_channels_annotations': []
+    }
+
+    get_ome_tiff_channel_annotations(ome_tiff_metadata=ome_tiff_metadata,
+        volume_channel_annotations=d['volume_channels_annotations'])
+
+    return d
+
+def process_ome_tiff(ome_tiff_path, temp_zarr_hierarchy_storage_path, source_db_id, source_db_name):
+    reader = OMETIFFReader(fpath=ome_tiff_path)
+    img_array, metadata, xml_metadata = reader.read()
+
+    entry_id = source_db_name + '-' + source_db_id
+    our_zarr_structure_path = temp_zarr_hierarchy_storage_path / entry_id
+    our_zarr_structure = zarr.open_group(our_zarr_structure_path, mode='w')
+
+    # PROCESSING VOLUME
+    volume_data_gr = our_zarr_structure.create_group(VOLUME_DATA_GROUPNAME)
+    # NOTE: no pyramids in sample ome tiff, so resolution group = 0
+    # NOTE: time and channel = 1
+    resolution_group = volume_data_gr.create_group('0')
+    time_group = resolution_group.create_group('0')
+
+    # TODO: function to determine how to reorder dimensions in array
+    if metadata['DimOrder'] == 'TCZYX' or metadata['DimOrder'] == 'CTZYX':
+        corrected_volume_arr_data = img_array[...].swapaxes(0,2)
+        our_channel_arr = time_group.create_dataset(
+            # channel also 0
+            name='0',
+            shape=corrected_volume_arr_data.shape,
+            data=corrected_volume_arr_data
+        )
+
+    # TODO: extract grid_metadata and annotation_metadata
+    grid_metadata = extract_ome_tiff_metadata(
+        source_db_id=source_db_id,
+        source_db_name=source_db_name,
+        ome_tiff_metadata=metadata
+    )
+
+    annotation_metadata = extract_ome_tiff_annotations(
+        ome_tiff_metadata=metadata,
+        source_db_id=source_db_id,
+        source_db_name=source_db_name,
+    )
+
+    SFFPreprocessor.temp_save_metadata(grid_metadata, GRID_METADATA_FILENAME, our_zarr_structure_path)
+    SFFPreprocessor.temp_save_metadata(annotation_metadata, ANNOTATION_METADATA_FILENAME, our_zarr_structure_path)
+
+    return our_zarr_structure
+    # TODO: channel can contain color, see: https://www.openmicroscopy.org/Schemas/Documentation/Generated/OME-2016-06/ome.html
+    # <Channel AcquisitionMode="" Color="-1"
+    # but our files does not contain it
+    # default #FFFFFFFF
+
+def _get_ome_tiff_channel_ids(ome_tiff_metadata):
+    channels = ome_tiff_metadata['Channels']
+    # for now just return 0
+    return [0]
+
+
+def extract_ome_tiff_metadata(
+        source_db_id: str,
+        source_db_name: str,
+        ome_tiff_metadata):
+    
+    channel_ids = _get_ome_tiff_channel_ids(ome_tiff_metadata)
+    start_time = 0
+    end_time = 0
+    # no time units data in metadata
+    time_units = 'millisecond'
+    volume_downsamplings = [0]
+    source_axes_units = {}
+
+    metadata_dict = {
+        'entry_id': {
+            'source_db_name': source_db_name,
+            'source_db_id': source_db_id
+
+        },
+        'volumes': {
+            'channel_ids': channel_ids,
+            # Values of time dimension
+            'time_info': {
+                'kind': "range",
+                'start': start_time,
+                'end': end_time,
+                'units': time_units
+            },
+            'volume_sampling_info': {
+                # Info about "downsampling dimension"
+                'spatial_downsampling_levels': volume_downsamplings,
+                # the only thing with changes with SPATIAL downsampling is box!
+                'boxes': {},
+                # time -> channel_id
+                'descriptive_statistics': {},
+                'time_transformations': [],
+                'source_axes_units': source_axes_units
+            }
+        },
+        'segmentation_lattices': {
+            'segmentation_lattice_ids': [],
+            'segmentation_sampling_info': {},
+            'channel_ids': {},
+            'time_info': {}
+        },
+        'segmentation_meshes': {
+            'mesh_component_numbers': {},
+            'detail_lvl_to_fraction': {}
+        }
+    }
+
+    return metadata_dict
+    
+
+def get_ome_tiff_channel_annotations(ome_tiff_metadata, volume_channel_annotations):
+    for key in ome_tiff_metadata['Channels']:
+        channel = ome_tiff_metadata['Channels'][key]
+        channel_id = channel['ID']
+        # for now FFFFFFF
+        color = 'FFFFFF'
+        # TODO: check how it is encoded in some sample
+        # if channel['Color']:
+        #     color = _convert_hex_to_rgba_fractional(channel['Color'])
+        label = channel_id
+        if 'Name' in channel:
+            label = channel['Name']
+
+        volume_channel_annotations.append(
+            {
+                'channel_id': channel_id,
+                'color': color,
+                'label': label
+            }
+        )
+        
 
 # returns zarr structure to be stored with db.store
 # NOTE: just one channel
@@ -907,6 +1053,15 @@ async def store_ome_zarr_structure(db_path, temp_ome_zarr_structure, source_db, 
     db = FileSystemVolumeServerDB(new_db_path, store_type='zip')
     await db.store(namespace=source_db, key=entry_id, temp_store_path=Path(temp_ome_zarr_structure.store.path))
 
+async def store_ome_tiff_structure(db_path, temp_ome_tiff_structure, source_db, entry_id):
+    new_db_path = Path(db_path)
+    if new_db_path.is_dir() == False:
+        new_db_path.mkdir()
+
+    db = FileSystemVolumeServerDB(new_db_path, store_type='zip')
+    await db.store(namespace=source_db, key=entry_id, temp_store_path=Path(temp_ome_tiff_structure.store.path))
+
+
 async def main():
     args = parse_script_args()
     
@@ -946,7 +1101,16 @@ async def main():
 
         if args.single_entry:
             if args.entry_id and args.source_db and args.source_db_id and args.source_db_name:
-                if args.ome_zarr_path:
+                if args.ome_tiff_path:
+                    # do ome tiff thing
+                    zarr_structure_to_be_saved = process_ome_tiff(
+                        ome_tiff_path=args.ome_tiff_path,
+                        temp_zarr_hierarchy_storage_path=temp_zarr_hierarchy_storage_path,
+                        source_db_id=args.source_db_id,
+                        source_db_name=args.source_db_name)
+                    await store_ome_tiff_structure(args.db_path, zarr_structure_to_be_saved, args.source_db, args.entry_id)
+                    print(1)
+                elif args.ome_zarr_path:
                     # do ome zarr thing
                     zarr_structure_to_be_saved = process_ome_zarr(
                         ome_zarr_path=args.ome_zarr_path,
@@ -1000,6 +1164,7 @@ def parse_script_args():
     parser.add_argument('--source_db_id', type=str, help='actual source db id for metadata')
     parser.add_argument('--source_db_name', type=str, help='actual source db name for metadata')
     parser.add_argument('--ome_zarr_path', type=Path)
+    parser.add_argument('--ome_tiff_path', type=Path)
     args=parser.parse_args()
     return args
 

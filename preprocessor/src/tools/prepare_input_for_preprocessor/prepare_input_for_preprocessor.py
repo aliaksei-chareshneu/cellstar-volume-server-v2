@@ -11,7 +11,7 @@ import csv
 import pandas as pd
 import numpy as np
 
-from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import APPLICATION_SPECIFIC_SEGMENTATION_EXTENSIONS, CSV_WITH_ENTRY_IDS_FILE, DEFAULT_DB_PATH
+from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import APPLICATION_SPECIFIC_SEGMENTATION_EXTENSIONS, CSV_WITH_ENTRY_IDS_FILE, DB_NAME_FOR_OME_TIFF, DEFAULT_DB_PATH
 
 # TODO: check if it works with abs path (starting with /)
 # TODO: changed based on Lukas response
@@ -57,6 +57,8 @@ def prepare_input_for_preprocessor(config: list[dict], output_dir: Path, db_path
             entry['source_db'] = 'empiar'
         elif db == 'idr':
             entry['source_db'] = 'idr'
+        elif db == DB_NAME_FOR_OME_TIFF:
+            entry['source_db'] = DB_NAME_FOR_OME_TIFF
         else:
             raise ValueError(f'Source db is not recognized: {db}')
 
@@ -64,7 +66,7 @@ def prepare_input_for_preprocessor(config: list[dict], output_dir: Path, db_path
         entry_folder.mkdir(parents=True, exist_ok=True)
         entry['single_entry'] = str(entry_folder.resolve())
 
-        if entry['static_input_files'] and entry['source_db'] != 'idr':
+        if entry['static_input_files'] and entry['source_db'] not in ['idr', DB_NAME_FOR_OME_TIFF]:
             static_segmentation_file_path = None
             static_folder_content = sorted((STATIC_INPUT_FILES_DIR / entry['source_db'] / preprocessor_folder_name).glob('*'))
             for item in static_folder_content:
@@ -96,6 +98,19 @@ def prepare_input_for_preprocessor(config: list[dict], output_dir: Path, db_path
                 raise Exception('No ome zarr found')
 
             shutil.copytree(static_ome_zarr_dir_path, static_ome_zarr_dir_output_path)
+        elif entry['static_input_files'] and entry['source_db'] == DB_NAME_FOR_OME_TIFF:
+            static_ome_tiff_path = None
+            static_folder_content = sorted((STATIC_INPUT_FILES_DIR / entry['source_db'] / preprocessor_folder_name).glob('*'))
+            for item in static_folder_content:
+                if item.is_file() and item.name.split('.')[-1] in ['tif', 'tiff']:
+                    static_ome_tiff_path = item
+                    static_ome_tiff_output_path = entry_folder / static_ome_tiff_path.name
+                    entry['ome_tiff_path'] = static_ome_tiff_output_path
+            
+            if not static_ome_tiff_path:
+                raise Exception('No ome tiff found')
+
+            shutil.copy2(static_ome_tiff_path, static_ome_tiff_output_path)
         else:
             if db == 'emd':
                 # Get map
