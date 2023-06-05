@@ -1,3 +1,4 @@
+import re
 import zarr
 import argparse
 import asyncio
@@ -32,6 +33,11 @@ OME_ZARR_DEFAULT_PATH = Path('sample_ome_zarr_from_ome_zarr_py_docs/6001240.zarr
 SPACE_UNITS_CONVERSION_DICT = {
     'micrometer': 10000,
     'angstrom': 1
+}
+
+SHORT_UNIT_NAMES_TO_LONG = {
+    'µm': 'micrometer',
+    # TODO: support other units
 }
 
 def obtain_paths_to_single_entry_files(input_files_dir: Path) -> Dict:
@@ -786,20 +792,28 @@ def process_ome_tiff(ome_tiff_path, temp_zarr_hierarchy_storage_path, source_db_
     time_group = resolution_group.create_group('0')
 
     # TODO: function to determine how to reorder dimensions in array
-    if metadata['DimOrder'] == 'TCZYX' or metadata['DimOrder'] == 'CTZYX':
+    # NOTE: only single channel for now
+    if metadata['SizeC'] == 1 and (metadata['DimOrder'] == 'TCZYX' or metadata['DimOrder'] == 'CTZYX'):
         corrected_volume_arr_data = img_array[...].swapaxes(0,2)
-        our_channel_arr = time_group.create_dataset(
+        # TODO: iterate over channels in metadata, create channel arrays with name
+        # corresponding to channel ID
+        # create a function for that that takes 
+        # channel_id = _parse_ome_tiff_channel_id(channel['ID'])?
+        time_group.create_dataset(
             # channel also 0
             name='0',
             shape=corrected_volume_arr_data.shape,
             data=corrected_volume_arr_data
         )
+    else:
+        raise Exception('Dimension order of this OMETIFF is not supported')
 
     # TODO: extract grid_metadata and annotation_metadata
     grid_metadata = extract_ome_tiff_metadata(
         source_db_id=source_db_id,
         source_db_name=source_db_name,
-        ome_tiff_metadata=metadata
+        ome_tiff_metadata=metadata,
+        our_zarr_structure=our_zarr_structure
     )
 
     annotation_metadata = extract_ome_tiff_annotations(
@@ -818,22 +832,106 @@ def process_ome_tiff(ome_tiff_path, temp_zarr_hierarchy_storage_path, source_db_
     # default #FFFFFFFF
 
 def _get_ome_tiff_channel_ids(ome_tiff_metadata):
-    channels = ome_tiff_metadata['Channels']
-    # for now just return 0
+    # NOTE: only single channel for now
     return [0]
 
+    # channels = ome_tiff_metadata['Channels']
+    # # for now just return 0
+    # # return [0]
+    # channel_ids = []
+    # for key in channels:
+    #     channel = channels[key]
+    #     channel_id = _parse_ome_tiff_channel_id(channel['ID'])
+    #     channel_ids.append(channel_id)
+
+    # return channel_ids
+
+def _convert_short_units_to_long(short_unit_name: str):
+    # TODO: support conversion of other axes units (currently only µm to micrometer).
+    # https://www.openmicroscopy.org/Schemas/Documentation/Generated/OME-2016-06/ome_xsd.html#Pixels_PhysicalSizeXUnit
+    if short_unit_name in SHORT_UNIT_NAMES_TO_LONG:
+        return SHORT_UNIT_NAMES_TO_LONG[short_unit_name]
+    else:
+        raise Exception('Short unit name is not supported')
+
+def _get_ometiff_physical_size(ome_tiff_metadata):
+    d = {}
+    if 'PhysicalSizeX' in ome_tiff_metadata:
+        d['x'] = ome_tiff_metadata['PhysicalSizeX']
+    else:
+        d['x'] = 1.0
+
+    if 'PhysicalSizeY' in ome_tiff_metadata:
+        d['y'] = ome_tiff_metadata['PhysicalSizeY']
+    else:
+        d['y'] = 1.0
+
+    if 'PhysicalSizeZ' in ome_tiff_metadata:
+        d['z'] = ome_tiff_metadata['PhysicalSizeZ']
+    else:
+        d['z'] = 1.0
+    
+    return d
+
+def _get_ometiff_axes_units(ome_tiff_metadata):
+    axes_units = {}
+    if 'PhysicalSizeXUnit' in ome_tiff_metadata:
+        axes_units['x'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeXUnit'])
+    else:
+        axes_units['x'] = 'micrometer'
+
+    if 'PhysicalSizeYUnit' in ome_tiff_metadata:
+        axes_units['y'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeYUnit'])
+    else:
+        axes_units['y'] = 'micrometer'
+
+    if 'PhysicalSizeZUnit' in ome_tiff_metadata:
+        axes_units['z'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeZUnit'])
+    else:
+        axes_units['z'] = 'micrometer'
+    
+    return axes_units
+    
+
+def _get_ome_tiff_voxel_sizes_in_downsamplings(boxes_dict, volume_downsamplings, ometiff_metadata):
+    # original voxel size - in XML metadata (PhysicalSizeX,Y,Z)
+    # downsampling voxel size - constructed based on how many downsamplings there are
+    # plan:
+    # 1. for 0th downsampling - get from metadata
+    # 2. TODO: for other levels - iterate over volume_downsamplings
+    # axis order? XYZ? we change it to XYZ when processing volume
+    for level in volume_downsamplings:
+        downsampling_level = str(level)
+        if downsampling_level == '0':
+            ometiff_axes_units_dict = _get_ometiff_axes_units(ometiff_metadata)
+            ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
+            boxes_dict[downsampling_level]['voxel_size'] = [
+                _convert_to_angstroms(ometiff_physical_size_dict['x'], ometiff_axes_units_dict['x']),
+                _convert_to_angstroms(ometiff_physical_size_dict['y'], ometiff_axes_units_dict['y']),
+                _convert_to_angstroms(ometiff_physical_size_dict['z'], ometiff_axes_units_dict['z'])
+            ]
+        else:
+            pass
+
+def _get_ome_tiff_origins(boxes_dict: dict, volume_downsamplings):
+    # NOTE: origins seem to be 0, 0, 0, as they are not specified
+    for level in volume_downsamplings:
+        downsampling_level = str(level)
+        boxes_dict[downsampling_level]['origin'] = [0, 0, 0]
 
 def extract_ome_tiff_metadata(
         source_db_id: str,
         source_db_name: str,
-        ome_tiff_metadata):
+        ome_tiff_metadata,
+        our_zarr_structure):
     
+    root = our_zarr_structure
     channel_ids = _get_ome_tiff_channel_ids(ome_tiff_metadata)
     start_time = 0
     end_time = 0
     # no time units data in metadata
     time_units = 'millisecond'
-    volume_downsamplings = [0]
+    volume_downsamplings = _get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
     source_axes_units = {}
 
     metadata_dict = {
@@ -874,19 +972,37 @@ def extract_ome_tiff_metadata(
         }
     }
 
-    return metadata_dict
+    # TODO: check if this function works for ome tiff
+    _get_volume_sampling_info(root_data_group=root[VOLUME_DATA_GROUPNAME],
+        sampling_info_dict=metadata_dict['volumes']['volume_sampling_info'])
+
+    _get_ome_tiff_voxel_sizes_in_downsamplings(
+        boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
+        volume_downsamplings=volume_downsamplings,
+        ometiff_metadata=ome_tiff_metadata
+    )
+
+    _get_ome_tiff_origins(
+        boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
+        volume_downsamplings=volume_downsamplings
+    )
     
+    return metadata_dict
+
+def _parse_ome_tiff_channel_id(ometiff_channel_id: str):
+    channel_id = re.sub(r'\W+', '', ometiff_channel_id)
+    return channel_id
 
 def get_ome_tiff_channel_annotations(ome_tiff_metadata, volume_channel_annotations):
-    for key in ome_tiff_metadata['Channels']:
-        channel = ome_tiff_metadata['Channels'][key]
-        channel_id = channel['ID']
+    # NOTE: only single channel for now
+    for channel_id, channel_key in enumerate(ome_tiff_metadata['Channels']):
+        channel = ome_tiff_metadata['Channels'][channel_key]
         # for now FFFFFFF
         color = 'FFFFFF'
         # TODO: check how it is encoded in some sample
         # if channel['Color']:
         #     color = _convert_hex_to_rgba_fractional(channel['Color'])
-        label = channel_id
+        label = channel['ID']
         if 'Name' in channel:
             label = channel['Name']
 
