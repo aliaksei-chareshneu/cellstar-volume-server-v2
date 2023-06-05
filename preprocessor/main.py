@@ -947,9 +947,9 @@ def _get_ome_tiff_voxel_sizes_in_downsamplings(boxes_dict, volume_downsamplings,
         else:
             # NOTE: rounding error - if one of dimensions in original data is odd
             boxes_dict[downsampling_level]['voxel_size'] = [
-                _convert_to_angstroms(ometiff_physical_size_dict['x'] / int(downsampling_level), ometiff_axes_units_dict['x']),
-                _convert_to_angstroms(ometiff_physical_size_dict['y'] / int(downsampling_level), ometiff_axes_units_dict['y']),
-                _convert_to_angstroms(ometiff_physical_size_dict['z'] / int(downsampling_level), ometiff_axes_units_dict['z'])
+                _convert_to_angstroms(ometiff_physical_size_dict['x'] * int(downsampling_level), ometiff_axes_units_dict['x']),
+                _convert_to_angstroms(ometiff_physical_size_dict['y'] * int(downsampling_level), ometiff_axes_units_dict['y']),
+                _convert_to_angstroms(ometiff_physical_size_dict['z'] * int(downsampling_level), ometiff_axes_units_dict['z'])
             ]
 
 def _get_ome_tiff_origins(boxes_dict: dict, volume_downsamplings):
