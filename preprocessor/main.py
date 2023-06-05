@@ -830,12 +830,6 @@ def process_ome_tiff(ome_tiff_path, temp_zarr_hierarchy_storage_path, source_db_
             }
         )
 
-        # our_channel_arr = time_group.create_dataset(
-        #     # channel also 0
-        #     name='0',
-        #     shape=corrected_volume_arr_data.shape,
-        #     data=corrected_volume_arr_data
-        # )
     else:
         raise Exception('Dimension order of this OMETIFF is not supported')
     
