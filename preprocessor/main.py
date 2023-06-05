@@ -1,3 +1,5 @@
+import math
+import dask.array as da
 import re
 import zarr
 import argparse
@@ -18,9 +20,10 @@ from db.file_system.db import FileSystemVolumeServerDB
 from db.file_system.constants import ANNOTATION_METADATA_FILENAME, GRID_METADATA_FILENAME, SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
 from db.models import Metadata
 from preprocessor.params_for_storing_db import CHUNKING_MODES, COMPRESSORS
+from preprocessor.src.preprocessors.implementations.sff.preprocessor.downsampling.downsampling import compute_number_of_downsampling_steps, create_ome_tiff_volume_downsamplings, create_volume_downsamplings
 from preprocessor.src.service.implementations.preprocessor_service import PreprocessorService
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import \
-    APPLICATION_SPECIFIC_SEGMENTATION_EXTENSIONS, DEFAULT_DB_PATH, OUTPUT_FILEPATH as FAKE_SEGMENTATION_FILEPATH, PARAMETRIZED_DBS_INPUT_PARAMS_FILEPATH, RAW_INPUT_FILES_DIR, TEMP_ZARR_HIERARCHY_STORAGE_PATH
+    APPLICATION_SPECIFIC_SEGMENTATION_EXTENSIONS, DEFAULT_DB_PATH, MIN_GRID_SIZE, OUTPUT_FILEPATH as FAKE_SEGMENTATION_FILEPATH, PARAMETRIZED_DBS_INPUT_PARAMS_FILEPATH, RAW_INPUT_FILES_DIR, TEMP_ZARR_HIERARCHY_STORAGE_PATH
 
 from db.protocol import VolumeServerDB
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.sff_preprocessor import SFFPreprocessor
@@ -776,6 +779,23 @@ def extract_ome_tiff_annotations(ome_tiff_metadata, source_db_id: str, source_db
 
     return d
 
+def make_ome_tiff_downsamplings(volume_arr: da.Array, volume_data_gr, params_for_storing):
+    volume_downsampling_steps = compute_number_of_downsampling_steps(
+        MIN_GRID_SIZE,
+        input_grid_size=math.prod(volume_arr.shape),
+        force_dtype=volume_arr.dtype,
+        factor=2 ** 3,
+        min_downsampled_file_size_bytes=5 * 10 ** 6
+    )
+    print(f'Volume downsampling steps: {volume_downsampling_steps}')
+    create_ome_tiff_volume_downsamplings(
+        original_data=volume_arr,
+        volume_data_group=volume_data_gr,
+        downsampling_steps=volume_downsampling_steps,
+        params_for_storing=params_for_storing,
+        force_dtype=volume_arr.dtype
+    )
+
 def process_ome_tiff(ome_tiff_path, temp_zarr_hierarchy_storage_path, source_db_id, source_db_name):
     reader = OMETIFFReader(fpath=ome_tiff_path)
     img_array, metadata, xml_metadata = reader.read()
@@ -788,27 +808,39 @@ def process_ome_tiff(ome_tiff_path, temp_zarr_hierarchy_storage_path, source_db_
     volume_data_gr = our_zarr_structure.create_group(VOLUME_DATA_GROUPNAME)
     # NOTE: no pyramids in sample ome tiff, so resolution group = 0
     # NOTE: time and channel = 1
-    resolution_group = volume_data_gr.create_group('0')
-    time_group = resolution_group.create_group('0')
-
+    
     # TODO: function to determine how to reorder dimensions in array
-    # NOTE: only single channel for now
-    if metadata['SizeC'] == 1 and (metadata['DimOrder'] == 'TCZYX' or metadata['DimOrder'] == 'CTZYX'):
+    # NOTE: only single channel and time frame for now
+    if metadata['SizeC'] == 1 and \
+        metadata['SizeT'] and \
+        (metadata['DimOrder'] == 'TCZYX' or metadata['DimOrder'] == 'CTZYX'):
         corrected_volume_arr_data = img_array[...].swapaxes(0,2)
-        # TODO: iterate over channels in metadata, create channel arrays with name
-        # corresponding to channel ID
-        # create a function for that that takes 
-        # channel_id = _parse_ome_tiff_channel_id(channel['ID'])?
-        time_group.create_dataset(
-            # channel also 0
-            name='0',
-            shape=corrected_volume_arr_data.shape,
-            data=corrected_volume_arr_data
+
+        dask_channel_arr = da.from_array(corrected_volume_arr_data)
+        # NOTE: stores all downsampling levels, including original data
+        # NOTE: remember that volume downsamplings are stored
+        #  as groups with names starting from 1: 1, 2, 4 since we create them
+        make_ome_tiff_downsamplings(
+            volume_arr=dask_channel_arr,
+            volume_data_gr=volume_data_gr,
+            params_for_storing={
+                'chunking_mode': 'auto',
+                'compressor': Blosc(cname='lz4', clevel=5, shuffle=Blosc.SHUFFLE, blocksize=0),
+                'store_type': 'zip'
+            }
         )
+
+        # our_channel_arr = time_group.create_dataset(
+        #     # channel also 0
+        #     name='0',
+        #     shape=corrected_volume_arr_data.shape,
+        #     data=corrected_volume_arr_data
+        # )
     else:
         raise Exception('Dimension order of this OMETIFF is not supported')
+    
+    
 
-    # TODO: extract grid_metadata and annotation_metadata
     grid_metadata = extract_ome_tiff_metadata(
         source_db_id=source_db_id,
         source_db_name=source_db_name,
@@ -900,18 +932,25 @@ def _get_ome_tiff_voxel_sizes_in_downsamplings(boxes_dict, volume_downsamplings,
     # 1. for 0th downsampling - get from metadata
     # 2. TODO: for other levels - iterate over volume_downsamplings
     # axis order? XYZ? we change it to XYZ when processing volume
+
+    ometiff_axes_units_dict = _get_ometiff_axes_units(ometiff_metadata)
+    ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
+
     for level in volume_downsamplings:
         downsampling_level = str(level)
-        if downsampling_level == '0':
-            ometiff_axes_units_dict = _get_ometiff_axes_units(ometiff_metadata)
-            ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
+        if downsampling_level == '1':
             boxes_dict[downsampling_level]['voxel_size'] = [
                 _convert_to_angstroms(ometiff_physical_size_dict['x'], ometiff_axes_units_dict['x']),
                 _convert_to_angstroms(ometiff_physical_size_dict['y'], ometiff_axes_units_dict['y']),
                 _convert_to_angstroms(ometiff_physical_size_dict['z'], ometiff_axes_units_dict['z'])
             ]
         else:
-            pass
+            # NOTE: rounding error - if one of dimensions in original data is odd
+            boxes_dict[downsampling_level]['voxel_size'] = [
+                _convert_to_angstroms(ometiff_physical_size_dict['x'] / int(downsampling_level), ometiff_axes_units_dict['x']),
+                _convert_to_angstroms(ometiff_physical_size_dict['y'] / int(downsampling_level), ometiff_axes_units_dict['y']),
+                _convert_to_angstroms(ometiff_physical_size_dict['z'] / int(downsampling_level), ometiff_axes_units_dict['z'])
+            ]
 
 def _get_ome_tiff_origins(boxes_dict: dict, volume_downsamplings):
     # NOTE: origins seem to be 0, 0, 0, as they are not specified

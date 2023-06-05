@@ -244,3 +244,67 @@ def generate_kernel_3d_arr(pattern: List[int]) -> np.ndarray:
         logging.error(e, stack_info=True, exc_info=True)
         raise e
     return k
+
+def create_ome_tiff_volume_downsamplings(original_data: da.Array, downsampling_steps: int,
+                                volume_data_group: zarr.hierarchy.Group, params_for_storing: dict, force_dtype: np.dtype):
+    '''
+    Take original volume data, do all downsampling levels and store in zarr struct one by one
+    NOTE: channels hardcoded to single channel ('0'), time frame - to single time frame ('0')
+    '''
+    channel_id = '0'
+    time_frame = '0'
+    # TODO: add time and channel group layer to __store, update docstring
+    
+    current_level_data = original_data
+    resolution_group = volume_data_group.create_group('1')
+    time_group = resolution_group.create_group(time_frame)
+    __store_single_ome_tiff_volume_downsampling_in_zarr_stucture(current_level_data, time_group, channel_id=channel_id, params_for_storing=params_for_storing, force_dtype=force_dtype)
+    for i in range(downsampling_steps):
+        current_ratio = 2 ** (i + 1)
+        kernel = generate_kernel_3d_arr(list(DOWNSAMPLING_KERNEL))
+        downsampled_data = dask_convolve(current_level_data, kernel, mode='mirror', cval=0.0)
+        downsampled_data = downsampled_data[::2, ::2, ::2]
+
+
+        resolution_group = volume_data_group.create_group(current_ratio)
+        time_group = resolution_group.create_group(time_frame)
+        __store_single_ome_tiff_volume_downsampling_in_zarr_stucture(downsampled_data, time_group,
+                                                                    channel_id=channel_id,
+                                                            params_for_storing=params_for_storing,
+                                                            force_dtype=force_dtype)
+        current_level_data = downsampled_data
+
+def __store_single_ome_tiff_volume_downsampling_in_zarr_stucture(downsampled_data: da.Array,
+                                                        downsampled_data_group: zarr.hierarchy.Group,
+                                                        channel_id: int,
+                                                        params_for_storing: dict,
+                                                        force_dtype: np.dtype):
+    
+    if 'quantize_dtype_str' in params_for_storing:
+        force_dtype = params_for_storing['quantize_dtype_str']
+
+    zarr_arr = create_dataset_wrapper(
+        zarr_group=downsampled_data_group,
+        data=None,
+        name=str(channel_id),
+        shape=downsampled_data.shape,
+        dtype=force_dtype,
+        params_for_storing=params_for_storing,
+        is_empty=True
+    )
+    
+    if 'quantize_dtype_str' in params_for_storing:
+        quantized_data_dict = quantize_data(
+            data=downsampled_data,
+            output_dtype=params_for_storing['quantize_dtype_str'])
+        
+        downsampled_data = quantized_data_dict["data"]
+        
+        quantized_data_dict_without_data = quantized_data_dict.copy()
+        quantized_data_dict_without_data.pop('data')
+
+        # save this dict as attr of zarr arr
+        zarr_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
+
+    # here downsampled_data is uint8
+    da.to_zarr(arr=downsampled_data, url=zarr_arr, overwrite=True, compute=True)
