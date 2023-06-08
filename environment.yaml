@@ -29,6 +29,7 @@ dependencies:
   # - vtk==9.0.3
   - zarr==2.11.1
   - dask-image
+  - pydantic
 
   - pip:
     # - -r requirements.txt

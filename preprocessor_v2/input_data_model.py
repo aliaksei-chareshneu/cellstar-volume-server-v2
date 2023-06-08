@@ -1,5 +1,4 @@
-# Why (DataModel)? Inheritance?
-
+from pydantic import BaseModel
 from enum import Enum
 from pathlib import Path
 from typing import Optional
@@ -19,24 +18,24 @@ class QuantizationDtype(str, Enum):
     u1 = 'u1'
     u2 = 'u2'
 
-class Inputs(DataModel):
+class Inputs(BaseModel):
 #    tuple[filename, kind]
 # kinds: 'map', 'sff', 'ome.tiff', 'ome-zarr', 'mask', 'am', 'mod', 'seg', 'custom_annotations' ?
 # depending on files list it runs preprocessing, if application specific - first converts to sff
-   files: list[tuple[Path, InputKind]]
+    files: list[tuple[Path, InputKind]]
 
-class VolumeParams(DataModel):
-   quantize_dtype_str: Optional[QuantizationDtype]
-   force_volume_dtype: Optional[str]
+class VolumeParams(BaseModel):
+    quantize_dtype_str: Optional[QuantizationDtype]
+    force_volume_dtype: Optional[str]
 
-class DownsamplingParams(DataModel):
-   max_size_per_channel_mb: Optional[float]
-   min_size_per_channel_mb: Optional[float]
-   min_downsampling_level: Optional[int]
-   max_downsampling_level: Optional[int]
+class DownsamplingParams(BaseModel):
+    max_size_per_channel_mb: Optional[float]
+    min_size_per_channel_mb: Optional[float]
+    min_downsampling_level: Optional[int]
+    max_downsampling_level: Optional[int]
 
-class StoringParams:
-#    params_for_storing
+class StoringParams(BaseModel):
+    #  params_for_storing
     # 'auto'
     chunking_mode: str
     # Blosc(cname='lz4', clevel=5, shuffle=Blosc.SHUFFLE, blocksize=0)
@@ -44,17 +43,17 @@ class StoringParams:
     # we use only 'zip'
     store_type: str
     
-class EntryData:
-# entry id (e.g. emd-1832) to be used as database folder name for that entry
-   entry_id: str
-# source database name (e.g. emdb) to be used as DB folder name
-   source_db: str
-#    actual source database ID of that entry (will be used to compute metadata)
-   source_db_id: str
-#    actual source database name (will be used to compute metadata)
-   source_db_name: str
+class EntryData(BaseModel):
+    # entry id (e.g. emd-1832) to be used as database folder name for that entry
+    entry_id: str
+    # source database name (e.g. emdb) to be used as DB folder name
+    source_db: str
+    #    actual source database ID of that entry (will be used to compute metadata)
+    source_db_id: str
+    #    actual source database name (will be used to compute metadata)
+    source_db_name: str
 
-class PreprocessorInput(DataModel):
+class PreprocessorInput(BaseModel):
     inputs: Inputs
     volume: VolumeParams
     # optional - we may not need them (for OME Zarr there are already downsamplings)
