@@ -15,6 +15,10 @@ class InputKind(str, Enum):
     application_specific_segmentation = 'application_specific_segmentation'
     custom_annotations = 'custom_annotations'
 
+class QuantizationDtype(str, Enum):
+    u1 = 'u1'
+    u2 = 'u2'
+
 class Inputs(DataModel):
 #    tuple[filename, kind]
 # kinds: 'map', 'sff', 'ome.tiff', 'ome-zarr', 'mask', 'am', 'mod', 'seg', 'custom_annotations' ?
@@ -22,8 +26,7 @@ class Inputs(DataModel):
    files: list[tuple[Path, InputKind]]
 
 class VolumeParams(DataModel):
-#    'u1' or 'u2'
-   quantize_dtype_str: Optional[str]
+   quantize_dtype_str: Optional[QuantizationDtype]
    force_volume_dtype: Optional[str]
 
 class DownsamplingParams(DataModel):
