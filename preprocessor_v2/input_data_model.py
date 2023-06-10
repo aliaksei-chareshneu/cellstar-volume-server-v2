@@ -2,7 +2,14 @@ from pydantic import BaseModel
 from enum import Enum
 from pathlib import Path
 from typing import Optional
+from numcodecs import Blosc
 
+class InputCase(str, Enum):
+    map_only = 'map_only'
+    map_and_sff = 'map_and_sff'
+    omezarr = 'omezarr'
+    ometiff = 'ometiff'
+    
 class InputKind(str, Enum):
     map = 'map'
     sff = 'sff'
@@ -37,11 +44,11 @@ class DownsamplingParams(BaseModel):
 class StoringParams(BaseModel):
     #  params_for_storing
     # 'auto'
-    chunking_mode: str
+    chunking_mode: str = 'auto'
     # Blosc(cname='lz4', clevel=5, shuffle=Blosc.SHUFFLE, blocksize=0)
-    compressor: object
+    compressor: object = Blosc(cname='lz4', clevel=5, shuffle=Blosc.SHUFFLE, blocksize=0)
     # we use only 'zip'
-    store_type: str
+    store_type: str = 'zip'
     
 class EntryData(BaseModel):
     # entry id (e.g. emd-1832) to be used as database folder name for that entry
