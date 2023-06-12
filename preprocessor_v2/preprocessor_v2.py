@@ -1,11 +1,15 @@
 from argparse import ArgumentError
 import logging
 from pathlib import Path
+
+import numpy as np
 from input_data_model import PreprocessorInput
 import zarr
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
+import mrcfile
 
 from preprocessor_v2.input_data_model import InputCase, InputKind
+from preprocessor_v2.preprocessing_methods import preprocess_ometiff, preprocess_omezarr, sff_preprocessing, annotation_preprocessing, volume_map_preprocessing
 
 class Preprocessor():
     def __init__(self, preprocessor_input: PreprocessorInput):
@@ -98,32 +102,48 @@ class Preprocessor():
     def preprocessing(self):
         # in each case specific set of functions is called
         if self.input_case == InputCase.map_only:
-            # preprocess volume, do downsamplings afterwards
-            self._volume_map_preprocessing()
+            # preprocess volume
+            volume_map_preprocessing(
+                intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                volume_input_path=self.volume_input_path,
+                params_for_storing=self.preprocessor_input.storing_params,
+                volume_force_dtype=preprocessor_input.volume.force_volume_dtype
+            )
         elif self.input_case == InputCase.map_and_sff:
-            # preprocess volume, preprocess sff, do downsamplings on both, 
+            # preprocess volume, preprocess sff 
             # run annotations preprocessing
-            self._volume_map_preprocessing()
-            self._sff_preprocessing()
-            self._annotation_preprocessing()
+            volume_map_preprocessing(
+                intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                volume_input_path=self.volume_input_path,
+                params_for_storing=self.preprocessor_input.storing_params,
+                volume_force_dtype=preprocessor_input.volume.force_volume_dtype
+            )
+            sff_preprocessing()
+            annotation_preprocessing()
         elif self.input_case == InputCase.ometiff:
-            # preprocess ometiff (specific approach, just volume), do downsamplings on volume
-            self._preprocess_ometiff()
+            # preprocess ometiff (specific approach, just volume)
+            preprocess_ometiff()
         elif self.input_case == InputCase.omezarr:
             # preprocess omezarr (can be just volume, or volume and segmentation), check if there are downsamplings
-            # most likely yes, so don't do downsamplings
-            self._preprocess_omezarr()
+            # most likely yes
+            preprocess_omezarr()
 
-    def _volume_map_preprocessing(self):
-        # 1. normalize axis order
-        # 2. compute metadata
-        # 3. add volume data to intermediate zarr structure
-        
+        return self.intermediate_zarr_structure
+
     
-    def _sff_preprocessing(self):
 
-    def _annotation_preprocessing(self):
 
-    def _preprocess_ometiff(self):
 
-    def _preprocess_omezarr(self):
+
+
+# How it supposed to work:
+
+def _convert_cli_args_to_preprocessor_input(cli_arguments) -> PreprocessorInput:
+    pass
+
+cli_arguments = None
+preprocessor_input: PreprocessorInput = _convert_cli_args_to_preprocessor_input(cli_arguments)
+preprocessor = Preprocessor(preprocessor_input)
+preprocessor.initialization()
+intermediate_zarr_structure = preprocessor.preprocessing()
+
