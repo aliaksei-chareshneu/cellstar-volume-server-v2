@@ -1,4 +1,4 @@
-class Volume:
+class IternalVolume:
     def __init__(self, intermediate_zarr_structure_path,
                 volume_input_path,
                 params_for_storing,

@@ -7,6 +7,9 @@ import zarr
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 import mrcfile
 
+from preprocessor_v2.preprocessor.model.input import InputCase, InputKind, PreprocessorInput
+from preprocessor_v2.preprocessor.model.volume import InternalVolume
+
 
 class Preprocessor():
     def __init__(self, preprocessor_input: PreprocessorInput):
@@ -100,14 +103,7 @@ class Preprocessor():
         # in each case specific set of functions is called
         if self.input_case == InputCase.map_only:
             # preprocess volume
-            volume_map_preprocessing(
-                intermediate_zarr_structure_path=self.intermediate_zarr_structure,
-                volume_input_path=self.volume_input_path,
-                params_for_storing=self.preprocessor_input.storing_params,
-                volume_force_dtype=preprocessor_input.volume.force_volume_dtype
-            )
-
-            volume = Volume(
+            volume = InternalVolume(
                 intermediate_zarr_structure_path=self.intermediate_zarr_structure,
                 volume_input_path=self.volume_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
