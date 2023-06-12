@@ -7,6 +7,7 @@ from db.file_system.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DA
 
 from preprocessor.src.tools.quantize_data.quantize_data import quantize_data
 from preprocessor.src.preprocessors.implementations.sff.preprocessor._zarr_methods import create_dataset_wrapper
+from preprocessor_v2.preprocessor.model.input import PreprocessorInput
 
 def _open_zarr_structure_from_path(path: Path) -> zarr.hierarchy.Group:
     store: zarr.storage.DirectoryStore = zarr.DirectoryStore(str(path))
@@ -73,6 +74,11 @@ def _store_volume_map_data_in_zarr_stucture(
 
     da.to_zarr(arr=data, url=zarr_arr, overwrite=True, compute=True)
 
+
+def extract_metadata(zarr_structure: zarr.hierarchy.group, mrc_header: object, volume_force_dtype: np.dtype,
+        source_db_id: str,
+        source_db_name: str) -> dict:
+    pass
 
 def volume_map_preprocessing(
     intermediate_zarr_structure_path: Path,

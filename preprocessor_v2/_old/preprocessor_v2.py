@@ -8,8 +8,8 @@ import zarr
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 import mrcfile
 
-from preprocessor_v2.input_data_model import InputCase, InputKind
-from preprocessor_v2.preprocessing_methods import preprocess_ometiff, preprocess_omezarr, sff_preprocessing, annotation_preprocessing, volume_map_preprocessing
+from input_data_model import InputCase, InputKind
+from preprocessing_methods import preprocess_ometiff, preprocess_omezarr, sff_preprocessing, annotation_preprocessing, volume_map_preprocessing
 
 class Preprocessor():
     def __init__(self, preprocessor_input: PreprocessorInput):
@@ -109,6 +109,7 @@ class Preprocessor():
                 params_for_storing=self.preprocessor_input.storing_params,
                 volume_force_dtype=preprocessor_input.volume.force_volume_dtype
             )
+
         elif self.input_case == InputCase.map_and_sff:
             # preprocess volume, preprocess sff 
             # run annotations preprocessing
