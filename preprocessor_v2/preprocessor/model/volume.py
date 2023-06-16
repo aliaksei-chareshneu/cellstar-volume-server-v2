@@ -1,9 +1,14 @@
+from pathlib import Path
+
+from preprocessor_v2.preprocessor.model.input import DownsamplingParams
+
+
 class InternalVolume:
-    def __init__(self, intermediate_zarr_structure_path,
-                volume_input_path,
-                params_for_storing,
-                volume_force_dtype,
-                downsampling_parameters
+    def __init__(self, intermediate_zarr_structure_path: Path,
+                volume_input_path: Path,
+                params_for_storing: dict,
+                volume_force_dtype: str,
+                downsampling_parameters: DownsamplingParams
                 ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.volume_input_path = volume_input_path
@@ -11,16 +16,5 @@ class InternalVolume:
         self.volume_force_dtype = volume_force_dtype
         self.downsampling_parameters = downsampling_parameters
 
+# TODO: metadata
         self.metadata = {}
-        
-
-    # no arguments, uses class attributes inside
-    def volume_map_preprocessing():
-        # 1. normalize axis order
-        # 2. extract/compute metadata
-        # 3. add volume data to intermediate zarr structure
-        pass
-    
-    def volume_downsampling():
-        pass
-

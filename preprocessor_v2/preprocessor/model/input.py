@@ -37,7 +37,7 @@ class VolumeParams(BaseModel):
 
 class DownsamplingParams(BaseModel):
     max_size_per_channel_mb: Optional[float]
-    min_size_per_channel_mb: Optional[float]
+    min_size_per_channel_mb: Optional[float] = 5
     min_downsampling_level: Optional[int]
     max_downsampling_level: Optional[int]
 
@@ -46,6 +46,7 @@ class StoringParams(BaseModel):
     # 'auto'
     chunking_mode: str = 'auto'
     # Blosc(cname='lz4', clevel=5, shuffle=Blosc.SHUFFLE, blocksize=0)
+    # TODO: figure out how to pass it
     compressor: object = Blosc(cname='lz4', clevel=5, shuffle=Blosc.SHUFFLE, blocksize=0)
     # we use only 'zip'
     store_type: str = 'zip'
@@ -73,4 +74,28 @@ class PreprocessorInput(BaseModel):
     # storing params perhaps should be here as temporary internal format (zarr) also uses them
     db_path: Path
     storing_params: StoringParams
-    
+
+
+DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
+    inputs=Inputs(
+        files=[
+            (
+                # Path('test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map'),
+                # Path('test-data/preprocessor/sample_volumes/new_emd-99999-200A.mrc'),
+                Path('test-data/preprocessor/sample_volumes/emd_9199.map'),
+                InputKind.map
+            )
+        ]
+    ),
+    volume=VolumeParams(),
+    downsampling=DownsamplingParams(max_size_per_channel_mb=250),
+    entry_data=EntryData(
+        entry_id='emd-1832',
+        source_db='emdb',
+        source_db_id='emd-1832',
+        source_db_name='emdb'
+    ),
+    working_folder=Path('preprocessor_v2/temp/temp_zarr_hierarchy_storage'),
+    storing_params=StoringParams(),
+    db_path=Path('preprocessor_v2/temp/test_db')
+)

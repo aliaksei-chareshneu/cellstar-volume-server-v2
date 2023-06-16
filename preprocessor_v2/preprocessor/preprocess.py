@@ -1,13 +1,15 @@
 from argparse import ArgumentError
 import logging
 from pathlib import Path
-
+import shutil
 import numpy as np
 import zarr
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 import mrcfile
+from preprocessor_v2.preprocessor.flows.volume.map_preprocessing import map_preprocessing
+from preprocessor_v2.preprocessor.flows.volume.volume_downsampling import volume_downsampling
 
-from preprocessor_v2.preprocessor.model.input import InputCase, InputKind, PreprocessorInput
+from preprocessor_v2.preprocessor.model.input import DEFAULT_PREPROCESSOR_INPUT, InputCase, InputKind, Inputs, PreprocessorInput
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 
 
@@ -66,7 +68,7 @@ class Preprocessor():
             # TODO: masks
             # TODO: custom annotations
 
-        if volume_input and segmentation_input:
+        if volume_input:
             if segmentation_input:
                 self.input_case = InputCase.map_and_sff
                 self.volume_input_path = volume_input
@@ -90,6 +92,8 @@ class Preprocessor():
     def initialization(self):
         self.intermediate_zarr_structure = self.preprocessor_input.working_folder / self.preprocessor_input.entry_data.entry_id
         try:
+            # delete previous intermediate zarr structure
+            shutil.rmtree(self.intermediate_zarr_structure, ignore_errors=True)
             assert self.intermediate_zarr_structure.exists() == False, \
                 f'intermediate_zarr_structure: {self.intermediate_zarr_structure} already exists'
             store: zarr.storage.DirectoryStore = zarr.DirectoryStore(str(self.intermediate_zarr_structure))
@@ -111,28 +115,31 @@ class Preprocessor():
                 downsampling_parameters=preprocessor_input.downsampling
             )
 
-            volume.volume_map_preprocessing()
+            map_preprocessing(volume)
             # in processing part do
-            volume.volume_downsampling()
+            volume_downsampling(volume)
 
         elif self.input_case == InputCase.map_and_sff:
+            pass
             # preprocess volume, preprocess sff 
             # run annotations preprocessing
-            volume_map_preprocessing(
-                intermediate_zarr_structure_path=self.intermediate_zarr_structure,
-                volume_input_path=self.volume_input_path,
-                params_for_storing=self.preprocessor_input.storing_params,
-                volume_force_dtype=preprocessor_input.volume.force_volume_dtype
-            )
-            sff_preprocessing()
-            annotation_preprocessing()
+            # volume_map_preprocessing(
+            #     intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+            #     volume_input_path=self.volume_input_path,
+            #     params_for_storing=self.preprocessor_input.storing_params,
+            #     volume_force_dtype=preprocessor_input.volume.force_volume_dtype
+            # )
+            # sff_preprocessing()
+            # annotation_preprocessing()
         elif self.input_case == InputCase.ometiff:
+            pass
             # preprocess ometiff (specific approach, just volume)
-            preprocess_ometiff()
+            # preprocess_ometiff()
         elif self.input_case == InputCase.omezarr:
+            pass
             # preprocess omezarr (can be just volume, or volume and segmentation), check if there are downsamplings
             # most likely yes
-            preprocess_omezarr()
+            # preprocess_omezarr()
 
         return self.intermediate_zarr_structure
 
@@ -145,11 +152,13 @@ class Preprocessor():
 # How it supposed to work:
 
 def _convert_cli_args_to_preprocessor_input(cli_arguments) -> PreprocessorInput:
-    pass
+    # TODO: implement
+    return DEFAULT_PREPROCESSOR_INPUT
 
-cli_arguments = None
-preprocessor_input: PreprocessorInput = _convert_cli_args_to_preprocessor_input(cli_arguments)
-preprocessor = Preprocessor(preprocessor_input)
-preprocessor.initialization()
-intermediate_zarr_structure = preprocessor.preprocessing()
+if __name__ == '__main__':
+    cli_arguments = None
+    preprocessor_input: PreprocessorInput = _convert_cli_args_to_preprocessor_input(cli_arguments)
+    preprocessor = Preprocessor(preprocessor_input)
+    preprocessor.initialization()
+    intermediate_zarr_structure = preprocessor.preprocessing()
 

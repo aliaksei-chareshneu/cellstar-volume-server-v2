@@ -9,7 +9,7 @@ from preprocessor.src.tools.quantize_data.quantize_data import quantize_data
 from preprocessor.src.preprocessors.implementations.sff.preprocessor._zarr_methods import create_dataset_wrapper
 from preprocessor_v2.preprocessor.model.input import PreprocessorInput
 
-def _open_zarr_structure_from_path(path: Path) -> zarr.hierarchy.Group:
+def open_zarr_structure_from_path(path: Path) -> zarr.hierarchy.Group:
     store: zarr.storage.DirectoryStore = zarr.DirectoryStore(str(path))
     # Re-create zarr hierarchy from opened store
     root: zarr.hierarchy.group = zarr.group(store=store)
@@ -90,7 +90,7 @@ def volume_map_preprocessing(
     # 2. extract/compute metadata
     # 3. add volume data to intermediate zarr structure
 
-    zarr_structure: zarr.hierarchy.group = _open_zarr_structure_from_path(
+    zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(
         intermediate_zarr_structure_path)
     
     with mrcfile.mmap(str(volume_input_path.resolve())) as mrc_original:
