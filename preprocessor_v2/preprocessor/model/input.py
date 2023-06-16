@@ -80,10 +80,14 @@ DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
     inputs=Inputs(
         files=[
             (
-                # Path('test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map'),
+                Path('test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map'),
                 # Path('test-data/preprocessor/sample_volumes/new_emd-99999-200A.mrc'),
-                Path('test-data/preprocessor/sample_volumes/emd_9199.map'),
+                # Path('test-data/preprocessor/sample_volumes/emd_9199.map'),
                 InputKind.map
+            ),
+            (
+                Path('test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff'),
+                InputKind.sff
             )
         ]
     ),

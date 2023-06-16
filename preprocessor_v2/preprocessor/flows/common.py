@@ -1,6 +1,9 @@
 from pathlib import Path
 import zarr
 import numpy as np
+from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
+
+from preprocessor_v2.preprocessor.model.volume import InternalVolume
 
 def _compute_chunk_size_based_on_data(arr: np.ndarray) -> tuple[int, int, int]:
     shape: tuple = arr.shape
@@ -53,3 +56,14 @@ def create_dataset_wrapper(
         )
 
     return zarr_arr
+
+def extract_metadata_from_map_and_sff(internal_volume: InternalVolume, internal_segmentation: InternalSegmentation):
+    '''Extracts metadata'''
+    pass
+
+def decide_np_dtype(mode: str, endianness: str):
+    '''decides np dtype based on mode (e.g. float32) and endianness (e.g. little) provided in SFF
+    '''
+    dt = np.dtype(mode)
+    dt = dt.newbyteorder(endianness)
+    return dt
