@@ -13,7 +13,7 @@ def volume_downsampling(internal_volume: InternalVolume):
     '''
     zarr_structure = open_zarr_structure_from_path(internal_volume.intermediate_zarr_structure_path)
     # TODO: figure out how what to do in case of several channels (or time frames)
-    original_data_arr = zarr_structure[VOLUME_DATA_GROUPNAME]['0']['0']['0']
+    original_data_arr = zarr_structure[VOLUME_DATA_GROUPNAME]['1']['0']['0']
     dask_arr = da.from_zarr(url=original_data_arr, chunks=original_data_arr.chunks)
 
     kernel = generate_kernel_3d_arr(list(DOWNSAMPLING_KERNEL))

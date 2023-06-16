@@ -35,7 +35,7 @@ def map_preprocessing(internal_volume: InternalVolume):
         volume_data_group=volume_data_group,
         params_for_storing=internal_volume.params_for_storing,
         force_dtype=internal_volume.volume_force_dtype,
-        resolution='0',
+        resolution='1',
         time_frame='0',
         channel='0'
     )

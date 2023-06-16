@@ -15,6 +15,3 @@ class InternalVolume:
         self.params_for_storing = params_for_storing
         self.volume_force_dtype = volume_force_dtype
         self.downsampling_parameters = downsampling_parameters
-
-# TODO: metadata
-        self.metadata = {}
