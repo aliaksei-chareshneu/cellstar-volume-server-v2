@@ -143,7 +143,8 @@ class Preprocessor():
             segmentation = InternalSegmentation(
                 intermediate_zarr_structure_path=self.intermediate_zarr_structure,
                 sff_input_path=self.segmentation_input_path,
-                params_for_storing=self.preprocessor_input.storing_params
+                params_for_storing=self.preprocessor_input.storing_params,
+                downsampling_parameters=self.preprocessor_input.downsampling
             )
 
             sff_preprocessing(segmentation)

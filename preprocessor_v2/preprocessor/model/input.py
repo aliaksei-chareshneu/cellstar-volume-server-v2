@@ -87,6 +87,7 @@ DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
             ),
             (
                 Path('test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff'),
+                # Path('test-data/preprocessor/sample_segmentations/emdb_sff/emd_1547.hff'),
                 InputKind.sff
             )
         ]

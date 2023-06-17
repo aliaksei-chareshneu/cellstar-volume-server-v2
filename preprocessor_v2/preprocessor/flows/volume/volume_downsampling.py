@@ -1,6 +1,6 @@
-from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
+from preprocessor_v2.preprocessor.flows.common import compute_downsamplings_to_be_stored, compute_number_of_downsampling_steps, open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import DOWNSAMPLING_KERNEL, MIN_GRID_SIZE, VOLUME_DATA_GROUPNAME
-from preprocessor_v2.preprocessor.flows.volume.helper_methods import compute_downsamplings_to_be_stored, compute_number_of_downsampling_steps, generate_kernel_3d_arr, store_volume_data_in_zarr_stucture
+from preprocessor_v2.preprocessor.flows.volume.helper_methods import generate_kernel_3d_arr, store_volume_data_in_zarr_stucture
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 import dask.array as da
 from dask_image.ndfilters import convolve as dask_convolve
@@ -25,7 +25,7 @@ def volume_downsampling(internal_volume: InternalVolume):
 
     # downsampling_steps = 8
     downsampling_steps = compute_number_of_downsampling_steps(
-        internal_volume=internal_volume,
+        int_vol_or_seg=internal_volume,
         min_grid_size=MIN_GRID_SIZE,
         input_grid_size=math.prod(dask_arr.shape),
         factor=2 ** 3,
@@ -33,7 +33,7 @@ def volume_downsampling(internal_volume: InternalVolume):
     )
 
     ratios_to_be_stored = compute_downsamplings_to_be_stored(
-        internal_volume=internal_volume,
+        int_vol_or_seg=internal_volume,
         number_of_downsampling_steps=downsampling_steps,
         input_grid_size=math.prod(dask_arr.shape),
         factor=2 ** 3,

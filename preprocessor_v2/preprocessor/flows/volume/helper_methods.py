@@ -52,49 +52,6 @@ def __compute_number_of_downsampling_steps(*, min_grid_size: int, input_grid_siz
 
     # should it output some kind of downsampling curve? e.g. [4, 8, 16, 32]
 
-def compute_downsamplings_to_be_stored(*, internal_volume: InternalVolume, number_of_downsampling_steps: int,
-                                       input_grid_size: int, dtype: np.dtype, factor: int):
-    # if min_downsampling_level and max_downsampling_level are provided,
-    # list between those two numbers
-    lst = [2**i for i in range(1, number_of_downsampling_steps + 1)]
-    if internal_volume.downsampling_parameters.max_downsampling_level:
-        lst = [x for x in lst if x <= internal_volume.downsampling_parameters.max_downsampling_level]
-    if internal_volume.downsampling_parameters.min_downsampling_level:
-        lst = [x for x in lst if x >= internal_volume.downsampling_parameters.min_downsampling_level]
-    if internal_volume.downsampling_parameters.max_size_per_channel_mb:
-        x1_filesize_bytes: int = input_grid_size * dtype.itemsize
-        # num_of_downsampling_step_to_start_saving_from
-        n = math.ceil(math.log(
-            x1_filesize_bytes / (internal_volume.downsampling_parameters.max_size_per_channel_mb * 1024**2),
-            factor)
-        )
-        lst = [x for x in lst if x >= 2**n]
-        if len(lst) == 0:
-            raise Exception(f'No downsamplings will be saved: max size per channel {internal_volume.downsampling_parameters.max_size_per_channel_mb} is too high')
-
-
-    return lst
-
-
-def compute_number_of_downsampling_steps(*, internal_volume: InternalVolume,
-                                        min_grid_size: int, input_grid_size: int, force_dtype: np.dtype, factor: int) -> int:
-    num_of_downsampling_steps = 1
-    if internal_volume.downsampling_parameters.max_downsampling_level:
-        num_of_downsampling_steps = int(math.log2(internal_volume.downsampling_parameters.max_downsampling_level))
-    else:
-        if input_grid_size <= min_grid_size:
-            return 1
-   
-        x1_filesize_bytes: int = input_grid_size * force_dtype.itemsize
-        num_of_downsampling_steps = int(math.log(
-            x1_filesize_bytes / (internal_volume.downsampling_parameters.min_size_per_channel_mb * 10**6),
-            factor
-        ))
-        if num_of_downsampling_steps <= 1:
-            return 1
-
-    return num_of_downsampling_steps
-
 def normalize_axis_order_mrcfile(dask_arr: da.Array, mrc_header: object) -> da.Array:
     '''
     Normalizes axis order to X, Y, Z (1, 2, 3)
