@@ -37,7 +37,7 @@ def volume_downsampling(internal_volume: InternalVolume):
         number_of_downsampling_steps=downsampling_steps,
         input_grid_size=math.prod(dask_arr.shape),
         factor=2 ** 3,
-        force_dtype=dask_arr.dtype
+        dtype=dask_arr.dtype
     )
     for i in range(downsampling_steps):
         current_ratio = 2 ** (i + 1)
