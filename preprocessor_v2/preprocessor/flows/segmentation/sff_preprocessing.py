@@ -11,20 +11,20 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
     zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
     segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
     
+    internal_segmentation.value_to_segment_id_dict = map_value_to_segment_id(zarr_structure)
+
     # PLAN:
     # 1. Convert hff to intermediate zarr structure
     # 2. Process it with one of 2 methods (3d volume segmentation, mesh segmentation)
     if zarr_structure.primary_descriptor[0] == b'three_d_volume':
-        _process_three_d_volume_segmentation_data(segm_data_gr, zarr_structure, params_for_storing=internal_segmentation.params_for_storing)
+        _process_three_d_volume_segmentation_data(segm_data_gr, zarr_structure, params_for_storing=internal_segmentation.params_for_storing, value_to_segment_id_dict=internal_segmentation.value_to_segment_id_dict)
     elif zarr_structure.primary_descriptor[0] == b'mesh_list':
         pass
         # process_mesh_segmentation_data(segm_data_gr, zarr_structure, mesh_simplification_curve, params_for_storing=params_for_storing)
     
     print('Segmentation processed')
 
-def _process_three_d_volume_segmentation_data(segm_data_gr: zarr.hierarchy.group, zarr_structure: zarr.hierarchy.group, params_for_storing):
-    value_to_segment_id_dict = map_value_to_segment_id(zarr_structure)
-
+def _process_three_d_volume_segmentation_data(segm_data_gr: zarr.hierarchy.group, zarr_structure: zarr.hierarchy.group, params_for_storing, value_to_segment_id_dict):
     for gr_name, gr in zarr_structure.lattice_list.groups():
         # gr is a 'lattice' obj in lattice list
         lattice_id = int(gr.id[...])

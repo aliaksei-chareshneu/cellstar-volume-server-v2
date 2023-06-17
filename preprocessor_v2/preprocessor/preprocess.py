@@ -6,6 +6,7 @@ import numpy as np
 import zarr
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 import mrcfile
+from preprocessor_v2.preprocessor.flows.segmentation.segmentation_downsampling import sff_segmentation_downsampling
 from preprocessor_v2.preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.map_preprocessing import map_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.volume_downsampling import volume_downsampling
@@ -146,6 +147,8 @@ class Preprocessor():
             )
 
             sff_preprocessing(segmentation)
+
+            sff_segmentation_downsampling(segmentation)
 
             # TODO: extract metadata (extract_metadata_from_map_and_sff in common.py)
             

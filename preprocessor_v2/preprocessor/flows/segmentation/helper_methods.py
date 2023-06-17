@@ -128,12 +128,3 @@ def store_segmentation_data_in_zarr_structure(
     store_downsampling_levels_in_zarr(levels, lattice_data_group, params_for_storing=params_for_storing,
                                       time_frame='0',
                                       channel='0')
-
-    # create_category_set_downsamplings(
-    #         magic_kernel,
-    #         segm_arr,
-    #         segmentation_downsampling_steps,
-    #         lattice_gr,
-    #         value_to_segment_id_dict[lattice_id],
-    #         params_for_storing=params_for_storing
-    #     )

@@ -8,4 +8,4 @@ class InternalSegmentation:
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.sff_input_path = sff_input_path
         self.params_for_storing = params_for_storing
-        
+        self.value_to_segment_id_dict: dict = {}

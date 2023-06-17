@@ -1,12 +1,78 @@
 
-        # TODO: number of downsampling steps and to be stored as well
-        # 
-        # segmentation_downsampling_steps = compute_number_of_downsampling_steps(
-        #     MIN_GRID_SIZE,
-        #     input_grid_size=math.prod(segm_arr.shape),
-        #     force_dtype=segm_arr.dtype,
-        #     factor=2 ** 3,
-        #     min_downsampled_file_size_bytes=5 * 10 ** 6
-        # )
-        # specific lattice with specific id
-        # TODO: write segmentation data to that group
+from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
+from preprocessor_v2.preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from preprocessor_v2.preprocessor.flows.segmentation.category_set_downsampling_methods import downsample_categorical_data, store_downsampling_levels_in_zarr
+from preprocessor_v2.preprocessor.flows.segmentation.downsampling_level_dict import DownsamplingLevelDict
+from preprocessor_v2.preprocessor.flows.segmentation.segmentation_set_table import SegmentationSetTable
+from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
+import zarr
+import numpy as np
+
+from preprocessor_v2.preprocessor.tools.magic_kernel_downsampling_3d.magic_kernel_downsampling_3d import MagicKernel3dDownsampler
+
+def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
+    zarr_structure = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
+    for lattice_gr_name, lattice_gr in zarr_structure[SEGMENTATION_DATA_GROUPNAME].groups():
+        original_data_arr = lattice_gr['1']['0']['0'].grid
+        lattice_id = int(lattice_gr_name)
+        #TODO: compute both  
+        segmentation_downsampling_steps = 2
+        ratios_to_be_stored = [2]
+
+        _create_category_set_downsamplings(
+            magic_kernel=MagicKernel3dDownsampler(),
+            original_data=original_data_arr[...],
+            downsampling_steps=segmentation_downsampling_steps,
+            ratios_to_be_stored=ratios_to_be_stored,
+            data_group=lattice_gr,
+            value_to_segment_id_dict_for_specific_lattice_id=internal_segmentation.value_to_segment_id_dict[lattice_id],
+            params_for_storing=internal_segmentation.params_for_storing,
+            time_frame='0',
+            channel='0'
+        )
+    
+    print('Segmentation downsampled')
+
+
+def _create_category_set_downsamplings(
+        *,
+        magic_kernel: MagicKernel3dDownsampler,
+        original_data: np.ndarray,
+        downsampling_steps: int,
+        ratios_to_be_stored: list,
+        data_group: zarr.hierarchy.Group,
+        value_to_segment_id_dict_for_specific_lattice_id: dict,
+        params_for_storing: dict,
+        time_frame: str,
+        channel: str
+):
+    '''
+    Take original segmentation data, do all downsampling levels, create zarr datasets for each
+    '''
+    # table with just singletons, e.g. "104": {104}, "94" :{94}
+    initial_set_table = SegmentationSetTable(original_data, value_to_segment_id_dict_for_specific_lattice_id)
+
+    # for now contains just x1 downsampling lvl dict, in loop new dicts for new levels are appended
+    levels = [
+        DownsamplingLevelDict({'ratio': 1, 'grid': original_data, 'set_table': initial_set_table})
+    ]
+    for i in range(downsampling_steps):
+        current_set_table = SegmentationSetTable(original_data, value_to_segment_id_dict_for_specific_lattice_id)
+        # on first iteration (i.e. when doing x2 downsampling), it takes original_data and initial_set_table with set of singletons 
+        levels.append(downsample_categorical_data(magic_kernel, levels[i], current_set_table))
+
+
+    # remove original data, as they are already stored
+    levels.pop(0)
+    # remove all with ratios that are not in ratios_to_be_stored
+    levels = [level for level in levels if level.get_ratio() in ratios_to_be_stored]
+    # store levels list in zarr structure (can be separate function)
+    store_downsampling_levels_in_zarr(
+        levels,
+        lattice_data_group=data_group,
+        params_for_storing=params_for_storing,
+        time_frame=time_frame,
+        channel=channel
+        )
+
+
