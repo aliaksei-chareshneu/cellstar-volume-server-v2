@@ -17,7 +17,6 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
         original_data_arr = lattice_gr['1']['0']['0'].grid
         lattice_id = int(lattice_gr_name)
 
-        #TODO: compute both  
         segmentation_downsampling_steps = compute_number_of_downsampling_steps(
             int_vol_or_seg=internal_segmentation,
             min_grid_size=MIN_GRID_SIZE,

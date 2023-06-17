@@ -15,17 +15,19 @@ from preprocessor_v2.preprocessor.flows.common import decide_np_dtype
 from preprocessor_v2.preprocessor.flows.segmentation.category_set_downsampling_methods import store_downsampling_levels_in_zarr
 from preprocessor_v2.preprocessor.flows.segmentation.downsampling_level_dict import DownsamplingLevelDict
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_set_table import SegmentationSetTable
+from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 
 
 temp_zarr_structure_path = None
 
 
-def hdf5_to_zarr(intermediate_zarr_structure_path: Path, file_path: Path):
+def hdf5_to_zarr(internal_segmentation: InternalSegmentation):
     '''
     Creates temp zarr structure mirroring that of hdf5
     '''
     global temp_zarr_structure_path
-    temp_zarr_structure_path = intermediate_zarr_structure_path
+    temp_zarr_structure_path = internal_segmentation.intermediate_zarr_structure_path
+    file_path = internal_segmentation.sff_input_path
     try:
         # assert temp_zarr_structure_path.exists() == False, \
         #     f'temp_zarr_structure_path: {temp_zarr_structure_path} already exists'
