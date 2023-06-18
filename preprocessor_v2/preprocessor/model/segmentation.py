@@ -12,4 +12,6 @@ class InternalSegmentation:
         self.sff_input_path = sff_input_path
         self.params_for_storing = params_for_storing
         self.downsampling_parameters = downsampling_parameters
+        self.primary_descriptor = None
         self.value_to_segment_id_dict: dict = {}
+        self.simplification_curve: dict[int, float] = {}

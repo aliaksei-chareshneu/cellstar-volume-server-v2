@@ -1,4 +1,5 @@
 import logging
+import math
 from pathlib import Path
 import shutil
 
@@ -11,7 +12,7 @@ import zlib
 
 import numpy as np
 
-from preprocessor_v2.preprocessor.flows.common import decide_np_dtype
+from preprocessor_v2.preprocessor.flows.common import chunk_numpy_arr, create_dataset_wrapper, decide_np_dtype
 from preprocessor_v2.preprocessor.flows.segmentation.category_set_downsampling_methods import store_downsampling_levels_in_zarr
 from preprocessor_v2.preprocessor.flows.segmentation.downsampling_level_dict import DownsamplingLevelDict
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_set_table import SegmentationSetTable
@@ -130,3 +131,35 @@ def store_segmentation_data_in_zarr_structure(
     store_downsampling_levels_in_zarr(levels, lattice_data_group, params_for_storing=params_for_storing,
                                       time_frame='0',
                                       channel='0')
+
+def write_mesh_component_data_to_zarr_arr(target_group: zarr.hierarchy.group, mesh: zarr.hierarchy.group, mesh_component_name: str, params_for_storing: dict):
+    unchunked_component_data = decode_base64_data(
+            data=mesh[mesh_component_name].data[...][0],
+            mode=mesh[mesh_component_name].mode[...][0],
+            endianness=mesh[mesh_component_name].endianness[...][0]
+        )
+    # chunked onto triples
+    chunked_component_data = chunk_numpy_arr(unchunked_component_data, 3)
+    
+    component_arr = create_dataset_wrapper(
+        zarr_group=target_group,
+        data=chunked_component_data,
+        name=mesh_component_name,
+        shape=chunked_component_data.shape,
+        dtype=chunked_component_data.dtype,
+        params_for_storing=params_for_storing
+    )
+
+    component_arr.attrs[f'num_{mesh_component_name}'] = \
+        int(mesh[mesh_component_name][f'num_{mesh_component_name}'][...])
+    
+def make_simplification_curve(n_levels: int, levels_per_order: int) -> dict[int, float]:
+    result = {}
+    for i in range(n_levels):
+        ratio = 10 ** (-i / levels_per_order)
+        result[i + 1] = _round_to_significant_digits(ratio, 2)
+    return result
+
+def _round_to_significant_digits(number: float, digits: int) -> float:
+    first_digit = -math.floor(math.log10(number))
+    return round(number, first_digit + digits - 1)

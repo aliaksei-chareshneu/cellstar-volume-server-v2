@@ -111,3 +111,7 @@ def decide_np_dtype(mode: str, endianness: str):
     dt = np.dtype(mode)
     dt = dt.newbyteorder(endianness)
     return dt
+
+def chunk_numpy_arr(arr, chunk_size):
+    lst = np.split(arr, np.arange(chunk_size, len(arr), chunk_size))
+    return np.stack(lst, axis=0)

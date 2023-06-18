@@ -4,6 +4,10 @@ from pathlib import Path
 from typing import Optional
 from numcodecs import Blosc
 
+class SegmentationPrimaryDescriptor(str, Enum):
+    three_d_volume = 'three_d_volume'
+    mesh_list = 'mesh_list'
+
 class InputCase(str, Enum):
     map_only = 'map_only'
     map_and_sff = 'map_and_sff'
@@ -83,11 +87,13 @@ DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
                 Path('test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map'),
                 # Path('test-data/preprocessor/sample_volumes/new_emd-99999-200A.mrc'),
                 # Path('test-data/preprocessor/sample_volumes/emd_9199.map'),
+                # Path('test-data/preprocessor/sample_volumes/empiar/b3talongmusc20130301.mrc'),
                 InputKind.map
             ),
             (
                 Path('test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff'),
                 # Path('test-data/preprocessor/sample_segmentations/emdb_sff/emd_1547.hff'),
+                # Path('test-data/preprocessor/sample_segmentations/empiar/empiar_10070_b3talongmusc20130301.hff'),
                 InputKind.sff
             )
         ]
