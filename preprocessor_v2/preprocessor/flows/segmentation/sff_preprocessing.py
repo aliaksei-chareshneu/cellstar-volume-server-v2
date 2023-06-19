@@ -82,34 +82,3 @@ def _process_mesh_segmentation_data(segm_data_gr: zarr.hierarchy.group, zarr_str
                 single_mesh_group.attrs['area'] = vedo_mesh_obj.area()
                 # single_mesh_group.attrs['volume'] = vedo_mesh_obj.volume()
     
-    # TODO: downsampling part?
-    # simplification_curve: dict[int, float] = internal_segmentation.simplification_curve
-    # calc_mode = 'area'
-    # density_threshold = MESH_VERTEX_DENSITY_THRESHOLD[calc_mode]
-    
-
-
-    
-    # for segment_name_id, segment in segm_data_gr.groups():
-    #     original_detail_lvl_mesh_list_group = segment['1']
-    #     group_ref = original_detail_lvl_mesh_list_group
-
-    #     for level, fraction in simplification_curve.items():
-    #         if density_threshold != 0 and compute_vertex_density(group_ref, mode=calc_mode) <= density_threshold:
-    #             break
-    #         if fraction == 1:
-    #             continue  # original data, don't need to compute anything
-    #         mesh_data_dict = simplify_meshes(original_detail_lvl_mesh_list_group, ratio=fraction, segment_id=segment_name_id)
-    #         # TODO: potentially simplify meshes may output mesh with 0 vertices, normals, triangles
-    #         # it should not be stored?
-    #         # check each mesh in mesh_data_dict if it contains 0 vertices
-    #         # remove all such meshes from dict
-    #         for mesh_id in list(mesh_data_dict.keys()):
-    #             if mesh_data_dict[mesh_id]['attrs']['num_vertices'] == 0:
-    #                 del mesh_data_dict[mesh_id]
-
-    #         # if there is no meshes left in dict - break from while loop
-    #         if not bool(mesh_data_dict):
-    #             break
-            
-    #         group_ref = _store_mesh_data_in_zarr(mesh_data_dict, segment, detail_level=level, params_for_storing=params_for_storing)
