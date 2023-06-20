@@ -1005,7 +1005,6 @@ def extract_ome_tiff_metadata(
         }
     }
 
-    # TODO: check if this function works for ome tiff
     _get_volume_sampling_info(root_data_group=root[VOLUME_DATA_GROUPNAME],
         sampling_info_dict=metadata_dict['volumes']['volume_sampling_info'])
 
