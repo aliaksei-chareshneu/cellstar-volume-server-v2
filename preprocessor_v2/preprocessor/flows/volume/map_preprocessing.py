@@ -9,8 +9,7 @@ import dask.array as da
 
 def map_preprocessing(internal_volume: InternalVolume):
     '''1. normalize axis order
-    2. extract/compute metadata
-    3. add volume data to intermediate zarr structure
+    2. add volume data to intermediate zarr structure
     '''
     zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(
     internal_volume.intermediate_zarr_structure_path)
@@ -39,6 +38,8 @@ def map_preprocessing(internal_volume: InternalVolume):
         time_frame='0',
         channel='0'
     )
+
+    internal_volume.map_header = header
 
     print('Volume processed')
     # TODO: extract metadata

@@ -1,12 +1,13 @@
 from pathlib import Path
 
-from preprocessor_v2.preprocessor.model.input import DownsamplingParams
+from preprocessor_v2.preprocessor.model.input import DownsamplingParams, EntryData
 
 class InternalSegmentation:
     def __init__(self, intermediate_zarr_structure_path: Path,
                 sff_input_path: Path,
                 params_for_storing: dict,
-                downsampling_parameters: DownsamplingParams
+                downsampling_parameters: DownsamplingParams,
+                entry_data: EntryData
                 ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.sff_input_path = sff_input_path
@@ -15,3 +16,4 @@ class InternalSegmentation:
         self.primary_descriptor = None
         self.value_to_segment_id_dict: dict = {}
         self.simplification_curve: dict[int, float] = {}
+        self.entry_data = entry_data

@@ -8,6 +8,7 @@ from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specifi
 import mrcfile
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_downsampling import sff_segmentation_downsampling
 from preprocessor_v2.preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
+from preprocessor_v2.preprocessor.flows.volume.extract_metadata_from_map import extract_metadata_from_map
 from preprocessor_v2.preprocessor.flows.volume.map_preprocessing import map_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.volume_downsampling import volume_downsampling
 
@@ -115,13 +116,15 @@ class Preprocessor():
                 volume_input_path=self.volume_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
                 volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
-                downsampling_parameters=preprocessor_input.downsampling
+                downsampling_parameters=preprocessor_input.downsampling,
+                entry_data=preprocessor_input.entry_data
             )
 
             map_preprocessing(volume)
             # in processing part do
             volume_downsampling(volume)
-            # TODO: extract metadata
+            
+            extract_metadata_from_map(internal_volume=volume)
 
         elif self.input_case == InputCase.map_and_sff:
             # preprocess volume, preprocess sff 
@@ -133,7 +136,8 @@ class Preprocessor():
                 volume_input_path=self.volume_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
                 volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
-                downsampling_parameters=preprocessor_input.downsampling
+                downsampling_parameters=preprocessor_input.downsampling,
+                entry_data=preprocessor_input.entry_data
             )
 
             map_preprocessing(volume)
@@ -144,15 +148,17 @@ class Preprocessor():
                 intermediate_zarr_structure_path=self.intermediate_zarr_structure,
                 sff_input_path=self.segmentation_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
-                downsampling_parameters=self.preprocessor_input.downsampling
+                downsampling_parameters=self.preprocessor_input.downsampling,
+                entry_data=preprocessor_input.entry_data
             )
 
             sff_preprocessing(segmentation)
 
             sff_segmentation_downsampling(segmentation)
 
-            # TODO: extract metadata (extract_metadata_from_map_and_sff in common.py)
-            
+            extract_metadata_from_map(internal_volume=volume)
+            # TODO: extract annotations
+
         elif self.input_case == InputCase.ometiff:
             pass
         # TODO: remember that for volume and segmentation processing,

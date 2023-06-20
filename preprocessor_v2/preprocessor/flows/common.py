@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Union
 import zarr
 import numpy as np
+from preprocessor_v2.preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
@@ -101,9 +102,6 @@ def create_dataset_wrapper(
 
     return zarr_arr
 
-def extract_metadata_from_map_and_sff(int_vol_or_seg: InternalVolume, internal_segmentation: InternalSegmentation):
-    '''Extracts metadata'''
-    pass
 
 def decide_np_dtype(mode: str, endianness: str):
     '''decides np dtype based on mode (e.g. float32) and endianness (e.g. little) provided in SFF
