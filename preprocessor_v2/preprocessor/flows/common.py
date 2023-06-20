@@ -1,3 +1,4 @@
+import json
 import math
 from pathlib import Path
 from typing import Union
@@ -7,6 +8,10 @@ from preprocessor_v2.preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
+
+def temp_save_metadata(metadata: dict, metadata_filename: Path, temp_dir_path: Path) -> None:
+    with (temp_dir_path / metadata_filename).open('w') as fp:
+        json.dump(metadata, fp, indent=4)
 
 def compute_downsamplings_to_be_stored(*, int_vol_or_seg: Union[InternalVolume, InternalSegmentation], number_of_downsampling_steps: int,
                                        input_grid_size: int, dtype: np.dtype, factor: int):

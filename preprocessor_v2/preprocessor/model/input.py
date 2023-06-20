@@ -98,7 +98,7 @@ DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
             )
         ]
     ),
-    volume=VolumeParams(),
+    volume=VolumeParams(quantize_dtype_str=QuantizationDtype.u1),
     downsampling=DownsamplingParams(max_size_per_channel_mb=250),
     entry_data=EntryData(
         entry_id='emd-1832',

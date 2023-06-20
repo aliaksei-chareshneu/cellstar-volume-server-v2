@@ -1,13 +1,15 @@
 import logging
 import math
-from preprocessor.src.tools.quantize_data.quantize_data import quantize_data
+from typing import Union
 from preprocessor_v2.preprocessor.flows.common import create_dataset_wrapper
 import dask.array as da
 import zarr
 import numpy as np
 
 from preprocessor_v2.preprocessor.flows.constants import QUANTIZATION_DATA_DICT_ATTR_NAME
+from preprocessor_v2.preprocessor.model.input import QuantizationDtype
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
+from preprocessor_v2.preprocessor.tools.quantize_data.quantize_data import quantize_data
 
 def generate_kernel_3d_arr(pattern: list[int]) -> np.ndarray:
     '''
@@ -76,15 +78,16 @@ def store_volume_data_in_zarr_stucture(
     force_dtype: np.dtype,
     resolution: str,
     time_frame: str,
-    channel: str
+    channel: str,
+    quantize_dtype_str: Union[QuantizationDtype, None] = None
     ):
     
     resolution_data_group = volume_data_group.create_group(resolution)
     time_frame_data_group = resolution_data_group.create_group(time_frame)
 
 
-    if 'quantize_dtype_str' in params_for_storing:
-        force_dtype = params_for_storing['quantize_dtype_str']
+    if quantize_dtype_str:
+        force_dtype = quantize_dtype_str.value
 
     zarr_arr = create_dataset_wrapper(
         zarr_group=time_frame_data_group,
@@ -96,10 +99,10 @@ def store_volume_data_in_zarr_stucture(
         is_empty=True
     )
     
-    if 'quantize_dtype_str' in params_for_storing:
+    if quantize_dtype_str:
         quantized_data_dict = quantize_data(
             data=data,
-            output_dtype=params_for_storing['quantize_dtype_str'])
+            output_dtype=quantize_dtype_str.value)
         
         data = quantized_data_dict["data"]
         

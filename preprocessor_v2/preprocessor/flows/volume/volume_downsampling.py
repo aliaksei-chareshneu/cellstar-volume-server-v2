@@ -1,10 +1,12 @@
 from preprocessor_v2.preprocessor.flows.common import compute_downsamplings_to_be_stored, compute_number_of_downsampling_steps, open_zarr_structure_from_path
-from preprocessor_v2.preprocessor.flows.constants import DOWNSAMPLING_KERNEL, MIN_GRID_SIZE, VOLUME_DATA_GROUPNAME
+from preprocessor_v2.preprocessor.flows.constants import DOWNSAMPLING_KERNEL, MIN_GRID_SIZE, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.flows.volume.helper_methods import generate_kernel_3d_arr, store_volume_data_in_zarr_stucture
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 import dask.array as da
 from dask_image.ndfilters import convolve as dask_convolve
 import math
+
+from preprocessor_v2.preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
 
 def volume_downsampling(internal_volume: InternalVolume):
     '''
@@ -14,7 +16,13 @@ def volume_downsampling(internal_volume: InternalVolume):
     zarr_structure = open_zarr_structure_from_path(internal_volume.intermediate_zarr_structure_path)
     # TODO: figure out how what to do in case of several channels (or time frames)
     original_data_arr = zarr_structure[VOLUME_DATA_GROUPNAME]['1']['0']['0']
-    dask_arr = da.from_zarr(url=original_data_arr, chunks=original_data_arr.chunks)
+    # TODO: decode it if there is quantization attribute
+    if QUANTIZATION_DATA_DICT_ATTR_NAME in original_data_arr.attrs:
+        data_dict = original_data_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
+        data_dict['data'] = da.from_zarr(url=original_data_arr)
+        dask_arr: da.Array = decode_quantized_data(data_dict)
+    else:
+        dask_arr = da.from_zarr(url=original_data_arr, chunks=original_data_arr.chunks)
 
     kernel = generate_kernel_3d_arr(list(DOWNSAMPLING_KERNEL))
     current_level_data = dask_arr
@@ -52,7 +60,8 @@ def volume_downsampling(internal_volume: InternalVolume):
                 force_dtype=internal_volume.volume_force_dtype,
                 resolution=current_ratio,
                 time_frame='0',
-                channel='0'
+                channel='0',
+                quantize_dtype_str=internal_volume.quantize_dtype_str
             )
 
         current_level_data = downsampled_data

@@ -6,6 +6,8 @@ import numpy as np
 import zarr
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 import mrcfile
+from preprocessor_v2.preprocessor.flows.common import temp_save_metadata
+from preprocessor_v2.preprocessor.flows.constants import GRID_METADATA_FILENAME
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_downsampling import sff_segmentation_downsampling
 from preprocessor_v2.preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.extract_metadata_from_map import extract_metadata_from_map
@@ -116,15 +118,18 @@ class Preprocessor():
                 volume_input_path=self.volume_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
                 volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
+                quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
                 downsampling_parameters=preprocessor_input.downsampling,
-                entry_data=preprocessor_input.entry_data
+                entry_data=preprocessor_input.entry_data,
             )
 
             map_preprocessing(volume)
             # in processing part do
             volume_downsampling(volume)
             
-            extract_metadata_from_map(internal_volume=volume)
+            metadata_dict = extract_metadata_from_map(internal_volume=volume)
+            # TODO: temp save metadata
+            temp_save_metadata(metadata_dict, GRID_METADATA_FILENAME, self.intermediate_zarr_structure)
 
         elif self.input_case == InputCase.map_and_sff:
             # preprocess volume, preprocess sff 
@@ -136,8 +141,9 @@ class Preprocessor():
                 volume_input_path=self.volume_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
                 volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
+                quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
                 downsampling_parameters=preprocessor_input.downsampling,
-                entry_data=preprocessor_input.entry_data
+                entry_data=preprocessor_input.entry_data,
             )
 
             map_preprocessing(volume)
@@ -156,8 +162,11 @@ class Preprocessor():
 
             sff_segmentation_downsampling(segmentation)
 
-            extract_metadata_from_map(internal_volume=volume)
+            metadata_dict = extract_metadata_from_map(internal_volume=volume)
+            # TODO: temp save metadata
+            temp_save_metadata(metadata_dict, GRID_METADATA_FILENAME, self.intermediate_zarr_structure)
             # TODO: extract annotations
+            # TODO: temp save annotations
 
         elif self.input_case == InputCase.ometiff:
             pass

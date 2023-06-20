@@ -1,8 +1,11 @@
 import numpy as np
 from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
-from preprocessor_v2.preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
+from preprocessor_v2.preprocessor.flows.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 from decimal import getcontext, ROUND_CEILING, Decimal
+import dask.array as da
+
+from preprocessor_v2.preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
 
 def _ccp4_words_to_dict_mrcfile(mrc_header: object) -> dict:
     '''input - mrcfile object header (mrc.header)'''
@@ -94,12 +97,12 @@ def _get_volume_sampling_info(root_data_group, sampling_info_dict, mrc_header: o
                 # assert sampling_info_dict['boxes'][res_gr_name]['force_dtype'] == channel_arr.dtype.str
 
                 arr_view = channel_arr[...]
-                # if QUANTIZATION_DATA_DICT_ATTR_NAME in arr.attrs:
-                #     data_dict = arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
-                #     data_dict['data'] = arr_view
-                #     arr_view = decode_quantized_data(data_dict)
-                #     if isinstance(arr_view, da.Array):
-                #         arr_view = arr_view.compute()
+                if QUANTIZATION_DATA_DICT_ATTR_NAME in channel_arr.attrs:
+                    data_dict = channel_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
+                    data_dict['data'] = arr_view
+                    arr_view = decode_quantized_data(data_dict)
+                    if isinstance(arr_view, da.Array):
+                        arr_view = arr_view.compute()
 
                 mean_val = float(str(np.mean(arr_view)))
                 std_val = float(str(np.std(arr_view)))
