@@ -1,3 +1,4 @@
+from db.models import MeshComponentNumbers
 from preprocessor_v2.preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.input import SegmentationPrimaryDescriptor
@@ -27,8 +28,9 @@ def extract_metadata_from_sff_segmentation(metadata_dict, internal_segmentation:
 # takes prefilled metadata dict from map metadata
 # takes internal segmentation
 # checks primary descriptor
+    root = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
+        
     if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
-        root = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
         # sff has one channel
         channel_ids = [0]
         start_time = 0
@@ -67,6 +69,33 @@ def extract_metadata_from_sff_segmentation(metadata_dict, internal_segmentation:
         metadata_dict['segmentation_lattices']['segmentation_lattice_ids'] = lattice_ids
 
     elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
-        pass
+        # from metadata_methods
+
+        mesh_comp_num: MeshComponentNumbers = {}
+        detail_lvl_to_fraction_dict = {}
+
+        mesh_comp_num['segment_ids'] = {}
+
+        # NOTE: mesh has no time and channel (both equal zero)
+        # order: segment_ids, detail_lvls, time, channel, mesh_ids
+        for segment_id, segment in root[SEGMENTATION_DATA_GROUPNAME].groups():
+            mesh_comp_num['segment_ids'][segment_id] = {
+                'detail_lvls': {}
+            }
+            for detail_lvl, detail_lvl_gr in segment.groups():
+                mesh_comp_num['segment_ids'][segment_id]['detail_lvls'][detail_lvl] = {
+                    'mesh_ids': {}
+                }
+                # NOTE: mesh has no time and channel (both equal zero)
+                for mesh_id, mesh in detail_lvl_gr['0']['0'].groups():
+                    mesh_comp_num['segment_ids'][segment_id]['detail_lvls'][detail_lvl]['mesh_ids'][mesh_id] = {}
+                    for mesh_component_name, mesh_component in mesh.arrays():
+                        d_ref = mesh_comp_num['segment_ids'][segment_id]['detail_lvls'][detail_lvl]['mesh_ids'][mesh_id]
+                        d_ref[f'num_{mesh_component_name}'] = mesh_component.attrs[f'num_{mesh_component_name}']
+
+        detail_lvl_to_fraction_dict = internal_segmentation.simplification_curve
+
+        metadata_dict['segmentation_meshes']['mesh_component_numbers'] = mesh_comp_num
+        metadata_dict['segmentation_meshes']['detail_lvl_to_fraction'] = detail_lvl_to_fraction_dict
 
     return metadata_dict
