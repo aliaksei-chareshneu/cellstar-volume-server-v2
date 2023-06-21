@@ -29,6 +29,17 @@ def map_preprocessing(internal_volume: InternalVolume):
 
     # create volume data group
     volume_data_group: zarr.hierarchy.group = zarr_structure.create_group(VOLUME_DATA_GROUPNAME)
+
+    # TODO: check with empiar-10070 map
+    if internal_volume.quantize_dtype_str and \
+        (
+            (internal_volume.volume_force_dtype in (np.uint8, np.int8)) or \
+            ((internal_volume.volume_force_dtype in (np.uint16, np.int16)) and (internal_volume.quantize_dtype_str.value in ['u2', '|u2', '>u2', '<u2'] ))
+        ):
+        print(f'Quantization is skipped because input volume dtype is {internal_volume.volume_force_dtype} and requested quantization dtype is {internal_volume.quantize_dtype_str.value}')
+        internal_volume.quantize_dtype_str = None
+
+
     store_volume_data_in_zarr_stucture(
         data=dask_arr,
         volume_data_group=volume_data_group,
