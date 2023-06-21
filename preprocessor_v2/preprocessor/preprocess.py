@@ -8,6 +8,7 @@ from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specifi
 import mrcfile
 from preprocessor_v2.preprocessor.flows.common import temp_save_metadata
 from preprocessor_v2.preprocessor.flows.constants import GRID_METADATA_FILENAME
+from preprocessor_v2.preprocessor.flows.segmentation.extract_metadata_from_sff_segmentation import extract_metadata_from_sff_segmentation
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_downsampling import sff_segmentation_downsampling
 from preprocessor_v2.preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.extract_metadata_from_map import extract_metadata_from_map
@@ -128,7 +129,7 @@ class Preprocessor():
             volume_downsampling(volume)
             
             metadata_dict = extract_metadata_from_map(internal_volume=volume)
-            # TODO: temp save metadata
+
             temp_save_metadata(metadata_dict, GRID_METADATA_FILENAME, self.intermediate_zarr_structure)
 
         elif self.input_case == InputCase.map_and_sff:
@@ -163,7 +164,8 @@ class Preprocessor():
             sff_segmentation_downsampling(segmentation)
 
             metadata_dict = extract_metadata_from_map(internal_volume=volume)
-            # TODO: temp save metadata
+            metadata_dict = extract_metadata_from_sff_segmentation(metadata_dict=metadata_dict, internal_segmentation=segmentation)
+            
             temp_save_metadata(metadata_dict, GRID_METADATA_FILENAME, self.intermediate_zarr_structure)
             # TODO: extract annotations
             # TODO: temp save annotations

@@ -1,5 +1,5 @@
 import numpy as np
-from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
+from preprocessor_v2.preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 from decimal import getcontext, ROUND_CEILING, Decimal
@@ -55,17 +55,6 @@ def _get_origin_and_voxel_sizes_from_map_header(mrc_header: object, volume_downs
     )
 
     return origin, voxel_sizes_in_downsamplings
-
-
-def _get_downsamplings(data_group) -> list[int]:
-    volume_downsamplings = []
-    for gr_name, gr in data_group.groups():
-        volume_downsamplings.append(gr_name)
-        volume_downsamplings = sorted(volume_downsamplings)
-
-    # convert to ints
-    volume_downsamplings = sorted([int(x) for x in volume_downsamplings])
-    return volume_downsamplings
 
 def _get_volume_sampling_info(root_data_group, sampling_info_dict, mrc_header: object, volume_downsamplings: list[int]):
     # TODO: modify it such that voxel sizes are calculated on each iteration
@@ -129,7 +118,7 @@ def extract_metadata_from_map(internal_volume: InternalVolume):
 
     map_header = internal_volume.map_header
 
-    volume_downsamplings = _get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
+    volume_downsamplings = get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
     # TODO: check - some units are defined (spatial?)
     source_axes_units = {}
 

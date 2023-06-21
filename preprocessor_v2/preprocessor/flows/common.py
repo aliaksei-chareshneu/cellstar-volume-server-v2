@@ -9,6 +9,16 @@ from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 
+def get_downsamplings(data_group) -> list[int]:
+    downsamplings = []
+    for gr_name, gr in data_group.groups():
+        downsamplings.append(gr_name)
+        downsamplings = sorted(downsamplings)
+
+    # convert to ints
+    downsamplings = sorted([int(x) for x in downsamplings])
+    return downsamplings
+
 def temp_save_metadata(metadata: dict, metadata_filename: Path, temp_dir_path: Path) -> None:
     with (temp_dir_path / metadata_filename).open('w') as fp:
         json.dump(metadata, fp, indent=4)
