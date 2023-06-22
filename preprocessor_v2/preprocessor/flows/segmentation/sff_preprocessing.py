@@ -1,6 +1,6 @@
 from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import MESH_SIMPLIFICATION_LEVELS_PER_ORDER, MESH_SIMPLIFICATION_N_LEVELS, MESH_VERTEX_DENSITY_THRESHOLD, SEGMENTATION_DATA_GROUPNAME
-from preprocessor_v2.preprocessor.flows.segmentation.helper_methods import hdf5_to_zarr, lattice_data_to_np_arr, make_simplification_curve, map_value_to_segment_id, store_segmentation_data_in_zarr_structure, write_mesh_component_data_to_zarr_arr
+from preprocessor_v2.preprocessor.flows.segmentation.helper_methods import extract_raw_annotations_from_sff, hdf5_to_zarr, lattice_data_to_np_arr, make_simplification_curve, map_value_to_segment_id, store_segmentation_data_in_zarr_structure, write_mesh_component_data_to_zarr_arr
 from preprocessor_v2.preprocessor.model.input import SegmentationPrimaryDescriptor
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 import zarr
@@ -12,6 +12,7 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
     zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
     segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
     
+    internal_segmentation.raw_sff_annotations = extract_raw_annotations_from_sff(segm_file_path=internal_segmentation.sff_input_path)
     
     # PLAN:
     # 1. Convert hff to intermediate zarr structure

@@ -17,3 +17,4 @@ class InternalSegmentation:
         self.value_to_segment_id_dict: dict = {}
         self.simplification_curve: dict[int, float] = {}
         self.entry_data = entry_data
+        self.raw_sff_annotations = {}

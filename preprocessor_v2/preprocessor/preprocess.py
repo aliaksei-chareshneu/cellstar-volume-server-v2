@@ -7,7 +7,8 @@ import zarr
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 import mrcfile
 from preprocessor_v2.preprocessor.flows.common import temp_save_metadata
-from preprocessor_v2.preprocessor.flows.constants import GRID_METADATA_FILENAME
+from preprocessor_v2.preprocessor.flows.constants import ANNOTATION_METADATA_FILENAME, GRID_METADATA_FILENAME
+from preprocessor_v2.preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import extract_annotations_from_sff_segmentation
 from preprocessor_v2.preprocessor.flows.segmentation.extract_metadata_from_sff_segmentation import extract_metadata_from_sff_segmentation
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_downsampling import sff_segmentation_downsampling
 from preprocessor_v2.preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
@@ -167,8 +168,9 @@ class Preprocessor():
             metadata_dict = extract_metadata_from_sff_segmentation(metadata_dict=metadata_dict, internal_segmentation=segmentation)
             
             temp_save_metadata(metadata_dict, GRID_METADATA_FILENAME, self.intermediate_zarr_structure)
-            # TODO: extract annotations
-            # TODO: temp save annotations
+            
+            annotations_dict = extract_annotations_from_sff_segmentation(internal_segmentation=segmentation)
+            temp_save_metadata(annotations_dict, ANNOTATION_METADATA_FILENAME, self.intermediate_zarr_structure)
 
         elif self.input_case == InputCase.ometiff:
             pass

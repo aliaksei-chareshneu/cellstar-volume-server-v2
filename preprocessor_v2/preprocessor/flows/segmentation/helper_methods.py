@@ -17,10 +17,24 @@ from preprocessor_v2.preprocessor.flows.segmentation.category_set_downsampling_m
 from preprocessor_v2.preprocessor.flows.segmentation.downsampling_level_dict import DownsamplingLevelDict
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_set_table import SegmentationSetTable
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
-
+from sfftkrw.schema.adapter_v0_8_0_dev1 import SFFSegmentation
 
 temp_zarr_structure_path = None
 
+def _open_hdf5_as_segmentation_object(file_path: Path) -> SFFSegmentation:
+    return SFFSegmentation.from_file(str(file_path.resolve()))
+
+def extract_raw_annotations_from_sff(segm_file_path: Path) -> dict:
+    '''Returns dict of annotation metadata (some fields are removed)'''
+    segm_obj = _open_hdf5_as_segmentation_object(segm_file_path)
+    segm_dict = segm_obj.as_json()
+    for lattice in segm_dict['lattice_list']:
+        del lattice['data']
+    for segment in segm_dict['segment_list']:
+        # mesh list with list of ids
+        segment['mesh_list'] = [x['id'] for x in segment['mesh_list']]
+
+    return segm_dict
 
 def hdf5_to_zarr(internal_segmentation: InternalSegmentation):
     '''
