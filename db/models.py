@@ -94,6 +94,8 @@ class VolumesMetadata(TypedDict):
     volume_sampling_info: VolumeSamplingInfo
     # NOTE: what if units are not known for some axes?
     source_axes_units: dict[str, str]
+    # e.g. (0, 1, 2) as standard
+    original_axis_order: tuple[int, int, int]
 
 
 class SegmentationLatticesMetadata(TypedDict):

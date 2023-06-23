@@ -7,6 +7,11 @@ import dask.array as da
 
 from preprocessor_v2.preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
 
+def _get_axis_order_mrcfile(mrc_header: object):
+    h = mrc_header
+    current_order = int(h.mapc) - 1, int(h.mapr) - 1, int(h.maps) - 1
+    return current_order
+
 def _ccp4_words_to_dict_mrcfile(mrc_header: object) -> dict:
     '''input - mrcfile object header (mrc.header)'''
     ctx = getcontext()
@@ -146,7 +151,8 @@ def extract_metadata_from_map(internal_volume: InternalVolume):
                 'descriptive_statistics': {},
                 'time_transformations': [],
                 'source_axes_units': source_axes_units
-            }
+            },
+            'original_axis_order': _get_axis_order_mrcfile(map_header)
         },
         'segmentation_lattices': {
             'segmentation_lattice_ids': [],
