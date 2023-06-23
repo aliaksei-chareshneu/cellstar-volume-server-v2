@@ -12,7 +12,7 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
     zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
     segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
     
-    internal_segmentation.raw_sff_annotations = extract_raw_annotations_from_sff(segm_file_path=internal_segmentation.sff_input_path)
+    internal_segmentation.raw_sff_annotations = extract_raw_annotations_from_sff(segm_file_path=internal_segmentation.segmentation_input_path)
     
     # PLAN:
     # 1. Convert hff to intermediate zarr structure

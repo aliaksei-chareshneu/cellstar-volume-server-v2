@@ -19,7 +19,16 @@ from preprocessor_v2.preprocessor.flows.segmentation.segmentation_set_table impo
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 from sfftkrw.schema.adapter_v0_8_0_dev1 import SFFSegmentation
 
+from preprocessor_v2.preprocessor.model.volume import InternalVolume
+
 temp_zarr_structure_path = None
+
+def check_if_omezarr_has_labels(internal_volume: InternalVolume):
+    ome_zarr_root = zarr.open_group(internal_volume.volume_input_path)
+    if 'labels' in ome_zarr_root:
+        return True
+    else:
+        return False
 
 def _open_hdf5_as_segmentation_object(file_path: Path) -> SFFSegmentation:
     return SFFSegmentation.from_file(str(file_path.resolve()))
@@ -42,7 +51,7 @@ def hdf5_to_zarr(internal_segmentation: InternalSegmentation):
     '''
     global temp_zarr_structure_path
     temp_zarr_structure_path = internal_segmentation.intermediate_zarr_structure_path
-    file_path = internal_segmentation.sff_input_path
+    file_path = internal_segmentation.segmentation_input_path
     try:
         # assert temp_zarr_structure_path.exists() == False, \
         #     f'temp_zarr_structure_path: {temp_zarr_structure_path} already exists'

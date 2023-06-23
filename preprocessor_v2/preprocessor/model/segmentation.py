@@ -4,13 +4,13 @@ from preprocessor_v2.preprocessor.model.input import DownsamplingParams, EntryDa
 
 class InternalSegmentation:
     def __init__(self, intermediate_zarr_structure_path: Path,
-                sff_input_path: Path,
+                segmentation_input_path: Path,
                 params_for_storing: dict,
                 downsampling_parameters: DownsamplingParams,
                 entry_data: EntryData
                 ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
-        self.sff_input_path = sff_input_path
+        self.segmentation_input_path = segmentation_input_path
         self.params_for_storing = params_for_storing
         self.downsampling_parameters = downsampling_parameters
         self.primary_descriptor = None

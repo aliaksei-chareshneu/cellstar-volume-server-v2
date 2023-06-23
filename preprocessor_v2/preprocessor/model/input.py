@@ -110,3 +110,25 @@ DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
     storing_params=StoringParams(),
     db_path=Path('preprocessor_v2/temp/test_db')
 )
+
+OME_ZARR_PREPROCESSOR_INPUT = PreprocessorInput(
+    inputs=Inputs(
+        files=[
+            (
+                Path('temp/v2_temp_static_entry_files_dir/idr/idr-6001247/6001247.zarr'),
+                InputKind.omezarr
+            )
+        ]
+    ),
+    volume=VolumeParams(),
+    downsampling=DownsamplingParams(max_size_per_channel_mb=250),
+    entry_data=EntryData(
+        entry_id='idr-6001247',
+        source_db='idr',
+        source_db_id='idr-6001247',
+        source_db_name='idr'
+    ),
+    working_folder=Path('preprocessor_v2/temp/temp_zarr_hierarchy_storage'),
+    storing_params=StoringParams(),
+    db_path=Path('preprocessor_v2/temp/test_db')
+)

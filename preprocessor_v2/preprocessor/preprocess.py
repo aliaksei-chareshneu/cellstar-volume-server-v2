@@ -10,13 +10,16 @@ from preprocessor_v2.preprocessor.flows.common import temp_save_metadata
 from preprocessor_v2.preprocessor.flows.constants import ANNOTATION_METADATA_FILENAME, GRID_METADATA_FILENAME
 from preprocessor_v2.preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import extract_annotations_from_sff_segmentation
 from preprocessor_v2.preprocessor.flows.segmentation.extract_metadata_from_sff_segmentation import extract_metadata_from_sff_segmentation
+from preprocessor_v2.preprocessor.flows.segmentation.helper_methods import check_if_omezarr_has_labels
+from preprocessor_v2.preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import ome_zarr_labels_preprocessing
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_downsampling import sff_segmentation_downsampling
 from preprocessor_v2.preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.extract_metadata_from_map import extract_metadata_from_map
 from preprocessor_v2.preprocessor.flows.volume.map_preprocessing import map_preprocessing
+from preprocessor_v2.preprocessor.flows.volume.ome_zarr_image_preprocessing import ome_zarr_image_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.volume_downsampling import volume_downsampling
 
-from preprocessor_v2.preprocessor.model.input import DEFAULT_PREPROCESSOR_INPUT, InputCase, InputKind, Inputs, PreprocessorInput
+from preprocessor_v2.preprocessor.model.input import DEFAULT_PREPROCESSOR_INPUT, OME_ZARR_PREPROCESSOR_INPUT, InputCase, InputKind, Inputs, PreprocessorInput
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 
@@ -29,7 +32,7 @@ class Preprocessor():
         self.intermediate_zarr_structure = None
         self.volume_input_path = None
         self.segmentation_input_path = None
-        self.omezarr_input_path = None
+        # self.omezarr_input_path = None
         self.ometiff_input_path = None
         self.input_case = None
 
@@ -90,7 +93,9 @@ class Preprocessor():
                 self.volume_input_path = volume_input
         elif omezarr_input:
             self.input_case = InputCase.omezarr
-            self.omezarr_input_path = omezarr_input
+            # self.omezarr_input_path = omezarr_input
+            self.volume_input_path = omezarr_input
+            self.segmentation_input_path = omezarr_input
         elif ometiff_input:
             self.input_case = InputCase.ometiff
             self.ometiff_input_path = ometiff_input
@@ -154,7 +159,7 @@ class Preprocessor():
 
             segmentation = InternalSegmentation(
                 intermediate_zarr_structure_path=self.intermediate_zarr_structure,
-                sff_input_path=self.segmentation_input_path,
+                segmentation_input_path=self.segmentation_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
                 downsampling_parameters=self.preprocessor_input.downsampling,
                 entry_data=preprocessor_input.entry_data
@@ -180,7 +185,28 @@ class Preprocessor():
             # preprocess ometiff (specific approach, just volume)
             # preprocess_ometiff()
         elif self.input_case == InputCase.omezarr:
-            pass
+            volume = InternalVolume(
+                intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                volume_input_path=self.volume_input_path,
+                params_for_storing=self.preprocessor_input.storing_params,
+                volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
+                quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
+                downsampling_parameters=preprocessor_input.downsampling,
+                entry_data=preprocessor_input.entry_data,
+            )
+
+            ome_zarr_image_preprocessing(internal_volume=volume)
+
+            if check_if_omezarr_has_labels(internal_volume=volume):
+                segmentation = InternalSegmentation(
+                    intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                    segmentation_input_path=self.segmentation_input_path,
+                    params_for_storing=self.preprocessor_input.storing_params,
+                    downsampling_parameters=self.preprocessor_input.downsampling,
+                    entry_data=preprocessor_input.entry_data
+                )
+                ome_zarr_labels_preprocessing(internal_segmentation=segmentation)
+            
             # preprocess omezarr (can be just volume, or volume and segmentation), check if there are downsamplings
             # most likely yes
             # preprocess_omezarr()
@@ -197,7 +223,8 @@ class Preprocessor():
 
 def _convert_cli_args_to_preprocessor_input(cli_arguments) -> PreprocessorInput:
     # TODO: implement
-    return DEFAULT_PREPROCESSOR_INPUT
+    # return DEFAULT_PREPROCESSOR_INPUT
+    return OME_ZARR_PREPROCESSOR_INPUT
 
 if __name__ == '__main__':
     cli_arguments = None
