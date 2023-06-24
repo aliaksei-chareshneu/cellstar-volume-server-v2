@@ -1,6 +1,6 @@
 import numpy as np
-from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
-from preprocessor_v2.preprocessor.flows.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
+from preprocessor_v2.preprocessor.flows.common import create_dataset_wrapper, open_zarr_structure_from_path
+from preprocessor_v2.preprocessor.flows.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME_COPY
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 import zarr
 import dask.array as da
@@ -27,9 +27,17 @@ def quantize_internal_volume(internal_volume: InternalVolume):
     
     # iterate over all arrays
     # create dask array
-    for resolution, res_gr in zarr_structure[VOLUME_DATA_GROUPNAME].groups():
+
+    # copy original volume data group
+    zarr.copy_store(source=zarr_structure.store, dest=zarr_structure.store,
+                    source_path=VOLUME_DATA_GROUPNAME, dest_path=VOLUME_DATA_GROUPNAME_COPY)
+
+    # iterate over copy, delete original array (float dtype), recreate it with quantization dtype
+    for res, res_gr in zarr_structure[VOLUME_DATA_GROUPNAME_COPY].groups():
         for time, time_gr in res_gr.groups():
             for channel_arr_name, channel_arr in time_gr.arrays():
+                del zarr_structure[VOLUME_DATA_GROUPNAME][res][time][channel_arr_name]
+
                 data = da.from_array(channel_arr)
 
 
@@ -42,10 +50,22 @@ def quantize_internal_volume(internal_volume: InternalVolume):
                 quantized_data_dict_without_data = quantized_data_dict.copy()
                 quantized_data_dict_without_data.pop('data')
 
+                zarr_arr = create_dataset_wrapper(
+                    zarr_group=zarr_structure[VOLUME_DATA_GROUPNAME][res][time],
+                    data=None,
+                    name=str(channel_arr_name),
+                    shape=data.shape,
+                    dtype=data.dtype,
+                    params_for_storing=internal_volume.params_for_storing,
+                    is_empty=True
+                )
                 # save this dict as attr of zarr arr
-                channel_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
+                zarr_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
 
                 # TODO: fix arr dtype
-                da.to_zarr(arr=data, url=channel_arr, overwrite=True, compute=True)
+                da.to_zarr(arr=data, url=zarr_arr, overwrite=True, compute=True)
+
+    # remove copy
+    del zarr_structure[VOLUME_DATA_GROUPNAME_COPY]
 
     print('Volume quantized')

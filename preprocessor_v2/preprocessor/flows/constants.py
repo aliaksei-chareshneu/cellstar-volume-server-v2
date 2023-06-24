@@ -1,6 +1,7 @@
 QUANTIZATION_DATA_DICT_ATTR_NAME = "quantization_data_dict"
 SEGMENTATION_DATA_GROUPNAME = "_segmentation_data"
 VOLUME_DATA_GROUPNAME = "_volume_data"
+VOLUME_DATA_GROUPNAME_COPY = "_volume_data_copy"
 
 # TODO: the namespaces should NOT be hardcoded
 DB_NAMESPACES = ("emdb", "empiar")

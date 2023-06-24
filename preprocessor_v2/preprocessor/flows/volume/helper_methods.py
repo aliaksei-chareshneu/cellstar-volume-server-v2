@@ -79,15 +79,15 @@ def store_volume_data_in_zarr_stucture(
     resolution: str,
     time_frame: str,
     channel: str,
-    quantize_dtype_str: Union[QuantizationDtype, None] = None
+    # quantize_dtype_str: Union[QuantizationDtype, None] = None
     ):
     
     resolution_data_group = volume_data_group.create_group(resolution)
     time_frame_data_group = resolution_data_group.create_group(time_frame)
 
 
-    if quantize_dtype_str:
-        force_dtype = quantize_dtype_str.value
+    # if quantize_dtype_str:
+    #     force_dtype = quantize_dtype_str.value
 
     zarr_arr = create_dataset_wrapper(
         zarr_group=time_frame_data_group,
@@ -99,17 +99,17 @@ def store_volume_data_in_zarr_stucture(
         is_empty=True
     )
     
-    if quantize_dtype_str:
-        quantized_data_dict = quantize_data(
-            data=data,
-            output_dtype=quantize_dtype_str.value)
+    # if quantize_dtype_str:
+    #     quantized_data_dict = quantize_data(
+    #         data=data,
+    #         output_dtype=quantize_dtype_str.value)
         
-        data = quantized_data_dict["data"]
+    #     data = quantized_data_dict["data"]
         
-        quantized_data_dict_without_data = quantized_data_dict.copy()
-        quantized_data_dict_without_data.pop('data')
+    #     quantized_data_dict_without_data = quantized_data_dict.copy()
+    #     quantized_data_dict_without_data.pop('data')
 
-        # save this dict as attr of zarr arr
-        zarr_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
+    #     # save this dict as attr of zarr arr
+    #     zarr_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
 
     da.to_zarr(arr=data, url=zarr_arr, overwrite=True, compute=True)
