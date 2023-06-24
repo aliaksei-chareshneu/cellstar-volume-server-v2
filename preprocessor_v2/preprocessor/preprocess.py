@@ -17,6 +17,7 @@ from preprocessor_v2.preprocessor.flows.segmentation.sff_preprocessing import sf
 from preprocessor_v2.preprocessor.flows.volume.extract_metadata_from_map import extract_metadata_from_map
 from preprocessor_v2.preprocessor.flows.volume.map_preprocessing import map_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.ome_zarr_image_preprocessing import ome_zarr_image_preprocessing
+from preprocessor_v2.preprocessor.flows.volume.quantize_internal_volume import quantize_internal_volume
 from preprocessor_v2.preprocessor.flows.volume.volume_downsampling import volume_downsampling
 
 from preprocessor_v2.preprocessor.model.input import DEFAULT_PREPROCESSOR_INPUT, OME_ZARR_PREPROCESSOR_INPUT, InputCase, InputKind, Inputs, PreprocessorInput
@@ -128,6 +129,7 @@ class Preprocessor():
                 quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
                 downsampling_parameters=preprocessor_input.downsampling,
                 entry_data=preprocessor_input.entry_data,
+                quantize_downsampling_levels=preprocessor_input.volume.quantize_downsampling_levels
             )
 
             map_preprocessing(volume)
@@ -151,6 +153,7 @@ class Preprocessor():
                 quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
                 downsampling_parameters=preprocessor_input.downsampling,
                 entry_data=preprocessor_input.entry_data,
+                quantize_downsampling_levels=preprocessor_input.volume.quantize_downsampling_levels
             )
 
             map_preprocessing(volume)
@@ -177,6 +180,8 @@ class Preprocessor():
             annotations_dict = extract_annotations_from_sff_segmentation(internal_segmentation=segmentation)
             temp_save_metadata(annotations_dict, ANNOTATION_METADATA_FILENAME, self.intermediate_zarr_structure)
 
+            quantize_internal_volume(volume)
+        
         elif self.input_case == InputCase.ometiff:
             pass
         # TODO: remember that for volume and segmentation processing,
@@ -193,6 +198,7 @@ class Preprocessor():
                 quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
                 downsampling_parameters=preprocessor_input.downsampling,
                 entry_data=preprocessor_input.entry_data,
+                quantize_downsampling_levels=preprocessor_input.volume.quantize_downsampling_levels
             )
 
             ome_zarr_image_preprocessing(internal_volume=volume)
@@ -207,9 +213,8 @@ class Preprocessor():
                 )
                 ome_zarr_labels_preprocessing(internal_segmentation=segmentation)
             
-            # preprocess omezarr (can be just volume, or volume and segmentation), check if there are downsamplings
-            # most likely yes
-            # preprocess_omezarr()
+            # TODO: during metadata extraction - check if original axis order is ZYX,
+            # and save original axis order (ZYX), otherwise throw exception
 
         return self.intermediate_zarr_structure
 
@@ -223,8 +228,8 @@ class Preprocessor():
 
 def _convert_cli_args_to_preprocessor_input(cli_arguments) -> PreprocessorInput:
     # TODO: implement
-    # return DEFAULT_PREPROCESSOR_INPUT
-    return OME_ZARR_PREPROCESSOR_INPUT
+    return DEFAULT_PREPROCESSOR_INPUT
+    # return OME_ZARR_PREPROCESSOR_INPUT
 
 if __name__ == '__main__':
     cli_arguments = None

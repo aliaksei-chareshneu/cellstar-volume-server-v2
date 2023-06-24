@@ -11,6 +11,7 @@ class InternalVolume:
                 downsampling_parameters: DownsamplingParams,
                 entry_data: EntryData,
                 quantize_dtype_str: QuantizationDtype,
+                quantize_downsampling_levels: tuple
                 ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.volume_input_path = volume_input_path
@@ -20,3 +21,4 @@ class InternalVolume:
         self.downsampling_parameters = downsampling_parameters
         self.entry_data = entry_data
         self.map_header = None
+        self.quantize_downsampling_levels = quantize_downsampling_levels

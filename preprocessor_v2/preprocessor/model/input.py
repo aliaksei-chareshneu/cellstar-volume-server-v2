@@ -37,6 +37,7 @@ class Inputs(BaseModel):
 
 class VolumeParams(BaseModel):
     quantize_dtype_str: Optional[QuantizationDtype]
+    quantize_downsampling_levels: Optional[tuple[int]]
     force_volume_dtype: Optional[str]
 
 class DownsamplingParams(BaseModel):
@@ -98,7 +99,7 @@ DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
             )
         ]
     ),
-    volume=VolumeParams(quantize_dtype_str=QuantizationDtype.u1),
+    volume=VolumeParams(quantize_dtype_str=QuantizationDtype.u1, quantize_downsampling_levels=(1,)),
     downsampling=DownsamplingParams(max_size_per_channel_mb=250),
     entry_data=EntryData(
         entry_id='emd-1832',

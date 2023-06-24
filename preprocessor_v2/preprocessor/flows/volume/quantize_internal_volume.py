@@ -34,36 +34,37 @@ def quantize_internal_volume(internal_volume: InternalVolume):
 
     # iterate over copy, delete original array (float dtype), recreate it with quantization dtype
     for res, res_gr in zarr_structure[VOLUME_DATA_GROUPNAME_COPY].groups():
-        for time, time_gr in res_gr.groups():
-            for channel_arr_name, channel_arr in time_gr.arrays():
-                del zarr_structure[VOLUME_DATA_GROUPNAME][res][time][channel_arr_name]
+        if int(res) in internal_volume.quantize_downsampling_levels:
+            for time, time_gr in res_gr.groups():
+                for channel_arr_name, channel_arr in time_gr.arrays():
+                    del zarr_structure[VOLUME_DATA_GROUPNAME][res][time][channel_arr_name]
 
-                data = da.from_array(channel_arr)
+                    data = da.from_array(channel_arr)
 
 
-                quantized_data_dict = quantize_data(
-                    data=data,
-                    output_dtype=quantize_dtype_str.value)
-                
-                data = quantized_data_dict["data"]
-                
-                quantized_data_dict_without_data = quantized_data_dict.copy()
-                quantized_data_dict_without_data.pop('data')
+                    quantized_data_dict = quantize_data(
+                        data=data,
+                        output_dtype=quantize_dtype_str.value)
+                    
+                    data = quantized_data_dict["data"]
+                    
+                    quantized_data_dict_without_data = quantized_data_dict.copy()
+                    quantized_data_dict_without_data.pop('data')
 
-                zarr_arr = create_dataset_wrapper(
-                    zarr_group=zarr_structure[VOLUME_DATA_GROUPNAME][res][time],
-                    data=None,
-                    name=str(channel_arr_name),
-                    shape=data.shape,
-                    dtype=data.dtype,
-                    params_for_storing=internal_volume.params_for_storing,
-                    is_empty=True
-                )
-                # save this dict as attr of zarr arr
-                zarr_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
+                    zarr_arr = create_dataset_wrapper(
+                        zarr_group=zarr_structure[VOLUME_DATA_GROUPNAME][res][time],
+                        data=None,
+                        name=str(channel_arr_name),
+                        shape=data.shape,
+                        dtype=data.dtype,
+                        params_for_storing=internal_volume.params_for_storing,
+                        is_empty=True
+                    )
+                    # save this dict as attr of zarr arr
+                    zarr_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
 
-                # TODO: fix arr dtype
-                da.to_zarr(arr=data, url=zarr_arr, overwrite=True, compute=True)
+                    # TODO: fix arr dtype
+                    da.to_zarr(arr=data, url=zarr_arr, overwrite=True, compute=True)
 
     # remove copy
     del zarr_structure[VOLUME_DATA_GROUPNAME_COPY]

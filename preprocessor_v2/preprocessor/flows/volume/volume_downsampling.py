@@ -61,7 +61,7 @@ def volume_downsampling(internal_volume: InternalVolume):
                 resolution=current_ratio,
                 time_frame='0',
                 channel='0',
-                quantize_dtype_str=internal_volume.quantize_dtype_str
+                # quantize_dtype_str=internal_volume.quantize_dtype_str
             )
 
         current_level_data = downsampled_data
