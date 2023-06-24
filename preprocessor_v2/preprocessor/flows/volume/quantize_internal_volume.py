@@ -7,6 +7,7 @@ import dask.array as da
 
 from preprocessor_v2.preprocessor.tools.quantize_data.quantize_data import quantize_data
 
+# TODO: quantization for each level separately
 def quantize_internal_volume(internal_volume: InternalVolume):
     if internal_volume.quantize_dtype_str and \
         (
@@ -25,27 +26,26 @@ def quantize_internal_volume(internal_volume: InternalVolume):
         internal_volume.intermediate_zarr_structure_path)
     
     # iterate over all arrays
-    # NOTE: for now just over 0 time and 0 channel
     # create dask array
-    for resolution, volume_gr in zarr_structure[VOLUME_DATA_GROUPNAME].groups():
-        volume_arr = volume_gr['0']['0']
-        data = da.from_array(volume_arr)
+    for resolution, res_gr in zarr_structure[VOLUME_DATA_GROUPNAME].groups():
+        for time, time_gr in res_gr.groups():
+            for channel_arr_name, channel_arr in time_gr.arrays():
+                data = da.from_array(channel_arr)
 
 
+                quantized_data_dict = quantize_data(
+                    data=data,
+                    output_dtype=quantize_dtype_str.value)
+                
+                data = quantized_data_dict["data"]
+                
+                quantized_data_dict_without_data = quantized_data_dict.copy()
+                quantized_data_dict_without_data.pop('data')
 
-        quantized_data_dict = quantize_data(
-            data=data,
-            output_dtype=quantize_dtype_str.value)
-        
-        data = quantized_data_dict["data"]
-        
-        quantized_data_dict_without_data = quantized_data_dict.copy()
-        quantized_data_dict_without_data.pop('data')
+                # save this dict as attr of zarr arr
+                channel_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
 
-        # save this dict as attr of zarr arr
-        volume_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = quantized_data_dict_without_data
-
-        # TODO: fix arr dtype
-        da.to_zarr(arr=data, url=volume_arr, overwrite=True, compute=True)
+                # TODO: fix arr dtype
+                da.to_zarr(arr=data, url=channel_arr, overwrite=True, compute=True)
 
     print('Volume quantized')
