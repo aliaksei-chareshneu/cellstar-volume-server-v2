@@ -1,9 +1,11 @@
 from argparse import ArgumentError
+import asyncio
 import logging
 from pathlib import Path
 import shutil
 import numpy as np
 import zarr
+from db.file_system.db import FileSystemVolumeServerDB
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 import mrcfile
 from preprocessor_v2.preprocessor.flows.common import temp_save_metadata
@@ -125,11 +127,11 @@ class Preprocessor():
                 intermediate_zarr_structure_path=self.intermediate_zarr_structure,
                 volume_input_path=self.volume_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
-                volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
-                quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
-                downsampling_parameters=preprocessor_input.downsampling,
-                entry_data=preprocessor_input.entry_data,
-                quantize_downsampling_levels=preprocessor_input.volume.quantize_downsampling_levels
+                volume_force_dtype=self.preprocessor_input.volume.force_volume_dtype,
+                quantize_dtype_str=self.preprocessor_input.volume.quantize_dtype_str,
+                downsampling_parameters=self.preprocessor_input.downsampling,
+                entry_data=self.preprocessor_input.entry_data,
+                quantize_downsampling_levels=self.preprocessor_input.volume.quantize_downsampling_levels
             )
 
             map_preprocessing(volume)
@@ -149,11 +151,11 @@ class Preprocessor():
                 intermediate_zarr_structure_path=self.intermediate_zarr_structure,
                 volume_input_path=self.volume_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
-                volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
-                quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
-                downsampling_parameters=preprocessor_input.downsampling,
-                entry_data=preprocessor_input.entry_data,
-                quantize_downsampling_levels=preprocessor_input.volume.quantize_downsampling_levels
+                volume_force_dtype=self.preprocessor_input.volume.force_volume_dtype,
+                quantize_dtype_str=self.preprocessor_input.volume.quantize_dtype_str,
+                downsampling_parameters=self.preprocessor_input.downsampling,
+                entry_data=self.preprocessor_input.entry_data,
+                quantize_downsampling_levels=self.preprocessor_input.volume.quantize_downsampling_levels
             )
 
             map_preprocessing(volume)
@@ -165,7 +167,7 @@ class Preprocessor():
                 segmentation_input_path=self.segmentation_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
                 downsampling_parameters=self.preprocessor_input.downsampling,
-                entry_data=preprocessor_input.entry_data
+                entry_data=self.preprocessor_input.entry_data
             )
 
             sff_preprocessing(segmentation)
@@ -180,7 +182,6 @@ class Preprocessor():
             annotations_dict = extract_annotations_from_sff_segmentation(internal_segmentation=segmentation)
             temp_save_metadata(annotations_dict, ANNOTATION_METADATA_FILENAME, self.intermediate_zarr_structure)
 
-            quantize_internal_volume(volume)
         
         elif self.input_case == InputCase.ometiff:
             pass
@@ -194,11 +195,11 @@ class Preprocessor():
                 intermediate_zarr_structure_path=self.intermediate_zarr_structure,
                 volume_input_path=self.volume_input_path,
                 params_for_storing=self.preprocessor_input.storing_params,
-                volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
-                quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
-                downsampling_parameters=preprocessor_input.downsampling,
-                entry_data=preprocessor_input.entry_data,
-                quantize_downsampling_levels=preprocessor_input.volume.quantize_downsampling_levels
+                volume_force_dtype=self.preprocessor_input.volume.force_volume_dtype,
+                quantize_dtype_str=self.preprocessor_input.volume.quantize_dtype_str,
+                downsampling_parameters=self.preprocessor_input.downsampling,
+                entry_data=self.preprocessor_input.entry_data,
+                quantize_downsampling_levels=self.preprocessor_input.volume.quantize_downsampling_levels
             )
 
             ome_zarr_image_preprocessing(internal_volume=volume)
@@ -209,16 +210,29 @@ class Preprocessor():
                     segmentation_input_path=self.segmentation_input_path,
                     params_for_storing=self.preprocessor_input.storing_params,
                     downsampling_parameters=self.preprocessor_input.downsampling,
-                    entry_data=preprocessor_input.entry_data
+                    entry_data=self.preprocessor_input.entry_data
                 )
                 ome_zarr_labels_preprocessing(internal_segmentation=segmentation)
             
             # TODO: during metadata extraction - check if original axis order is ZYX,
             # and save original axis order (ZYX), otherwise throw exception
 
+        if volume and self.preprocessor_input.volume.quantize_dtype_str:
+            quantize_internal_volume(volume)
+
         return self.intermediate_zarr_structure
 
-    
+    async def store_to_db(self):
+        new_db_path = Path(self.preprocessor_input.db_path)
+        if new_db_path.is_dir() == False:
+            new_db_path.mkdir()
+
+        db = FileSystemVolumeServerDB(new_db_path, store_type='zip')
+        await db.store(namespace=self.preprocessor_input.entry_data.source_db,
+            key=self.preprocessor_input.entry_data.entry_id,
+            temp_store_path=self.intermediate_zarr_structure)
+        
+        print('Data stored to db')
 
 
 
@@ -231,10 +245,16 @@ def _convert_cli_args_to_preprocessor_input(cli_arguments) -> PreprocessorInput:
     return DEFAULT_PREPROCESSOR_INPUT
     # return OME_ZARR_PREPROCESSOR_INPUT
 
-if __name__ == '__main__':
+async def main():
     cli_arguments = None
     preprocessor_input: PreprocessorInput = _convert_cli_args_to_preprocessor_input(cli_arguments)
     preprocessor = Preprocessor(preprocessor_input)
     preprocessor.initialization()
-    intermediate_zarr_structure = preprocessor.preprocessing()
+    preprocessor.preprocessing()
+    await preprocessor.store_to_db()
+    
+if __name__ == '__main__':
+    asyncio.run(main())
 
+    # TODO: store to db
+    # store_to_db takes preprocessor input

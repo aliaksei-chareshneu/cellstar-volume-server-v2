@@ -7,7 +7,6 @@ import dask.array as da
 
 from preprocessor_v2.preprocessor.tools.quantize_data.quantize_data import quantize_data
 
-# TODO: quantization for each level separately
 def quantize_internal_volume(internal_volume: InternalVolume):
     if internal_volume.quantize_dtype_str and \
         (

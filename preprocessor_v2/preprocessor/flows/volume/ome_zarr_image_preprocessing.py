@@ -4,11 +4,6 @@
 # quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
 # downsampling_parameters=preprocessor_input.downsampling,
 
-# TODO: if quantization should be supported, modify store_volume_data_in_zarr_stucture
-# so that it creates time and resolution groups only when they don't exist
-# otherwise it references the existing group
-# and use this modified function to store ome zarr volume data
-
 from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
@@ -64,4 +59,5 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
             raise Exception('Axes number/order is not supported')
         
 
-        print('Volume processed')
+    
+    print('Volume processed')

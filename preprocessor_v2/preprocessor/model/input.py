@@ -121,7 +121,7 @@ OME_ZARR_PREPROCESSOR_INPUT = PreprocessorInput(
             )
         ]
     ),
-    volume=VolumeParams(),
+    volume=VolumeParams(quantize_dtype_str=QuantizationDtype.u1, quantize_downsampling_levels=(2,)),
     downsampling=DownsamplingParams(max_size_per_channel_mb=250),
     entry_data=EntryData(
         entry_id='idr-6001247',
