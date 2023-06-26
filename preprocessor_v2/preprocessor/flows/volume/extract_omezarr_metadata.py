@@ -6,7 +6,6 @@ from preprocessor_v2.preprocessor.flows.common import get_downsamplings, open_za
 from preprocessor_v2.preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME, SPACE_UNITS_CONVERSION_DICT
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 import zarr
-from PIL import ImageColor
 
 def _get_axis_order_omezarr(ome_zarr_attrs):
     axes_names_to_numbers = {
@@ -69,23 +68,6 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
     
 
     return boxes_dict
-
-def _convert_hex_to_rgba_fractional(channel_color_hex):
-    channel_color_rgba = ImageColor.getcolor(f'#{channel_color_hex}', "RGBA")
-    channel_color_rgba_fractional = tuple([i/255 for i in channel_color_rgba])
-    return channel_color_rgba_fractional
-
-def get_channel_annotations(ome_zarr_attrs, volume_channel_annotations):
-    for channel_id, channel in enumerate(ome_zarr_attrs['omero']['channels']):
-        volume_channel_annotations.append(
-            {
-                'channel_id': channel_id,
-                'color': _convert_hex_to_rgba_fractional(channel['color']),
-                'label': channel['label']
-            }
-        )
-        # volume_channel_annotations_dict['colors'][str(channel_id)] = _convert_hex_to_rgba_fractional(channel['color'])
-        # volume_channel_annotations_dict['labels'][str(channel_id)] = channel['label']
 
 # TODO: add support for time transformations applied to all resolution
 def get_time_transformations(ome_zarr_attrs, time_transformations_list: list):

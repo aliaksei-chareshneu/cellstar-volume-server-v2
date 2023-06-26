@@ -17,6 +17,7 @@ from preprocessor_v2.preprocessor.flows.segmentation.ome_zarr_labels_preprocessi
 from preprocessor_v2.preprocessor.flows.segmentation.segmentation_downsampling import sff_segmentation_downsampling
 from preprocessor_v2.preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.extract_metadata_from_map import extract_metadata_from_map
+from preprocessor_v2.preprocessor.flows.volume.extract_omezarr_annotations import extract_omezarr_annotations
 from preprocessor_v2.preprocessor.flows.volume.extract_omezarr_metadata import extract_ome_zarr_metadata
 from preprocessor_v2.preprocessor.flows.volume.map_preprocessing import map_preprocessing
 from preprocessor_v2.preprocessor.flows.volume.ome_zarr_image_preprocessing import ome_zarr_image_preprocessing
@@ -218,7 +219,8 @@ class Preprocessor():
             metadata_dict = extract_ome_zarr_metadata(internal_volume=volume)
             temp_save_metadata(metadata_dict, GRID_METADATA_FILENAME, self.intermediate_zarr_structure)
             
-            # TODO: segm axis order
+            annotations_dict = extract_omezarr_annotations(internal_segmentation=segmentation)
+            temp_save_metadata(metadata_dict, ANNOTATION_METADATA_FILENAME, self.intermediate_zarr_structure)
 
 
 
