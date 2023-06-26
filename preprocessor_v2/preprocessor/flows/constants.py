@@ -23,3 +23,8 @@ MESH_VERTEX_DENSITY_THRESHOLD = {
     # 'area': 0.02,
     # 'volume': 0.0015,
 }
+
+SPACE_UNITS_CONVERSION_DICT = {
+    'micrometer': 10000,
+    'angstrom': 1
+}

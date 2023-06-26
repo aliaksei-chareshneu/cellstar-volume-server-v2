@@ -82,6 +82,9 @@ class SamplingInfo(TypedDict):
     # the only thing with changes with SPATIAL downsampling is box!
     boxes: dict[int, SamplingBox]
     time_transformations: list[TimeTransformation]
+    source_axes_units: dict[str, str]
+    # e.g. (0, 1, 2) as standard
+    original_axis_order: list[int, int, int]
 
 class VolumeSamplingInfo(SamplingInfo):
     # resolution -> time -> channel_id
@@ -92,11 +95,6 @@ class VolumesMetadata(TypedDict):
     # Values of time dimension
     time_info: TimeInfo
     volume_sampling_info: VolumeSamplingInfo
-    # NOTE: what if units are not known for some axes?
-    source_axes_units: dict[str, str]
-    # e.g. (0, 1, 2) as standard
-    original_axis_order: tuple[int, int, int]
-
 
 class SegmentationLatticesMetadata(TypedDict):
     # N of label groups (Cell, Chromosomes)
@@ -105,7 +103,6 @@ class SegmentationLatticesMetadata(TypedDict):
     segmentation_sampling_info: dict[str, SamplingInfo]
     channel_ids: dict[str, list[int]]
     time_info: dict[str, TimeInfo]
-
 
 
 
