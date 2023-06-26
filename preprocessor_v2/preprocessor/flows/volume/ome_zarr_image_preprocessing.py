@@ -1,10 +1,10 @@
 # TODO: figure out how to use these internal volume attributes
-# params_for_storing=self.preprocessor_input.storing_params,
 # volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
-# quantize_dtype_str=preprocessor_input.volume.quantize_dtype_str,
 # downsampling_parameters=preprocessor_input.downsampling,
 
-from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
+# TODO: try to replace create dataset with create dataset wrapper
+
+from preprocessor_v2.preprocessor.flows.common import create_dataset_wrapper, open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 import zarr
@@ -35,19 +35,35 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                 time_group = resolution_group.create_group(str(i))
                 for j in range(volume_arr.shape[1]):
                     corrected_volume_arr_data = volume_arr[...][i][j].swapaxes(0,2)
-                    our_channel_arr = time_group.create_dataset(
+                    # our_channel_arr = time_group.create_dataset(
+                    #     name=j,
+                    #     shape=corrected_volume_arr_data.shape,
+                    #     data=corrected_volume_arr_data
+                    # )
+                    our_channel_arr = create_dataset_wrapper(
+                        zarr_group=time_group,
                         name=j,
                         shape=corrected_volume_arr_data.shape,
-                        data=corrected_volume_arr_data
+                        data=corrected_volume_arr_data,
+                        dtype=corrected_volume_arr_data.dtype,
+                        params_for_storing=internal_volume.params_for_storing
                     )
         elif len(axes) == 4 and axes[0]['name'] == 'c':
             time_group = resolution_group.create_group('0')
             for j in range(volume_arr.shape[0]):
                 corrected_volume_arr_data = volume_arr[...][j].swapaxes(0,2)
-                our_channel_arr = time_group.create_dataset(
+                # our_channel_arr = time_group.create_dataset(
+                #     name=j,
+                #     shape=corrected_volume_arr_data.shape,
+                #     data=corrected_volume_arr_data
+                # )
+                our_channel_arr = create_dataset_wrapper(
+                    zarr_group=time_group,
                     name=j,
                     shape=corrected_volume_arr_data.shape,
-                    data=corrected_volume_arr_data
+                    data=corrected_volume_arr_data,
+                    dtype=corrected_volume_arr_data.dtype,
+                    params_for_storing=internal_volume.params_for_storing
                 )
         # TODO: later
         # elif len(axes) == 3:
