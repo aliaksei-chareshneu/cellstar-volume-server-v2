@@ -220,7 +220,7 @@ class Preprocessor():
             temp_save_metadata(metadata_dict, GRID_METADATA_FILENAME, self.intermediate_zarr_structure)
             
             annotations_dict = extract_omezarr_annotations(internal_segmentation=segmentation)
-            temp_save_metadata(metadata_dict, ANNOTATION_METADATA_FILENAME, self.intermediate_zarr_structure)
+            temp_save_metadata(annotations_dict, ANNOTATION_METADATA_FILENAME, self.intermediate_zarr_structure)
 
 
 
@@ -262,6 +262,3 @@ async def main():
     
 if __name__ == '__main__':
     asyncio.run(main())
-
-    # TODO: store to db
-    # store_to_db takes preprocessor input
