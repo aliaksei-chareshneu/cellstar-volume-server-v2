@@ -2,12 +2,12 @@
 # volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
 # downsampling_parameters=preprocessor_input.downsampling,
 
-# TODO: try to replace create dataset with create dataset wrapper
-
 from preprocessor_v2.preprocessor.flows.common import create_dataset_wrapper, open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 import zarr
+
+# TODO: support 3 axes case?
 
 def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
     ome_zarr_root = zarr.open_group(internal_volume.volume_input_path)

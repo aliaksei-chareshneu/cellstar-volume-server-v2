@@ -20,7 +20,7 @@ def _get_axis_order_omezarr(ome_zarr_attrs):
     for axis in axes[-3:]:
         axes_order.append(axes_names_to_numbers[axis['name']])
 
-    return tuple(axes_order)
+    return axes_order
 
 def get_origins(ome_zarr_attrs, boxes_dict: dict):
     multiscales = ome_zarr_attrs["multiscales"]

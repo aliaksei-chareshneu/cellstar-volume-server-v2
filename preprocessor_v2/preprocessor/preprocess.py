@@ -24,10 +24,10 @@ from preprocessor_v2.preprocessor.flows.volume.ome_zarr_image_preprocessing impo
 from preprocessor_v2.preprocessor.flows.volume.quantize_internal_volume import quantize_internal_volume
 from preprocessor_v2.preprocessor.flows.volume.volume_downsampling import volume_downsampling
 
-from preprocessor_v2.preprocessor.model.input import DEFAULT_PREPROCESSOR_INPUT, OME_ZARR_PREPROCESSOR_INPUT, InputCase, InputKind, Inputs, PreprocessorInput
+from preprocessor_v2.preprocessor.model.input import DEFAULT_PREPROCESSOR_INPUT, OME_ZARR_PREPROCESSOR_INPUT, DownsamplingParams, EntryData, InputCase, InputKind, Inputs, PreprocessorInput, StoringParams, VolumeParams
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
-
+import typer
 
 class Preprocessor():
     def __init__(self, preprocessor_input: PreprocessorInput):
@@ -252,13 +252,81 @@ def _convert_cli_args_to_preprocessor_input(cli_arguments) -> PreprocessorInput:
     # return DEFAULT_PREPROCESSOR_INPUT
     return OME_ZARR_PREPROCESSOR_INPUT
 
-async def main():
-    cli_arguments = None
-    preprocessor_input: PreprocessorInput = _convert_cli_args_to_preprocessor_input(cli_arguments)
+async def main_preprocessor(
+        entry_id: str,
+        source_db: str,
+        source_db_id: str,
+        source_db_name: str,
+        working_folder: Path,
+        db_path: Path,
+        input_paths: list[Path],
+        input_kinds: list[InputKind],
+):
+    preprocessor_input = PreprocessorInput(
+        inputs=Inputs(
+            files=[
+            ]
+        ),
+        volume=VolumeParams(
+            # quantize_dtype_str=quantize_dtype_str,
+            # quantize_downsampling_levels=quantize_downsampling_levels,
+            # force_volume_dtype=force_volume_dtype
+        ),
+        downsampling=DownsamplingParams(),
+        entry_data=EntryData(
+            entry_id=entry_id,
+            source_db=source_db,
+            source_db_id=source_db_id,
+            source_db_name=source_db_name
+        ),
+        working_folder=Path(working_folder),
+        storing_params=StoringParams(),
+        db_path=Path(db_path)
+    )
+
+    for input_path, input_kind in zip(input_paths, input_kinds):
+        preprocessor_input.inputs.files.append((
+            Path(input_path),
+            input_kind
+        ))
+
+
+
+    # cli_arguments = None
+    # preprocessor_input: PreprocessorInput = _convert_cli_args_to_preprocessor_input(cli_arguments)
     preprocessor = Preprocessor(preprocessor_input)
     preprocessor.initialization()
     preprocessor.preprocessing()
     await preprocessor.store_to_db()
-    
+
+def main(
+        entry_id: str = typer.Option(default=...),
+        source_db: str = typer.Option(default=...),
+        source_db_id: str = typer.Option(default=...),
+        source_db_name: str = typer.Option(default=...),
+        working_folder: Path = typer.Option(default=...),
+        db_path: Path = typer.Option(default=...),
+        # TODO: make these two required
+        input_path: list[Path] = typer.Option(default=...),
+        input_kind: list[InputKind] = typer.Option(default=...),
+        ):
+    asyncio.run(main_preprocessor(
+        entry_id=entry_id,
+        source_db=source_db,
+        source_db_id=source_db_id,
+        source_db_name=source_db_name,
+        working_folder=working_folder,
+        db_path=db_path,
+        input_paths=input_path,
+        input_kinds=input_kind,
+        ))
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    # solutions how to run it async - two last https://github.com/tiangolo/typer/issues/85
+    # currently using last one
+    typer.run(main)
+
+
+# NOTE: for testing:
+# python preprocessor_v2/preprocessor/preprocess.py --input-path temp/v2_temp_static_entry_files_dir/idr/idr-6001247/6001247.zarr --input-kind omezarr
+# python preprocessor_v2/preprocessor/preprocess.py --input-path test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff --input-kind sff

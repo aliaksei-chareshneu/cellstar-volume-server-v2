@@ -17,13 +17,13 @@ class InputCase(str, Enum):
 class InputKind(str, Enum):
     map = 'map'
     sff = 'sff'
-    ometiff = 'ometiff'
+    # ometiff = 'ometiff'
     omezarr = 'omezarr'
-    mask = 'mask'
+    # mask = 'mask'
     # do we need to have it as separate types (am, mod, seg), or better to have general one and
     # leave it for a specific conversion function to check the extension and run conversion?
     application_specific_segmentation = 'application_specific_segmentation'
-    custom_annotations = 'custom_annotations'
+    # custom_annotations = 'custom_annotations'
 
 class QuantizationDtype(str, Enum):
     u1 = 'u1'
