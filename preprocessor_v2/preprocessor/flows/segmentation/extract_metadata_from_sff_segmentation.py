@@ -23,13 +23,14 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict, volume_
                 assert sampling_info_dict['boxes'][res_gr_name]['grid_dimensions'] == channel_gr.grid.shape
 
 
-def extract_metadata_from_sff_segmentation(metadata_dict, internal_segmentation: InternalSegmentation):
+def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmentation):
 # PLAN: 
 # takes prefilled metadata dict from map metadata
 # takes internal segmentation
 # checks primary descriptor
     root = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
-        
+    metadata_dict = root.attrs['metadata_dict']
+
     if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
         # sff has one channel
         channel_ids = [0]
@@ -98,4 +99,6 @@ def extract_metadata_from_sff_segmentation(metadata_dict, internal_segmentation:
         metadata_dict['segmentation_meshes']['mesh_component_numbers'] = mesh_comp_num
         metadata_dict['segmentation_meshes']['detail_lvl_to_fraction'] = detail_lvl_to_fraction_dict
 
+
+    root.attrs['metadata_dict'] = metadata_dict
     return metadata_dict

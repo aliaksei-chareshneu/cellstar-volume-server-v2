@@ -1,4 +1,5 @@
 from PIL import ImageColor
+from db.models import EntryId
 
 from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
@@ -21,17 +22,12 @@ def _get_channel_annotations(ome_zarr_attrs, volume_channel_annotations):
 # NOTE: Lattice IDs = Label groups
 def extract_omezarr_annotations(internal_segmentation: InternalSegmentation):
     ome_zarr_root = open_zarr_structure_from_path(internal_segmentation.segmentation_input_path)
-    d = {
-        'entry_id': {
-            'source_db_name': internal_segmentation.entry_data.source_db_name,
-            'source_db_id': internal_segmentation.entry_data.source_db_id
-        },
-        # 'segment_list': [],
-        'segmentation_lattices': [],
-        'details': None,
-        'volume_channels_annotations': []
-    }
-    # segment_list = d['segment_list']
+    root = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
+    d = root.attrs['annotations_dict']
+    d['entry_id'] = EntryId(
+        source_db_id=internal_segmentation.entry_data.source_db_id,
+        source_db_name=internal_segmentation.entry_data.source_db_name
+    )
 
     _get_channel_annotations(ome_zarr_attrs=ome_zarr_root.attrs,
         volume_channel_annotations=d['volume_channels_annotations'])
@@ -63,5 +59,5 @@ def extract_omezarr_annotations(internal_segmentation: InternalSegmentation):
             d['segmentation_lattices'].append(segmentation_lattice_info)
 
             
-
+    root.attrs['annotations_dict'] = d
     return d

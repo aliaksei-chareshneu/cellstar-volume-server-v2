@@ -1,7 +1,7 @@
 
 import numpy as np
 from db.file_system.constants import VOLUME_DATA_GROUPNAME
-from db.models import Metadata
+from db.models import EntryId, Metadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from preprocessor_v2.preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME, SPACE_UNITS_CONVERSION_DICT
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
@@ -290,44 +290,28 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
     start_time, end_time = _get_start_end_time(resolution_data_group=root[VOLUME_DATA_GROUPNAME][0])
     
     # 1. Collect common metadata
-    metadata_dict = {
-        'entry_id': {
-            'source_db_name': internal_volume.entry_data.source_db_name,
-            'source_db_id': internal_volume.entry_data.source_db_id
-
-        },
-        'volumes': {
-            'channel_ids': channel_ids,
-            # Values of time dimension
-            'time_info': {
-                'kind': "range",
-                'start': start_time,
-                'end': end_time,
-                'units': get_time_units(ome_zarr_attrs=ome_zarr_root.attrs)
-            },
-            'volume_sampling_info': {
-                # Info about "downsampling dimension"
-                'spatial_downsampling_levels': volume_downsamplings,
-                # the only thing with changes with SPATIAL downsampling is box!
-                'boxes': {},
-                # time -> channel_id
-                'descriptive_statistics': {},
-                'time_transformations': [],
-                'source_axes_units': _get_source_axes_units(ome_zarr_root_attrs=ome_zarr_root.attrs),
-                'original_axis_order': _get_axis_order_omezarr(ome_zarr_attrs=ome_zarr_root.attrs)
-            },
-        },
-        'segmentation_lattices': {
-            'segmentation_lattice_ids': [],
-            'segmentation_sampling_info': {},
-            'channel_ids': {},
-            'time_info': {}
-        },
-        'segmentation_meshes': {
-            'mesh_component_numbers': {},
-            'detail_lvl_to_fraction': {}
-        }
-    }
+    metadata_dict = root.attrs['metadata_dict']
+    metadata_dict['entry_id'] = EntryId(
+        source_db_id=internal_volume.entry_data.source_db_id,
+        source_db_name=internal_volume.entry_data.source_db_name
+    )
+    metadata_dict['volumes'] = VolumesMetadata(
+        channel_ids=channel_ids,
+        time_info=TimeInfo(
+            kind='range',
+            start=start_time,
+            end=end_time,
+            units=get_time_units(ome_zarr_attrs=ome_zarr_root.attrs)
+        ),
+        volume_sampling_info=VolumeSamplingInfo(
+            spatial_downsampling_levels=volume_downsamplings,
+            boxes={},
+            descriptive_statistics={},
+            time_transformations=[],
+            source_axes_units=_get_source_axes_units(ome_zarr_root_attrs=ome_zarr_root.attrs),
+            original_axis_order=_get_axis_order_omezarr(ome_zarr_attrs=ome_zarr_root.attrs)
+        )
+    )
     
     get_time_transformations(ome_zarr_attrs=ome_zarr_root.attrs,
         time_transformations_list=metadata_dict['volumes']['volume_sampling_info']['time_transformations'])
@@ -391,4 +375,5 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
 
         metadata_dict['segmentation_lattices']['segmentation_lattice_ids'] = lattice_ids
 
+    root.attrs['metadata_dict'] = metadata_dict
     return metadata_dict

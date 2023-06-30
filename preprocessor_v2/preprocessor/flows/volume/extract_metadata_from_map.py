@@ -1,4 +1,5 @@
 import numpy as np
+from db.models import TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from preprocessor_v2.preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
@@ -126,50 +127,32 @@ def extract_metadata_from_map(internal_volume: InternalVolume):
     volume_downsamplings = get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
     # TODO: check - some units are defined (spatial?)
     source_axes_units = {}
+    metadata_dict = root.attrs['metadata_dict']
+    metadata_dict['entry_id']['source_db_name'] = source_db_name
+    metadata_dict['entry_id']['source_db_id'] = source_db_id
+    metadata_dict['volumes'] = VolumesMetadata(
+        channel_ids=channel_ids,
+        time_info=TimeInfo(
+            kind='range',
+            start=start_time,
+            end=end_time,
+            units=time_units
+        ),
+        volume_sampling_info=VolumeSamplingInfo(
+            spatial_downsampling_levels=volume_downsamplings,
+            boxes={},
+            descriptive_statistics={},
+            time_transformations=[],
+            source_axes_units=source_axes_units,
+            original_axis_order=_get_axis_order_mrcfile(map_header)
+        )
+    )
 
-    metadata_dict = {
-        'entry_id': {
-            'source_db_name': source_db_name,
-            'source_db_id': source_db_id
-
-        },
-        'volumes': {
-            'channel_ids': channel_ids,
-            # Values of time dimension
-            'time_info': {
-                'kind': "range",
-                'start': start_time,
-                'end': end_time,
-                'units': time_units
-            },
-            'volume_sampling_info': {
-                # Info about "downsampling dimension"
-                'spatial_downsampling_levels': volume_downsamplings,
-                # the only thing with changes with SPATIAL downsampling is box!
-                'boxes': {},
-                # time -> channel_id
-                'descriptive_statistics': {},
-                'time_transformations': [],
-                'source_axes_units': source_axes_units
-            },
-            'original_axis_order': _get_axis_order_mrcfile(map_header)
-        },
-        'segmentation_lattices': {
-            'segmentation_lattice_ids': [],
-            'segmentation_sampling_info': {},
-            'channel_ids': {},
-            'time_info': {}
-        },
-        'segmentation_meshes': {
-            'mesh_component_numbers': {},
-            'detail_lvl_to_fraction': {}
-        }
-    }
-
-    # TODO: get the following
     _get_volume_sampling_info(root_data_group=root[VOLUME_DATA_GROUPNAME],
         sampling_info_dict=metadata_dict['volumes']['volume_sampling_info'],
         mrc_header=map_header,
         volume_downsamplings=volume_downsamplings)
 
+
+    root.attrs['metadata_dict'] = metadata_dict
     return metadata_dict
