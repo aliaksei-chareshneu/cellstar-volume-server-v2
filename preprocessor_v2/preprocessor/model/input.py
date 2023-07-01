@@ -37,7 +37,7 @@ class Inputs(BaseModel):
 
 class VolumeParams(BaseModel):
     quantize_dtype_str: Optional[QuantizationDtype]
-    quantize_downsampling_levels: Optional[tuple[int]]
+    quantize_downsampling_levels: Optional[tuple[int, ...]]
     force_volume_dtype: Optional[str]
 
 class DownsamplingParams(BaseModel):

@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 import shutil
 import typing
+from typing_extensions import Annotated
 import numpy as np
 from pydantic import BaseModel
 import zarr
@@ -26,7 +27,7 @@ from preprocessor_v2.preprocessor.flows.volume.ome_zarr_image_preprocessing impo
 from preprocessor_v2.preprocessor.flows.volume.quantize_internal_volume import quantize_internal_volume
 from preprocessor_v2.preprocessor.flows.volume.volume_downsampling import volume_downsampling
 
-from preprocessor_v2.preprocessor.model.input import DEFAULT_PREPROCESSOR_INPUT, OME_ZARR_PREPROCESSOR_INPUT, DownsamplingParams, EntryData, InputCase, InputKind, Inputs, PreprocessorInput, StoringParams, VolumeParams
+from preprocessor_v2.preprocessor.model.input import DEFAULT_PREPROCESSOR_INPUT, OME_ZARR_PREPROCESSOR_INPUT, DownsamplingParams, EntryData, InputCase, InputKind, Inputs, PreprocessorInput, QuantizationDtype, StoringParams, VolumeParams
 from preprocessor_v2.preprocessor.model.segmentation import InternalSegmentation
 from preprocessor_v2.preprocessor.model.volume import InternalVolume
 import typer
@@ -394,6 +395,9 @@ def _convert_cli_args_to_preprocessor_input(cli_arguments) -> PreprocessorInput:
     return OME_ZARR_PREPROCESSOR_INPUT
 
 async def main_preprocessor(
+        quantize_dtype_str: typing.Optional[QuantizationDtype],
+        quantize_downsampling_levels: typing.Optional[str],
+        force_volume_dtype: typing.Optional[str],
         entry_id: str,
         source_db: str,
         source_db_id: str,
@@ -403,15 +407,19 @@ async def main_preprocessor(
         input_paths: list[Path],
         input_kinds: list[InputKind],
 ):
+    if quantize_downsampling_levels:
+        quantize_downsampling_levels = quantize_downsampling_levels.split(" ")
+        quantize_downsampling_levels = tuple([int(level) for level in quantize_downsampling_levels])
+
     preprocessor_input = PreprocessorInput(
         inputs=Inputs(
             files=[
             ]
         ),
         volume=VolumeParams(
-            # quantize_dtype_str=quantize_dtype_str,
-            # quantize_downsampling_levels=quantize_downsampling_levels,
-            # force_volume_dtype=force_volume_dtype
+            quantize_dtype_str=quantize_dtype_str,
+            quantize_downsampling_levels=quantize_downsampling_levels,
+            force_volume_dtype=force_volume_dtype
         ),
         downsampling=DownsamplingParams(),
         entry_data=EntryData(
@@ -441,13 +449,15 @@ async def main_preprocessor(
     await preprocessor.store_to_db()
 
 def main(
+        quantize_dtype_str: Annotated[typing.Optional[QuantizationDtype], typer.Option(None)] = None,
+        quantize_downsampling_levels: Annotated[typing.Optional[str], typer.Option(None, help="Space-separated list of numbers")] = None,
+        force_volume_dtype: Annotated[typing.Optional[str], typer.Option(None)] = None,
         entry_id: str = typer.Option(default=...),
         source_db: str = typer.Option(default=...),
         source_db_id: str = typer.Option(default=...),
         source_db_name: str = typer.Option(default=...),
         working_folder: Path = typer.Option(default=...),
         db_path: Path = typer.Option(default=...),
-        # TODO: make these two required
         input_path: list[Path] = typer.Option(default=...),
         input_kind: list[InputKind] = typer.Option(default=...),
         ):
@@ -460,6 +470,9 @@ def main(
         db_path=db_path,
         input_paths=input_path,
         input_kinds=input_kind,
+        quantize_dtype_str=quantize_dtype_str,
+        quantize_downsampling_levels=quantize_downsampling_levels,
+        force_volume_dtype=force_volume_dtype
         ))
 
 if __name__ == '__main__':

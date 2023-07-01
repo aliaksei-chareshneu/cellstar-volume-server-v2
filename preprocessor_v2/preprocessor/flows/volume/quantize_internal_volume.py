@@ -7,6 +7,16 @@ import dask.array as da
 
 from preprocessor_v2.preprocessor.tools.quantize_data.quantize_data import quantize_data
 
+def _check_if_level_should_be_quantized(resolution: int, internal_volume: InternalVolume):
+    if internal_volume.quantize_downsampling_levels:
+        if resolution in internal_volume.quantize_downsampling_levels:
+            return True
+        else:
+            return False
+        
+    else:
+        return True
+
 def quantize_internal_volume(internal_volume: InternalVolume):
     if internal_volume.quantize_dtype_str and \
         (
@@ -33,7 +43,9 @@ def quantize_internal_volume(internal_volume: InternalVolume):
 
     # iterate over copy, delete original array (float dtype), recreate it with quantization dtype
     for res, res_gr in zarr_structure[VOLUME_DATA_GROUPNAME_COPY].groups():
-        if int(res) in internal_volume.quantize_downsampling_levels:
+        # if int(res) in internal_volume.quantize_downsampling_levels:
+        if _check_if_level_should_be_quantized(resolution=int(res), internal_volume=internal_volume):
+            print(f'Downsampling level {res} will be quantized')
             for time, time_gr in res_gr.groups():
                 for channel_arr_name, channel_arr in time_gr.arrays():
                     del zarr_structure[VOLUME_DATA_GROUPNAME][res][time][channel_arr_name]
