@@ -747,6 +747,7 @@ def extract_ome_zarr_annotations(ome_zarr_root, source_db_id: str, source_db_nam
                         "id": int(label_value),
                         "biological_annotation": {
                             "name": f"segment {label_value}",
+                            # NOTE: in db\models.py there are no description and number of instances
                             "description": None,
                             "number_of_instances": None,
                             "external_references": [

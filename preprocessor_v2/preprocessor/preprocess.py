@@ -48,6 +48,18 @@ class TaskBase(typing.Protocol):
     def execute(self) -> None:
         ...
 
+class CustomAnnotationsCollectionTask(TaskBase):
+    def __init__(self, input_path: Path, intermediate_zarr_structure_path: Path) -> None:
+        self.input_path = input_path
+        self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
+    
+    def execute(self) -> None:
+        pass
+    # TODO: process custom annotations (read from json file, check if they conform to datamodel)
+    # and write them to annotations_dict attr of intermediate_zarr_structure
+    # (could be overwriting certain segment annotations by merging dicts)
+    # afterwards it should be saved as json by SaveAnnotationsTask
+
 class QuantizeInternalVolumeTask(TaskBase):
     def __init__(
             self,
@@ -272,7 +284,6 @@ class Preprocessor():
                 tasks.append(OMEZARRMetadataCollectionTask(internal_volume=self.get_internal_volume()))
                 
 
-        # TODO: quantization
         if self.get_internal_volume() and self.preprocessor_input.volume.quantize_dtype_str:
             tasks.append(QuantizeInternalVolumeTask(internal_volume=self.get_internal_volume()))
 
