@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 from fastapi import Query, Response
-from db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 from server.app.core.service import VolumeServerService
 

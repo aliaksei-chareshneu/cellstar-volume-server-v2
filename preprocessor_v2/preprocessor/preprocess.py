@@ -8,10 +8,11 @@ from pathlib import Path
 
 import typer
 import zarr
-from db.file_system.db import FileSystemVolumeServerDB
+
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from pydantic import BaseModel
 from typing_extensions import Annotated
-from db.models import AnnotationsMetadata
+from cellstar_db.models import AnnotationsMetadata
 
 from preprocessor_v2.preprocessor.flows.common import (
     open_zarr_structure_from_path,

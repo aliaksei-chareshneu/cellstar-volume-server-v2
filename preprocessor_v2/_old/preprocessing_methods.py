@@ -4,7 +4,7 @@ import dask.array as da
 import mrcfile
 import numpy as np
 import zarr
-from db.file_system.constants import (
+from cellstar_db.file_system.constants import (
     QUANTIZATION_DATA_DICT_ATTR_NAME,
     VOLUME_DATA_GROUPNAME,
 )

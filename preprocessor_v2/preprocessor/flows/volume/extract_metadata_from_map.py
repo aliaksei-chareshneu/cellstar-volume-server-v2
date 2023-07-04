@@ -2,7 +2,7 @@ from decimal import ROUND_CEILING, Decimal, getcontext
 
 import dask.array as da
 import numpy as np
-from db.models import TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.models import TimeInfo, VolumeSamplingInfo, VolumesMetadata
 
 from preprocessor_v2.preprocessor.flows.common import (
     get_downsamplings,

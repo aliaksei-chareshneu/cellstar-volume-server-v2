@@ -3,7 +3,7 @@ from typing import Tuple
 import zarr
 import numpy as np
 import dask.array as da
-from db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.sff_preprocessor import open_zarr_structure_from_path
 from timeit import default_timer as timer
 import tensorstore as ts

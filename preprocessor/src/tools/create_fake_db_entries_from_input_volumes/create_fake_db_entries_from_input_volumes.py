@@ -3,7 +3,7 @@ import shutil
 from typing import List
 
 import numpy as np
-from db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from preprocessor.main import preprocess_everything
 
 # both volumes and segmentations

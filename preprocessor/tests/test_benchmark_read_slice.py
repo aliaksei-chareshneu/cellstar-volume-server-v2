@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 from pathlib import Path
 
-from db.file_system.db import FileSystemVolumeServerDB
-from db.protocol import VolumeServerDB
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.protocol import VolumeServerDB
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import DEFAULT_DB_PATH
 
 KEYS = ['emd-1832']

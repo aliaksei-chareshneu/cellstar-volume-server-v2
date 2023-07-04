@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Union
 import zarr
 import numpy as np
-from db.file_system.models import FileSystemVolumeMedatada
-from db.file_system.constants import ANNOTATION_METADATA_FILENAME, GRID_METADATA_FILENAME
+from cellstar_db.file_system.models import FileSystemVolumeMedatada
+from cellstar_db.file_system.constants import ANNOTATION_METADATA_FILENAME, GRID_METADATA_FILENAME
 from preprocessor.src.preprocessors.i_data_preprocessor import IDataPreprocessor
 from preprocessor.src.preprocessors.implementations.sff.preprocessor._zarr_methods import get_volume_downsampling_from_zarr, get_segmentation_downsampling_from_zarr
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import MESH_SIMPLIFICATION_CURVE_LINEAR, MESH_SIMPLIFICATION_N_LEVELS, MESH_SIMPLIFICATION_LEVELS_PER_ORDER, TEMP_ZARR_HIERARCHY_STORAGE_PATH

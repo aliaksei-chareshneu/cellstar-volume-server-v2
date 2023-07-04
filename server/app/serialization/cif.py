@@ -2,7 +2,7 @@ from typing import Union
 
 import numpy as np
 from ciftools.serialization import create_binary_writer
-from db.models import MeshesData, VolumeMetadata, VolumeSliceData
+from cellstar_db.models import MeshesData, VolumeMetadata, VolumeSliceData
 
 from server.app.core.models import GridSliceBox
 from server.app.core.timing import Timing

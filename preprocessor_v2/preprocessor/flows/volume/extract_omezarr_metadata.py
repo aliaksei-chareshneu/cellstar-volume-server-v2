@@ -1,7 +1,7 @@
 import numpy as np
 import zarr
-from db.file_system.constants import VOLUME_DATA_GROUPNAME
-from db.models import EntryId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.file_system.constants import VOLUME_DATA_GROUPNAME
+from cellstar_db.models import EntryId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 
 from preprocessor_v2.preprocessor.flows.common import (
     get_downsamplings,

@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from db.models import MeshComponentNumbers, VolumeMetadata
+from cellstar_db.models import MeshComponentNumbers, VolumeMetadata
 
 
 class FileSystemVolumeMedatada(VolumeMetadata):

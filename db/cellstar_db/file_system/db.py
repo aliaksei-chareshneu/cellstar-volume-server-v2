@@ -8,16 +8,16 @@ from typing import Dict
 
 import zarr
 
-from db.file_system.constants import (
+from cellstar_db.file_system.constants import (
     ANNOTATION_METADATA_FILENAME,
     DB_NAMESPACES,
     GRID_METADATA_FILENAME,
     ZIP_STORE_DATA_ZIP_NAME,
 )
-from db.file_system.models import FileSystemVolumeMedatada
-from db.file_system.read_context import FileSystemDBReadContext
-from db.models import VolumeMetadata
-from db.protocol import DBReadContext, VolumeServerDB
+from cellstar_db.file_system.models import FileSystemVolumeMedatada
+from cellstar_db.file_system.read_context import FileSystemDBReadContext
+from cellstar_db.models import VolumeMetadata
+from cellstar_db.protocol import DBReadContext, VolumeServerDB
 
 
 class FileSystemVolumeServerDB(VolumeServerDB):

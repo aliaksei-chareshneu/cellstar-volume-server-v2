@@ -7,7 +7,7 @@ import dask.array as da
 import numpy as np
 import zarr
 
-from db.file_system.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME, SEGMENTATION_DATA_GROUPNAME
+from cellstar_db.file_system.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME, SEGMENTATION_DATA_GROUPNAME
 
 from preprocessor.src.preprocessors.implementations.sff.preprocessor._sfftk_methods import \
     open_hdf5_as_segmentation_object

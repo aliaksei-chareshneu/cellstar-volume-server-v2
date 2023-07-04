@@ -1,5 +1,5 @@
 import numpy as np
-from db.models import MeshesData
+from cellstar_db.models import MeshesData
 
 
 class WithArrays(object):

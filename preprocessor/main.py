@@ -16,16 +16,16 @@ from pyometiff import OMETIFFReader
 from pathlib import Path
 from numcodecs import Blosc
 from typing import Dict, Optional, Union
-from db.file_system.db import FileSystemVolumeServerDB
-from db.file_system.constants import ANNOTATION_METADATA_FILENAME, GRID_METADATA_FILENAME, SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
-from db.models import Metadata
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.file_system.constants import ANNOTATION_METADATA_FILENAME, GRID_METADATA_FILENAME, SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
+from cellstar_db.models import Metadata
 from preprocessor.params_for_storing_db import CHUNKING_MODES, COMPRESSORS
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.downsampling.downsampling import compute_number_of_downsampling_steps, create_ome_tiff_volume_downsamplings, create_volume_downsamplings
 from preprocessor.src.service.implementations.preprocessor_service import PreprocessorService
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import \
     APPLICATION_SPECIFIC_SEGMENTATION_EXTENSIONS, DEFAULT_DB_PATH, MIN_GRID_SIZE, OUTPUT_FILEPATH as FAKE_SEGMENTATION_FILEPATH, PARAMETRIZED_DBS_INPUT_PARAMS_FILEPATH, RAW_INPUT_FILES_DIR, TEMP_ZARR_HIERARCHY_STORAGE_PATH
 
-from db.protocol import VolumeServerDB
+from cellstar_db.protocol import VolumeServerDB
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.sff_preprocessor import SFFPreprocessor
 from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 from preprocessor.src.tools.remove_files_or_folders_by_pattern.remove_files_or_folders_by_pattern import remove_files_or_folders_by_pattern

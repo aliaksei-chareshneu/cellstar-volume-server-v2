@@ -1,4 +1,4 @@
-from db.models import EntryId
+from cellstar_db.models import EntryId
 
 from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path
 from preprocessor_v2.preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME

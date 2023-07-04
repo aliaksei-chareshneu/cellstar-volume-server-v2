@@ -1,4 +1,4 @@
-from db.models import MeshComponentNumbers
+from cellstar_db.models import MeshComponentNumbers
 
 from preprocessor_v2.preprocessor.flows.common import (
     get_downsamplings,

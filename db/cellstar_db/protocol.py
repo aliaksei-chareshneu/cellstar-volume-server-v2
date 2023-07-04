@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Protocol, Tuple
 
-from db.models import VolumeMetadata, VolumeSliceData
+from cellstar_db.models import VolumeMetadata, VolumeSliceData
 
 
 class DBReadContext(Protocol):

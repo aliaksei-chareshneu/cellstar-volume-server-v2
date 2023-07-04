@@ -1,4 +1,4 @@
-from db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware

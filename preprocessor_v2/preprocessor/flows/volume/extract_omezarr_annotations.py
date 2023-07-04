@@ -1,4 +1,4 @@
-from db.models import EntryId
+from cellstar_db.models import EntryId
 from PIL import ImageColor
 
 from preprocessor_v2.preprocessor.flows.common import open_zarr_structure_from_path

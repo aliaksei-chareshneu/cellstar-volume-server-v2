@@ -3,8 +3,8 @@ from collections import defaultdict
 from math import ceil, floor
 from typing import Optional, Tuple
 
-from db.models import VolumeMetadata
-from db.protocol import VolumeServerDB
+from cellstar_db.models import VolumeMetadata
+from cellstar_db.protocol import VolumeServerDB
 
 from server.app.api.requests import (
     EntriesRequest,

@@ -7,7 +7,7 @@ import gemmi
 import numpy as np
 import zarr
 
-from db.file_system.constants import SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
+from cellstar_db.file_system.constants import SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
 
 from preprocessor.src.preprocessors.implementations.sff.preprocessor._segmentation_methods import decode_base64_data
 from preprocessor.src.preprocessors.implementations.sff.preprocessor.constants import MESH_VERTEX_DENSITY_THRESHOLD, MIN_GRID_SIZE

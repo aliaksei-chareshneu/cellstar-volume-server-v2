@@ -9,15 +9,15 @@ import numpy as np
 import tensorstore as ts
 import zarr
 
-from db.file_system.constants import (
+from cellstar_db.file_system.constants import (
     QUANTIZATION_DATA_DICT_ATTR_NAME,
     SEGMENTATION_DATA_GROUPNAME,
     VOLUME_DATA_GROUPNAME,
 )
-from db.models import VolumeSliceData, MeshesData
-from db.protocol import DBReadContext, VolumeServerDB
-from db.utils.box import normalize_box
-from db.utils.quantization import decode_quantized_data
+from cellstar_db.models import VolumeSliceData, MeshesData
+from cellstar_db.protocol import DBReadContext, VolumeServerDB
+from cellstar_db.utils.box import normalize_box
+from cellstar_db.utils.quantization import decode_quantized_data
 
 
 class FileSystemDBReadContext(DBReadContext):

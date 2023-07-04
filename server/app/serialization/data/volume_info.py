@@ -1,4 +1,4 @@
-from db.models import VolumeMetadata
+from cellstar_db.models import VolumeMetadata
 
 from server.app.core.models import GridSliceBox
 
