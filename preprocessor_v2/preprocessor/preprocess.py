@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import shutil
 import typing
@@ -10,6 +11,7 @@ import zarr
 from db.file_system.db import FileSystemVolumeServerDB
 from pydantic import BaseModel
 from typing_extensions import Annotated
+from db.models import AnnotationsMetadata
 
 from preprocessor_v2.preprocessor.flows.common import (
     open_zarr_structure_from_path,
@@ -88,6 +90,8 @@ class SFFInput(InputT):
 class OMEZARRInput(InputT):
     pass
 
+class CustomAnnotationsInput(InputT):
+    pass
 
 class TaskBase(typing.Protocol):
     def execute(self) -> None:
@@ -102,11 +106,26 @@ class CustomAnnotationsCollectionTask(TaskBase):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
 
     def execute(self) -> None:
-        pass
+        d: AnnotationsMetadata = json.load(str(self.input_path.absolute()))
+        # TODO: check if conforms to datamodel
+        root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
+        current_d: AnnotationsMetadata = root.attrs["annotations_dict"]
+        # NOTE: assuming single lattice
+        current_segment_list = current_d["segmentation_lattices"][0]["segment_list"]
+        new_segment_list = d["segmentation_lattices"][0]["segment_list"]
+        for segment in new_segment_list:
+            pass
+            # if filter current_segment_list by segment['id'] value gives some result
+            # replace that segment 
+             
+        # root.attrs["annotations_dict"] = new_d
+
+        print('Annotations updated')
+
+    # NOTE: merging dicts won't work probably, as there could be just one segment id which is updated,
 
     # TODO: process custom annotations (read from json file, check if they conform to datamodel)
     # and write them to annotations_dict attr of intermediate_zarr_structure
-    # (could be overwriting certain segment annotations by merging dicts)
     # afterwards it should be saved as json by SaveAnnotationsTask
 
 
@@ -342,6 +361,11 @@ class Preprocessor:
                         internal_volume=self.get_internal_volume()
                     )
                 )
+            elif isinstance(input, CustomAnnotationsInput):
+                tasks.append(CustomAnnotationsCollectionTask(
+                    input_path=input.input_path,
+                    intermediate_zarr_structure_path=self.intermediate_zarr_structure
+                ))
 
         if (
             self.get_internal_volume()
