@@ -1,6 +1,7 @@
-from preprocessor.src.tools.magic_kernel_downsampling_3d.magic_kernel_downsampling_3d import (
-    MagicKernel3dDownsampler,
-)
+
+
+
+from preprocessor_v2.preprocessor.tools.magic_kernel_downsampling_3d.magic_kernel_downsampling_3d import MagicKernel3dDownsampler
 
 
 def testing():
