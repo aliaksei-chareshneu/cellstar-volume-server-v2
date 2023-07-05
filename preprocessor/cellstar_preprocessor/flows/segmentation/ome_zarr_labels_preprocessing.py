@@ -20,12 +20,16 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
 
     segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
 
-    root_zattrs = ome_zarr_root.attrs
-    multiscales = root_zattrs["multiscales"]
-    # NOTE: can be multiple multiscales, here picking just 1st
-    axes = multiscales[0]["axes"]
+    # root_zattrs = ome_zarr_root.attrs
+    # multiscales = root_zattrs["multiscales"]
+    # # NOTE: can be multiple multiscales, here picking just 1st
+    # axes = multiscales[0]["axes"]
 
     for label_gr_name, label_gr in ome_zarr_root.labels.groups():
+        label_gr_zattrs = label_gr.attrs
+        label_gr_multiscales = label_gr_zattrs["multiscales"]
+        # NOTE: can be multiple multiscales, here picking just 1st
+        axes = label_gr_multiscales[0]["axes"]
         lattice_id_gr = segmentation_data_gr.create_group(label_gr_name)
         # arr_name is resolution
         for arr_name, arr in label_gr.arrays():
@@ -85,3 +89,6 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                     our_set_table[...] = [d]
             else:
                 raise Exception("Axes number/order is not supported")
+            
+
+    print('Labels processed')
