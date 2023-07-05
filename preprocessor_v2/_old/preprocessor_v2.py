@@ -10,10 +10,9 @@ from preprocessing_methods import (
     sff_preprocessing,
     volume_map_preprocessing,
 )
+from preprocessor_v2.preprocessor.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 
-from preprocessor.src.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import (
-    convert_app_specific_segm_to_sff,
-)
+
 
 
 class Preprocessor:

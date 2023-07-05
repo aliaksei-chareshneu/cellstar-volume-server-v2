@@ -9,10 +9,8 @@ from cellstar_db.file_system.constants import (
     VOLUME_DATA_GROUPNAME,
 )
 
-from preprocessor.src.preprocessors.implementations.sff.preprocessor._zarr_methods import (
-    create_dataset_wrapper,
-)
-from preprocessor.src.tools.quantize_data.quantize_data import quantize_data
+from preprocessor_v2.preprocessor.flows.common import create_dataset_wrapper
+from preprocessor_v2.preprocessor.tools.quantize_data.quantize_data import quantize_data
 
 
 def open_zarr_structure_from_path(path: Path) -> zarr.hierarchy.Group:
