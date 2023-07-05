@@ -11,6 +11,72 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "preprocessor_v2_omezarr",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "temp/v2_temp_static_entry_files_dir/idr/idr-6001247/6001247.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "idr-6001247",
+                "--source-db",
+                "idr",
+                "--source-db-id", "idr-6001247",
+                "--source-db-name", "idr",
+                "--working-folder", "preprocessor_v2/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor_v2/temp/test_db",
+                "--quantize-dtype-str", "u1",
+                "--quantize-downsampling-levels", "1 2",
+                // "--force-volume-dtype", "f1"
+            ]
+        },
+        {
+            "name": "preprocessor_v2_emd_1832",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map",
+                "--input-kind",
+                "map",
+                "--input-path",
+                "test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff",
+                "--input-kind",
+                "sff",
+                "--entry-id",
+                "emd-1832",
+                "--source-db",
+                "emdb",
+                "--source-db-id", "emd-1832",
+                "--source-db-name", "emdb",
+                "--working-folder", "preprocessor_v2/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor_v2/temp/test_db",
+                // "--force-volume-dtype", "u1"
+            ]
+        },
+        // {
+        //     "name": "Debug OME zarr",
+        //     "type": "python",
+        //     "request": "launch",
+        //     "program": "${file}",
+        //     "console": "integratedTerminal",
+        //     "args": [
+        //         "python", "preprocessor/main.py",
+        //         "--db_path", entry['db_path'],    
+        //         "--single_entry", entry['single_entry'],
+        //         "--entry_id", entry['entry_id'],
+        //         "--source_db", entry['source_db'],
+        //         "--source_db_id", entry['source_db_id'],
+        //         "--source_db_name", "idr"
+        //     ]
+        // },
+        {
             "name": "Store OME Zarr sample",
             "type": "python",
             "request": "launch",
