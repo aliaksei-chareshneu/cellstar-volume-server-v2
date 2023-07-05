@@ -11,7 +11,7 @@
             "console": "integratedTerminal",
         },
         {
-            "name": "preprocessor_v2_omezarr",
+            "name": "preprocessor_omezarr",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -27,15 +27,15 @@
                 "idr",
                 "--source-db-id", "idr-6001247",
                 "--source-db-name", "idr",
-                "--working-folder", "preprocessor_v2/temp/temp_zarr_hierarchy_storage",
-                "--db-path", "preprocessor_v2/temp/test_db",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
                 "--quantize-dtype-str", "u1",
                 "--quantize-downsampling-levels", "1 2",
                 // "--force-volume-dtype", "f1"
             ]
         },
         {
-            "name": "preprocessor_v2_emd_1832",
+            "name": "preprocessor_emd_1832",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -55,8 +55,8 @@
                 "emdb",
                 "--source-db-id", "emd-1832",
                 "--source-db-name", "emdb",
-                "--working-folder", "preprocessor_v2/temp/temp_zarr_hierarchy_storage",
-                "--db-path", "preprocessor_v2/temp/test_db",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
                 // "--force-volume-dtype", "u1"
             ]
         },
