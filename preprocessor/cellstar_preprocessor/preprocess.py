@@ -112,15 +112,17 @@ class CustomAnnotationsCollectionTask(TaskBase):
             d: AnnotationsMetadata = json.load(f)
             # TODO: check if conforms to datamodel
             current_d: AnnotationsMetadata = root.attrs["annotations_dict"]
-            # NOTE: assuming single lattice
-            old_segment_list = current_d["segmentation_lattices"][0]["segment_list"]
-            to_be_added_segment_list = d["segmentation_lattices"][0]["segment_list"]
-            
-            to_be_added_segment_ids = [segment['id'] for segment in to_be_added_segment_list]
-            list_1 = [segment for segment in old_segment_list if segment['id'] not in to_be_added_segment_ids]
-            updated_segment_list = list_1 + to_be_added_segment_list
+            for lattice in current_d["segmentation_lattices"]:
+                old_segment_list = lattice["segment_list"]
+                to_be_added_segment_list = list(filter(
+                    lambda x: x['lattice_id'] == lattice["lattice_id"], d["segmentation_lattices"]
+                ))[0]['segment_list']
+                
+                to_be_added_segment_ids = [segment['id'] for segment in to_be_added_segment_list]
+                list_1 = [segment for segment in old_segment_list if segment['id'] not in to_be_added_segment_ids]
+                updated_segment_list = list_1 + to_be_added_segment_list
 
-            current_d["segmentation_lattices"][0]["segment_list"] = updated_segment_list
+                lattice["segment_list"] = updated_segment_list
                 
             root.attrs["annotations_dict"] = current_d
 
