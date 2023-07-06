@@ -107,19 +107,22 @@ class CustomAnnotationsCollectionTask(TaskBase):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
 
     def execute(self) -> None:
-        d: AnnotationsMetadata = json.load(str(self.input_path.absolute()))
-        # TODO: check if conforms to datamodel
         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        current_d: AnnotationsMetadata = root.attrs["annotations_dict"]
-        # NOTE: assuming single lattice
-        current_segment_list = current_d["segmentation_lattices"][0]["segment_list"]
-        new_segment_list = d["segmentation_lattices"][0]["segment_list"]
-        for segment in new_segment_list:
-            pass
-            # if filter current_segment_list by segment['id'] value gives some result
-            # replace that segment 
-             
-        # root.attrs["annotations_dict"] = new_d
+        with open(str(self.input_path.absolute()), "r", encoding="utf-8") as f:
+            d: AnnotationsMetadata = json.load(f)
+            # TODO: check if conforms to datamodel
+            current_d: AnnotationsMetadata = root.attrs["annotations_dict"]
+            # NOTE: assuming single lattice
+            old_segment_list = current_d["segmentation_lattices"][0]["segment_list"]
+            to_be_added_segment_list = d["segmentation_lattices"][0]["segment_list"]
+            
+            to_be_added_segment_ids = [segment['id'] for segment in to_be_added_segment_list]
+            list_1 = [segment for segment in old_segment_list if segment['id'] not in to_be_added_segment_ids]
+            updated_segment_list = list_1 + to_be_added_segment_list
+
+            current_d["segmentation_lattices"][0]["segment_list"] = updated_segment_list
+                
+            root.attrs["annotations_dict"] = current_d
 
         print('Annotations updated')
 
@@ -395,9 +398,9 @@ class Preprocessor:
                 analyzed_inputs.append(SFFInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.omezarr:
                 analyzed_inputs.append(OMEZARRInput(input_path=input_item[0]))
+            elif input_item[1] == InputKind.custom_annotations:
+                analyzed_inputs.append(CustomAnnotationsInput(input_path=input_item[0]))
                 # TODO: application specific
-                # TODO: custom annotations
-
         return analyzed_inputs
 
     def initialization(self):

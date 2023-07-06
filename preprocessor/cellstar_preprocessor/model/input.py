@@ -27,7 +27,7 @@ class InputKind(str, Enum):
     # do we need to have it as separate types (am, mod, seg), or better to have general one and
     # leave it for a specific conversion function to check the extension and run conversion?
     application_specific_segmentation = "application_specific_segmentation"
-    # custom_annotations = 'custom_annotations'
+    custom_annotations = 'custom_annotations'
 
 
 class QuantizationDtype(str, Enum):

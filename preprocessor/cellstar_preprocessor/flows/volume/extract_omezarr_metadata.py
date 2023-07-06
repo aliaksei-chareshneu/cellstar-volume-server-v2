@@ -33,6 +33,7 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
     datasets_meta = multiscales[0]["datasets"]
     for index, level in enumerate(datasets_meta):
         if (
+            # NOTE: checks if there is translation in the list, since if present it is always 2nd
             len(level["coordinateTransformations"]) == 2
             and level["coordinateTransformations"][1]["type"] == "translation"
         ):
@@ -83,7 +84,6 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
     return boxes_dict
 
 
-# TODO: add support for time transformations applied to all resolution
 def get_time_transformations(ome_zarr_attrs, time_transformations_list: list):
     multiscales = ome_zarr_attrs["multiscales"]
     # NOTE: can be multiple multiscales, here picking just 1st
