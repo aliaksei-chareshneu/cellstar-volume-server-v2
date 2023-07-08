@@ -9,8 +9,8 @@ class VolumeInfo:
         name: str,
         metadata: VolumeMetadata,
         box: GridSliceBox,
-        time: int,
-        channel_id: int,
+        time: int = 0,
+        channel_id: int = 0,
         axis_order: tuple[int, int, int] = (0, 1, 2)
     ):
         self.name = name
