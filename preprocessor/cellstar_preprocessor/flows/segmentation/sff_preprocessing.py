@@ -95,8 +95,6 @@ def _process_mesh_segmentation_data(
     zarr_structure: zarr.hierarchy.group,
     internal_segmentation: InternalSegmentation,
 ):
-    # TODO: add time and channel to server\app\api\requests.py
-    # and to async def get_meshes AND get_meshes_bcif in server\app\api\v2.py
 
     params_for_storing = internal_segmentation.params_for_storing
 

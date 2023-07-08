@@ -73,7 +73,7 @@ def serialize_volume_info(metadata: VolumeMetadata, box: GridSliceBox) -> bytes:
     return writer.encode()
 
 
-def serialize_meshes(meshes: MeshesData, metadata: VolumeMetadata, box: GridSliceBox) -> bytes:
+def serialize_meshes(meshes: MeshesData, metadata: VolumeMetadata, box: GridSliceBox, time: int, channel_id: int) -> bytes:
     with Timing("  prepare meshes for cif"):
         meshes_for_cif = MeshesForCif(meshes)
 
@@ -81,7 +81,7 @@ def serialize_meshes(meshes: MeshesData, metadata: VolumeMetadata, box: GridSlic
         writer = create_binary_writer(encoder="cellstar-volume-server")
 
         writer.start_data_block("volume_info")
-        volume_info = VolumeInfo(name="volume", metadata=metadata, box=box)
+        volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=time, channel_id=channel_id)
         writer.write_category(VolumeData3dInfoCategory, [volume_info])
 
         writer.start_data_block("meshes")

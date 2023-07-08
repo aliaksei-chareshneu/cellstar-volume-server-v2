@@ -132,7 +132,7 @@ class VolumeServerService:
         with Timing("read meshes"):
             with self.db.read(req.source, req.structure_id) as context:
                 try:
-                    meshes = await context.read_meshes(req.segment_id, req.detail_lvl)
+                    meshes = await context.read_meshes(req.time, req.channel_id, req.segment_id, req.detail_lvl)
                     # try:  # DEBUG, TODO REMOVE
                     #     meshes1 = await context.read_meshes(req.segment_id+1, req.detail_lvl)
                     #     for mesh in meshes1: mesh['mesh_id'] = 1
@@ -149,14 +149,14 @@ class VolumeServerService:
                     error_msg = f"Invalid segment_id={req.segment_id} or detail_lvl={req.detail_lvl} (available segment_ids and detail_lvls: {segments_levels})"
                     raise KeyError(error_msg)
         with Timing("serialize meshes"):
-            bcif = serialize_meshes(meshes, metadata, box)
+            bcif = serialize_meshes(meshes, metadata, box, req.time, req.channel_id)
 
         return bcif
 
     async def get_meshes(self, req: MeshRequest) -> list[object]:
         with self.db.read(req.source, req.structure_id) as context:
             try:
-                meshes = await context.read_meshes(req.segment_id, req.detail_lvl)
+                meshes = await context.read_meshes(req.time, req.channel_id, req.segment_id, req.detail_lvl)
             except KeyError as e:
                 print("Exception in get_meshes: " + str(e))
                 meta = await self.db.read_metadata(req.source, req.structure_id)

@@ -135,9 +135,9 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
         return metadata
 
-    @app.get("/v2/{source}/{id}/mesh/{segment_id}/{detail_lvl}")
-    async def get_meshes(source: str, id: str, segment_id: int, detail_lvl: int):
-        request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl)
+    @app.get("/v2/{source}/{id}/mesh/{segment_id}/{detail_lvl}/{time}/{channel_id}")
+    async def get_meshes(source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int):
+        request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl, time=time, channel_id=channel_id)
         try:
             meshes = await volume_server.get_meshes(request)
             return JSONNumpyResponse(meshes)
@@ -153,9 +153,9 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         response_bytes = await volume_server.get_volume_info(request)
         return Response(response_bytes, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'})
 
-    @app.get("/v2/{source}/{id}/mesh_bcif/{segment_id}/{detail_lvl}")
-    async def get_meshes_bcif(source: str, id: str, segment_id: int, detail_lvl: int):
-        request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl)
+    @app.get("/v2/{source}/{id}/mesh_bcif/{segment_id}/{detail_lvl}/{time}/{channel_id}")
+    async def get_meshes_bcif(source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int):
+        request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl, time=time, channel_id=channel_id)
         try:
             response_bytes = await volume_server.get_meshes_bcif(request)
             return Response(

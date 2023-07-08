@@ -122,14 +122,14 @@ class FileSystemDBReadContext(DBReadContext):
 
         return d
 
-    async def read_meshes(self, segment_id: int, detail_lvl: int) -> MeshesData:
+    async def read_meshes(self, time: int, channel_id: int, segment_id: int, detail_lvl: int) -> MeshesData:
         """
         Returns list of meshes for a given segment, entry, detail lvl
         """
         try:
             mesh_list = []
             root: zarr.hierarchy.group = zarr.group(self.store)
-            mesh_list_group = root[SEGMENTATION_DATA_GROUPNAME][segment_id][detail_lvl]
+            mesh_list_group = root[SEGMENTATION_DATA_GROUPNAME][segment_id][detail_lvl][time][channel_id]
             for mesh_name, mesh in mesh_list_group.groups():
                 mesh_data = {"mesh_id": int(mesh_name)}
                 for mesh_component_name, mesh_component_arr in mesh.arrays():

@@ -47,6 +47,8 @@ class MeshRequest(BaseModel):
     structure_id: str
     segment_id: int
     detail_lvl: int
+    channel_id: int
+    time: int
 
 
 class MetadataRequest(BaseModel):
