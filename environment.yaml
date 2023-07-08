@@ -44,3 +44,4 @@ dependencies:
     - autoflake
     - isort
     - black
+    - pyometiff
