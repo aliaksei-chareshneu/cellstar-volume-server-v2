@@ -40,7 +40,7 @@ dependencies:
     - tensorstore==0.1.18
     - killport
     - Pillow
-    - "typer[all]"
+    - typer==0.7.0
     - autoflake
     - isort
     - black
