@@ -206,12 +206,12 @@ class MAPMetadataCollectionTask(TaskBase):
 
 
 class OMEZARRAnnotationsCollectionTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
+    def __init__(self, internal_volume: InternalVolume):
+        self.internal_volume = internal_volume
 
     def execute(self) -> None:
         annotations_dict = extract_omezarr_annotations(
-            internal_segmentation=self.internal_segmentation
+            internal_volume=self.internal_volume
         )
 
 
@@ -381,7 +381,7 @@ class Preprocessor:
                 )
                 tasks.append(
                     OMEZARRAnnotationsCollectionTask(
-                        self.get_internal_segmentation()
+                        self.get_internal_volume()
                     )
                 )
             elif isinstance(input, CustomAnnotationsInput):

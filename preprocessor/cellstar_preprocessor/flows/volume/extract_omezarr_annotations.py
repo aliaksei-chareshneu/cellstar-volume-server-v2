@@ -3,6 +3,7 @@ from PIL import ImageColor
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
+from cellstar_preprocessor.model.volume import InternalVolume
 
 
 def _convert_hex_to_rgba_fractional(channel_color_hex):
@@ -23,17 +24,17 @@ def _get_channel_annotations(ome_zarr_attrs, volume_channel_annotations):
 
 
 # NOTE: Lattice IDs = Label groups
-def extract_omezarr_annotations(internal_segmentation: InternalSegmentation):
+def extract_omezarr_annotations(internal_volume: InternalVolume):
     ome_zarr_root = open_zarr_structure_from_path(
-        internal_segmentation.segmentation_input_path
+        internal_volume.volume_input_path
     )
     root = open_zarr_structure_from_path(
-        internal_segmentation.intermediate_zarr_structure_path
+        internal_volume.intermediate_zarr_structure_path
     )
     d = root.attrs["annotations_dict"]
     d["entry_id"] = EntryId(
-        source_db_id=internal_segmentation.entry_data.source_db_id,
-        source_db_name=internal_segmentation.entry_data.source_db_name,
+        source_db_id=internal_volume.entry_data.source_db_id,
+        source_db_name=internal_volume.entry_data.source_db_name,
     )
 
     _get_channel_annotations(
