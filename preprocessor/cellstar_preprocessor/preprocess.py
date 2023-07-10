@@ -373,15 +373,15 @@ class Preprocessor:
                     tasks.append(
                         OMEZARRLabelsProcessTask(self.get_internal_segmentation())
                     )
-                    tasks.append(
-                        OMEZARRAnnotationsCollectionTask(
-                            self.get_internal_segmentation()
-                        )
-                    )
 
                 tasks.append(
                     OMEZARRMetadataCollectionTask(
                         internal_volume=self.get_internal_volume()
+                    )
+                )
+                tasks.append(
+                    OMEZARRAnnotationsCollectionTask(
+                        self.get_internal_segmentation()
                     )
                 )
             elif isinstance(input, CustomAnnotationsInput):
