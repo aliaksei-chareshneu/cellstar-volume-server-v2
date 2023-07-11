@@ -87,6 +87,42 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                         d[str(value)] = [int(value)]
 
                     our_set_table[...] = [d]
+
+            # elif len(axes) == 3:
+            # # NOTE: assumes CYX order
+            #     if axes[0]["name"] == 'c':
+            #         time_group = our_resolution_gr.create_group("0")
+            #         for j in range(arr.shape[0]):
+            #             # swap Y and X
+            #             corrected_arr_data = arr[...][j].swapaxes(0, 1)
+            #             # add Z dimension = 1
+            #             corrected_arr_data = np.expand_dims(corrected_arr_data, axis=2)
+            #             assert corrected_arr_data.shape[2] == 1
+
+            #             if corrected_arr_data.dtype == "i8":
+            #                 corrected_arr_data = corrected_arr_data.astype("i4")
+
+            #             our_channel_group = time_group.create_group(str(j))
+            #             our_arr = our_channel_group.create_dataset(
+            #                 name="grid",
+            #                 shape=corrected_arr_data.shape,
+            #                 data=corrected_arr_data,
+            #             )
+
+            #             our_set_table = our_channel_group.create_dataset(
+            #                 name="set_table",
+            #                 dtype=object,
+            #                 object_codec=numcodecs.JSON(),
+            #                 shape=1,
+            #             )
+
+            #             d = {}
+            #             for value in np.unique(our_arr[...]):
+            #                 d[str(value)] = [int(value)]
+
+            #             our_set_table[...] = [d]
+            #     else:
+            #         pass
             else:
                 raise Exception("Axes number/order is not supported")
             

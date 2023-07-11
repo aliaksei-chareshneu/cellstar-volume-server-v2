@@ -11,6 +11,51 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "preprocessor_XYC_omezarr",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "temp/v2_temp_static_entry_files_dir/idr/idr-10501752/10501752.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "idr-10501752",
+                "--source-db",
+                "idr",
+                "--source-db-id", "idr-10501752",
+                "--source-db-name", "idr",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db"
+            ]
+        },
+        {
+            "name": "preprocessor_2D/5D_omezarr",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "temp/v2_temp_static_entry_files_dir/idr/idr-5025553/5025553.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "idr-5025553",
+                "--source-db",
+                "idr",
+                "--source-db-id", "idr-5025553",
+                "--source-db-name", "idr",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
+                // "--quantize-dtype-str", "u1",
+                // "--quantize-downsampling-levels", "1 2",
+                // "--force-volume-dtype", "f1"
+            ]
+        },
+        {
             "name": "preprocessor_13GB_omezarr",
             "type": "python",
             "request": "launch",

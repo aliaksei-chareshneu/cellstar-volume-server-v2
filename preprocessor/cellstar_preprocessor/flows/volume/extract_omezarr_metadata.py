@@ -15,6 +15,7 @@ from cellstar_preprocessor.model.volume import InternalVolume
 
 
 def _get_axis_order_omezarr(ome_zarr_attrs):
+    # TODO: fix this for the case with CYX axes
     axes_names_to_numbers = {"z": 2, "y": 1, "x": 0}
     axes_order = []
     multiscales = ome_zarr_attrs["multiscales"]
