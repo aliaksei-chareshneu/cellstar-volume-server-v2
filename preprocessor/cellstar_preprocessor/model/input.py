@@ -44,6 +44,7 @@ class Inputs(BaseModel):
 
 class VolumeParams(BaseModel):
     quantize_dtype_str: Optional[QuantizationDtype]
+    # TODO: low priority: linear and log quantization
     quantize_downsampling_levels: Optional[tuple[int, ...]]
     force_volume_dtype: Optional[str]
 
