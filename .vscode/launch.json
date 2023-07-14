@@ -11,6 +11,30 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "preprocessor_140GB_omezarr",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "/mnt/big_ome_zarr/9846152.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "idr-9846152",
+                "--source-db",
+                "idr",
+                "--source-db-id", "idr-9846152",
+                "--source-db-name", "idr",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
+                // "--quantize-dtype-str", "u1",
+                // "--quantize-downsampling-levels", "1 2",
+                // "--force-volume-dtype", "f1"
+            ]
+        },
+        {
             "name": "preprocessor_XYC_omezarr",
             "type": "python",
             "request": "launch",
@@ -232,7 +256,7 @@
                 "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
                 "--db-path", "preprocessor/temp/test_db",
                 "--quantize-dtype-str", "u1",
-                "--quantize-downsampling-levels", "1 2",
+                // "--quantize-downsampling-levels", "1 2",
                 // "--force-volume-dtype", "f1"
             ]
         },
@@ -259,6 +283,7 @@
                 "--source-db-name", "emdb",
                 "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
                 "--db-path", "preprocessor/temp/test_db",
+                "--quantize-dtype-str", "u1",
                 // "--force-volume-dtype", "u1"
             ]
         },
