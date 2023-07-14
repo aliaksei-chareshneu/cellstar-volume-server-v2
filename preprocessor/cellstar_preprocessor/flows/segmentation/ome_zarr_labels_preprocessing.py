@@ -2,6 +2,7 @@
 # params_for_storing=self.preprocessor_input.storing_params,
 # downsampling_parameters=self.preprocessor_input.downsampling,
 
+import gc
 import numcodecs
 import numpy as np
 import zarr
@@ -61,6 +62,9 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                             d[str(value)] = [int(value)]
 
                         our_set_table[...] = [d]
+                        
+                        del corrected_arr_data
+                        gc.collect()
 
             elif len(axes) == 4 and axes[0]["name"] == "c":
                 time_group = our_resolution_gr.create_group("0")
@@ -87,6 +91,9 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                         d[str(value)] = [int(value)]
 
                     our_set_table[...] = [d]
+
+                    del corrected_arr_data
+                    gc.collect()
 
             # elif len(axes) == 3:
             # # NOTE: assumes CYX order

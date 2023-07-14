@@ -2,6 +2,7 @@
 # volume_force_dtype=preprocessor_input.volume.force_volume_dtype,
 # downsampling_parameters=preprocessor_input.downsampling,
 
+import gc
 import numpy as np
 import zarr
 
@@ -36,6 +37,12 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
         # create array with added Z dimension = 1
         # if not time - create 1st and 2nd layer groups == 1
 
+        # # TODO: later: add support for volume force dtype
+        # # setting volume_force_dtype attribute - required to skip quantization if dtype is e.g. u2
+        # # NOTE: currently sets it based on the first array
+        # if internal_volume.volume_force_dtype is None:
+        #     internal_volume.volume_force_dtype = volume_arr.dtype
+
         resolution_group = volume_data_gr.create_group(volume_arr_resolution)
         if len(axes) == 5 and axes[0]["name"] == "t":
             for i in range(volume_arr.shape[0]):
@@ -55,6 +62,10 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                         dtype=corrected_volume_arr_data.dtype,
                         params_for_storing=internal_volume.params_for_storing,
                     )
+
+                    del corrected_volume_arr_data
+                    gc.collect()
+                    
         elif len(axes) == 4 and axes[0]["name"] == "c":
             time_group = resolution_group.create_group("0")
             for j in range(volume_arr.shape[0]):
@@ -67,6 +78,9 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                     dtype=corrected_volume_arr_data.dtype,
                     params_for_storing=internal_volume.params_for_storing,
                 )
+                # TODO: add this to case of 5 axes and to labels processing
+                del corrected_volume_arr_data
+                gc.collect()
         # TODO: later
         # elif len(axes) == 3:
         #     # NOTE: assumes CYX order
