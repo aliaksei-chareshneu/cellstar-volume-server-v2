@@ -7,6 +7,7 @@ from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.map_preprocessing import map_preprocessing
 from cellstar_preprocessor.model.input import DownsamplingParams, EntryData, QuantizationDtype, StoringParams
 from cellstar_preprocessor.model.volume import InternalVolume
+from cellstar_preprocessor.tests.helper_methods import initialize_intermediate_zarr_structure_for_tests
 from cellstar_preprocessor.tests.input_for_tests import INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS, INTERNAL_VOLUME_FOR_TESTING
 import zarr
 
@@ -15,13 +16,7 @@ def test_map_preprocessing():
     # TODO: create sample internal volume with all params
     # TODO: test different functions (map preprocessing, quantization, downsampling)
     # using  the same internal volume 
-    if INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS.exists():
-        shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS, ignore_errors=True)
-    
-    store: zarr.storage.DirectoryStore = zarr.DirectoryStore(
-        str(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS)
-    )
-    root = zarr.group(store=store)
+    initialize_intermediate_zarr_structure_for_tests()
 
     internal_volume = INTERNAL_VOLUME_FOR_TESTING
     map_preprocessing(internal_volume=internal_volume)
