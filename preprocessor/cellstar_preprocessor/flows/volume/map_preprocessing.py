@@ -66,4 +66,3 @@ def map_preprocessing(internal_volume: InternalVolume):
     internal_volume.map_header = header
 
     print("Volume processed")
-    # TODO: extract metadata
