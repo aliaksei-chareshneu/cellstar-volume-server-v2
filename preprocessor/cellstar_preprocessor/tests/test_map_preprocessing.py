@@ -8,17 +8,23 @@ from cellstar_preprocessor.flows.volume.map_preprocessing import map_preprocessi
 from cellstar_preprocessor.model.input import DownsamplingParams, EntryData, QuantizationDtype, StoringParams
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tests.helper_methods import initialize_intermediate_zarr_structure_for_tests
-from cellstar_preprocessor.tests.input_for_tests import INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS, INTERNAL_VOLUME_FOR_TESTING
+from cellstar_preprocessor.tests.input_for_tests import INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS, INTERNAL_VOLUME_FOR_TESTING, INTERNAL_VOLUME_FOR_TESTING_XYZ_ORDER, INTERNAL_VOLUME_FOR_TESTING_ZYX_ORDER
 import zarr
+import pytest
 
+INTERNAL_VOLUMES = [
+    INTERNAL_VOLUME_FOR_TESTING_ZYX_ORDER,
+    INTERNAL_VOLUME_FOR_TESTING_XYZ_ORDER
+]
 
-def test_map_preprocessing():
+@pytest.mark.parametrize("internal_volume", INTERNAL_VOLUMES)
+def test_map_preprocessing(internal_volume: InternalVolume):
     # TODO: create sample internal volume with all params
     # TODO: test different functions (map preprocessing, quantization, downsampling)
     # using  the same internal volume 
     initialize_intermediate_zarr_structure_for_tests()
 
-    internal_volume = INTERNAL_VOLUME_FOR_TESTING
+    # internal_volume = INTERNAL_VOLUME_FOR_TESTING
     map_preprocessing(internal_volume=internal_volume)
 
     # check if zarr structure has right format
@@ -51,4 +57,6 @@ def test_map_preprocessing():
     assert internal_volume.map_header is not None
 
     # check the data shape
-    assert volume_gr['1']['0']['0'].shape == (64, 64, 64)
+    # checks also axis order since ZYX map has shape 4, 3, 2 and XYZ map has shape 2, 3, 4
+    # so normalizing ZYX map will give shape 2, 3, 4
+    assert volume_gr['1']['0']['0'].shape == (2, 3, 4)
