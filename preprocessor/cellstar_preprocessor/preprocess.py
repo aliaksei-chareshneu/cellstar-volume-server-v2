@@ -5,6 +5,7 @@ import shutil
 import typing
 from argparse import ArgumentError
 from pathlib import Path
+from cellstar_preprocessor.flows.segmentation.nii_segmentation_preprocessing import nii_segmentation_preprocessing
 from cellstar_preprocessor.flows.volume.extract_nii_metadata import extract_nii_metadata
 from cellstar_preprocessor.flows.volume.nii_preprocessing import nii_preprocessing
 
@@ -124,17 +125,21 @@ class CustomAnnotationsCollectionTask(TaskBase):
             current_d: AnnotationsMetadata = root.attrs["annotations_dict"]
             # 1. Updating segment list
             if "segmentation_lattices" in d:
-                for lattice in current_d["segmentation_lattices"]:
-                    old_segment_list = lattice["segment_list"]
-                    to_be_added_segment_list = list(filter(
-                        lambda x: x['lattice_id'] == lattice["lattice_id"], d["segmentation_lattices"]
-                    ))[0]['segment_list']
-                    
-                    to_be_added_segment_ids = [segment['id'] for segment in to_be_added_segment_list]
-                    list_1 = [segment for segment in old_segment_list if segment['id'] not in to_be_added_segment_ids]
-                    updated_segment_list = list_1 + to_be_added_segment_list
+                # if there are annotations already
+                if current_d["segmentation_lattices"]:
+                    for lattice in current_d["segmentation_lattices"]:
+                        old_segment_list = lattice["segment_list"]
+                        to_be_added_segment_list = list(filter(
+                            lambda x: x['lattice_id'] == lattice["lattice_id"], d["segmentation_lattices"]
+                        ))[0]['segment_list']
+                        
+                        to_be_added_segment_ids = [segment['id'] for segment in to_be_added_segment_list]
+                        list_1 = [segment for segment in old_segment_list if segment['id'] not in to_be_added_segment_ids]
+                        updated_segment_list = list_1 + to_be_added_segment_list
 
-                    lattice["segment_list"] = updated_segment_list
+                        lattice["segment_list"] = updated_segment_list
+                else:
+                    current_d["segmentation_lattices"] = d["segmentation_lattices"]
             
             # 2. Updating other information
             if 'details' in d:
@@ -287,6 +292,18 @@ class NIIProcessVolumeTask(TaskBase):
         # in processing part do
         volume_downsampling(volume)
 
+class NIIProcessSegmentationTask(TaskBase):
+    def __init__(self, internal_segmentation: InternalSegmentation):
+        self.internal_segmentation = internal_segmentation
+
+    def execute(self) -> None:
+        segmentation = self.internal_segmentation
+
+        nii_segmentation_preprocessing(internal_segmentation=segmentation)
+
+        # TODO: downsampling, similar to sff?
+        # sff_segmentation_downsampling(segmentation)
+
 class SFFProcessSegmentationTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
         self.internal_segmentation = internal_segmentation
@@ -432,6 +449,23 @@ class Preprocessor:
                     )
                 )
 
+            elif isinstance(input, NIISegmentationInput):
+                self.store_internal_segmentation(
+                    internal_segmentation=InternalSegmentation(
+                        intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                        segmentation_input_path=input.input_path,
+                        params_for_storing=self.preprocessor_input.storing_params,
+                        downsampling_parameters=self.preprocessor_input.downsampling,
+                        entry_data=self.preprocessor_input.entry_data,
+                    )
+                )
+                tasks.append(
+                    NIIProcessSegmentationTask(
+                        internal_segmentation=self.get_internal_segmentation()
+                    )
+                )
+                # TODO: metadata to get metadata for lattices, annotations not needed
+
             elif isinstance(input, CustomAnnotationsInput):
                 tasks.append(CustomAnnotationsCollectionTask(
                     input_path=input.input_path,
@@ -470,6 +504,8 @@ class Preprocessor:
                 # TODO: application specific
             elif input_item[1] == InputKind.nii_volume:
                 analyzed_inputs.append(NIIVolumeInput(input_path=input_item[0]))
+            elif input_item[1] == InputKind.nii_segmentation:
+                analyzed_inputs.append(NIISegmentationInput(input_path=input_item[0]))
         return analyzed_inputs
 
     def initialization(self):
