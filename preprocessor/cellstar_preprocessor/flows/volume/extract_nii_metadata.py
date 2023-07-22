@@ -24,7 +24,7 @@ def _get_voxel_sizes_in_downsamplings(nii_header, volume_downsamplings):
     voxel_sizes_in_downsamplings: dict = {}
     for rate in volume_downsamplings:
         voxel_sizes_in_downsamplings[rate] = tuple(
-            [float(Decimal(i) * Decimal(rate)) for i in original_voxel_size]
+            [float(Decimal(float(i)) * Decimal(rate)) for i in original_voxel_size]
         )
     return voxel_sizes_in_downsamplings
 
