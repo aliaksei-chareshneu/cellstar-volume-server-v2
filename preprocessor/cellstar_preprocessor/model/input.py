@@ -28,6 +28,7 @@ class InputKind(str, Enum):
     # leave it for a specific conversion function to check the extension and run conversion?
     application_specific_segmentation = "application_specific_segmentation"
     custom_annotations = 'custom_annotations'
+    nii_volume = 'nii_volume'
 
 
 class QuantizationDtype(str, Enum):

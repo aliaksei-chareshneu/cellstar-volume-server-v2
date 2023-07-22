@@ -11,6 +11,33 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "preprocessor_nii",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "preprocessor/temp/mouse_github_dataset/fib1-0-0-0.nii.gz",
+                "--input-kind",
+                "nii_volume",
+                // "--input-path",
+                // "test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff",
+                // "--input-kind",
+                // "sff",
+                "--entry-id",
+                "nii-1",
+                "--source-db",
+                "emdb",
+                "--source-db-id", "nii-1",
+                "--source-db-name", "emdb",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
+                // "--quantize-dtype-str", "u1",
+                // "--force-volume-dtype", "u1"
+            ]
+        },
+        {
             "name": "preprocessor_140GB_omezarr",
             "type": "python",
             "request": "launch",

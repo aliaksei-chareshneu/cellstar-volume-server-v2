@@ -5,6 +5,8 @@ import shutil
 import typing
 from argparse import ArgumentError
 from pathlib import Path
+from cellstar_preprocessor.flows.volume.extract_nii_metadata import extract_nii_metadata
+from cellstar_preprocessor.flows.volume.nii_preprocessing import nii_preprocessing
 
 import typer
 import zarr
@@ -92,6 +94,12 @@ class OMEZARRInput(InputT):
     pass
 
 class CustomAnnotationsInput(InputT):
+    pass
+
+class NIIVolumeInput(InputT):
+    pass
+
+class NIISegmentationInput(InputT):
     pass
 
 class TaskBase(typing.Protocol):
@@ -196,6 +204,14 @@ class SFFAnnotationCollectionTask(TaskBase):
         )
 
 
+class NIIMetadataCollectionTask(TaskBase):
+    def __init__(self, internal_volume: InternalVolume):
+        self.internal_volume = internal_volume
+
+    def execute(self) -> None:
+        volume = self.internal_volume
+        metadata_dict = extract_nii_metadata(internal_volume=volume)
+
 class MAPMetadataCollectionTask(TaskBase):
     def __init__(self, internal_volume: InternalVolume):
         self.internal_volume = internal_volume
@@ -260,6 +276,16 @@ class MAPProcessVolumeTask(TaskBase):
         # in processing part do
         volume_downsampling(volume)
 
+class NIIProcessVolumeTask(TaskBase):
+    def __init__(self, internal_volume: InternalVolume):
+        self.internal_volume = internal_volume
+
+    def execute(self) -> None:
+        volume = self.internal_volume
+
+        nii_preprocessing(volume)
+        # in processing part do
+        volume_downsampling(volume)
 
 class SFFProcessSegmentationTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
@@ -384,6 +410,28 @@ class Preprocessor:
                         self.get_internal_volume()
                     )
                 )
+            elif isinstance(input, NIIVolumeInput):
+                self.store_internal_volume(
+                    internal_volume=InternalVolume(
+                        intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                        volume_input_path=input.input_path,
+                        params_for_storing=self.preprocessor_input.storing_params,
+                        volume_force_dtype=self.preprocessor_input.volume.force_volume_dtype,
+                        quantize_dtype_str=self.preprocessor_input.volume.quantize_dtype_str,
+                        downsampling_parameters=self.preprocessor_input.downsampling,
+                        entry_data=self.preprocessor_input.entry_data,
+                        quantize_downsampling_levels=self.preprocessor_input.volume.quantize_downsampling_levels,
+                    )
+                )
+                tasks.append(
+                    NIIProcessVolumeTask(internal_volume=self.get_internal_volume())
+                )
+                tasks.append(
+                    NIIMetadataCollectionTask(
+                        internal_volume=self.get_internal_volume()
+                    )
+                )
+
             elif isinstance(input, CustomAnnotationsInput):
                 tasks.append(CustomAnnotationsCollectionTask(
                     input_path=input.input_path,
@@ -420,6 +468,8 @@ class Preprocessor:
             elif input_item[1] == InputKind.custom_annotations:
                 analyzed_inputs.append(CustomAnnotationsInput(input_path=input_item[0]))
                 # TODO: application specific
+            elif input_item[1] == InputKind.nii_volume:
+                analyzed_inputs.append(NIIVolumeInput(input_path=input_item[0]))
         return analyzed_inputs
 
     def initialization(self):
