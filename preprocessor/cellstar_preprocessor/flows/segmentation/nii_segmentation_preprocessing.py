@@ -12,6 +12,8 @@ def nii_segmentation_preprocessing(internal_segmentation: InternalSegmentation):
 
     img = nib.load(str(internal_segmentation.segmentation_input_path.resolve()))
     data = img.get_fdata()
+    # temp fix: convert float64 to int
+    data = data.astype(np.int32)
 
     segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
 

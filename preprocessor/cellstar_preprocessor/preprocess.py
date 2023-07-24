@@ -5,6 +5,8 @@ import shutil
 import typing
 from argparse import ArgumentError
 from pathlib import Path
+from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
+from cellstar_preprocessor.flows.segmentation.nii_segmentation_downsampling import nii_segmentation_downsampling
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_preprocessing import nii_segmentation_preprocessing
 from cellstar_preprocessor.flows.volume.extract_nii_metadata import extract_nii_metadata
 from cellstar_preprocessor.flows.volume.nii_preprocessing import nii_preprocessing
@@ -269,6 +271,14 @@ class SFFMetadataCollectionTask(TaskBase):
             internal_segmentation=self.internal_segmentation
         )
 
+class NIISegmentationMetadataCollectionTask(TaskBase):
+    def __init__(self, internal_segmentation: InternalSegmentation):
+        self.internal_segmentation = internal_segmentation
+
+    def execute(self) -> None:
+        metadata_dict = extract_metadata_from_nii_segmentation(
+            internal_segmentation=self.internal_segmentation
+        )
 
 class MAPProcessVolumeTask(TaskBase):
     def __init__(self, internal_volume: InternalVolume):
@@ -301,8 +311,7 @@ class NIIProcessSegmentationTask(TaskBase):
 
         nii_segmentation_preprocessing(internal_segmentation=segmentation)
 
-        # TODO: downsampling, similar to sff?
-        # sff_segmentation_downsampling(segmentation)
+        nii_segmentation_downsampling(internal_segmentation=segmentation)
 
 class SFFProcessSegmentationTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
@@ -464,8 +473,12 @@ class Preprocessor:
                         internal_segmentation=self.get_internal_segmentation()
                     )
                 )
-                # TODO: metadata to get metadata for lattices, annotations not needed
-
+                tasks.append(
+                    NIISegmentationMetadataCollectionTask(
+                        internal_segmentation=self.get_internal_segmentation()
+                    )
+                )
+                
             elif isinstance(input, CustomAnnotationsInput):
                 tasks.append(CustomAnnotationsCollectionTask(
                     input_path=input.input_path,
