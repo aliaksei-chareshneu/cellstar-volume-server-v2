@@ -348,6 +348,7 @@ class Preprocessor:
 
     def _process_inputs(self, inputs: list[InputT]) -> list[TaskBase]:
         tasks = []
+        nii_segmentation_inputs: list[NIISegmentationInput] = []
         for input in inputs:
             if isinstance(input, MAPInput):
                 self.store_internal_volume(
@@ -459,25 +460,26 @@ class Preprocessor:
                 )
 
             elif isinstance(input, NIISegmentationInput):
-                self.store_internal_segmentation(
-                    internal_segmentation=InternalSegmentation(
-                        intermediate_zarr_structure_path=self.intermediate_zarr_structure,
-                        segmentation_input_path=input.input_path,
-                        params_for_storing=self.preprocessor_input.storing_params,
-                        downsampling_parameters=self.preprocessor_input.downsampling,
-                        entry_data=self.preprocessor_input.entry_data,
-                    )
-                )
-                tasks.append(
-                    NIIProcessSegmentationTask(
-                        internal_segmentation=self.get_internal_segmentation()
-                    )
-                )
-                tasks.append(
-                    NIISegmentationMetadataCollectionTask(
-                        internal_segmentation=self.get_internal_segmentation()
-                    )
-                )
+                nii_segmentation_inputs.append(input)
+                # self.store_internal_segmentation(
+                #     internal_segmentation=InternalSegmentation(
+                #         intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                #         segmentation_input_path=input.input_path,
+                #         params_for_storing=self.preprocessor_input.storing_params,
+                #         downsampling_parameters=self.preprocessor_input.downsampling,
+                #         entry_data=self.preprocessor_input.entry_data,
+                #     )
+                # )
+                # tasks.append(
+                #     NIIProcessSegmentationTask(
+                #         internal_segmentation=self.get_internal_segmentation()
+                #     )
+                # )
+                # tasks.append(
+                #     NIISegmentationMetadataCollectionTask(
+                #         internal_segmentation=self.get_internal_segmentation()
+                #     )
+                # )
                 
             elif isinstance(input, CustomAnnotationsInput):
                 tasks.append(CustomAnnotationsCollectionTask(
@@ -493,8 +495,31 @@ class Preprocessor:
                 QuantizeInternalVolumeTask(internal_volume=self.get_internal_volume())
             )
 
+        if nii_segmentation_inputs:
+            nii_segmentation_input_paths = [i.input_path for i in nii_segmentation_inputs]
+            self.store_internal_segmentation(
+                internal_segmentation=InternalSegmentation(
+                    intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                    segmentation_input_path=nii_segmentation_input_paths,
+                    params_for_storing=self.preprocessor_input.storing_params,
+                    downsampling_parameters=self.preprocessor_input.downsampling,
+                    entry_data=self.preprocessor_input.entry_data,
+                )
+            )
+            tasks.append(
+                NIIProcessSegmentationTask(
+                    internal_segmentation=self.get_internal_segmentation()
+                )
+            )
+            tasks.append(
+                NIISegmentationMetadataCollectionTask(
+                    internal_segmentation=self.get_internal_segmentation()
+                )
+            )
+
         tasks.append(SaveMetadataTask(self.intermediate_zarr_structure))
         tasks.append(SaveAnnotationsTask(self.intermediate_zarr_structure))
+
         return tasks
 
     def _execute_tasks(self, tasks: list[TaskBase]):
