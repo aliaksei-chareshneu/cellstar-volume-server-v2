@@ -1,0 +1,771 @@
+{
+    "image-label": {
+        "colors": [
+            {
+                "label-value": 1381342,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381343,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381344,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381345,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381346,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381347,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381348,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381349,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381350,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381351,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381352,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381353,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381354,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381355,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381356,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381357,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381358,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381359,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381360,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381361,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381362,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381363,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381364,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381365,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381366,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381367,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381368,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381369,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381370,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381371,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381372,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381373,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381374,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381375,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381376,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381377,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381378,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381379,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381380,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381381,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381382,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381383,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381384,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381385,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381386,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381387,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381388,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            },
+            {
+                "label-value": 1381389,
+                "rgba": [
+                    128,
+                    128,
+                    128,
+                    128
+                ]
+            }
+        ],
+        "properties": [
+            {
+                "label-value": 1381342,
+                "omero:roiId": 1381342,
+                "omero:shapeId": 1682567
+            },
+            {
+                "label-value": 1381343,
+                "omero:roiId": 1381343,
+                "omero:shapeId": 1682608
+            },
+            {
+                "label-value": 1381344,
+                "omero:roiId": 1381344,
+                "omero:shapeId": 1682667
+            },
+            {
+                "label-value": 1381345,
+                "omero:roiId": 1381345,
+                "omero:shapeId": 1682712
+            },
+            {
+                "label-value": 1381346,
+                "omero:roiId": 1381346,
+                "omero:shapeId": 1682754
+            },
+            {
+                "label-value": 1381347,
+                "omero:roiId": 1381347,
+                "omero:shapeId": 1682805
+            },
+            {
+                "label-value": 1381348,
+                "omero:roiId": 1381348,
+                "omero:shapeId": 1682845
+            },
+            {
+                "label-value": 1381349,
+                "omero:roiId": 1381349,
+                "omero:shapeId": 1682889
+            },
+            {
+                "label-value": 1381350,
+                "omero:roiId": 1381350,
+                "omero:shapeId": 1682945
+            },
+            {
+                "label-value": 1381351,
+                "omero:roiId": 1381351,
+                "omero:shapeId": 1682996
+            },
+            {
+                "label-value": 1381352,
+                "omero:roiId": 1381352,
+                "omero:shapeId": 1683038
+            },
+            {
+                "label-value": 1381353,
+                "omero:roiId": 1381353,
+                "omero:shapeId": 1683071
+            },
+            {
+                "label-value": 1381354,
+                "omero:roiId": 1381354,
+                "omero:shapeId": 1683106
+            },
+            {
+                "label-value": 1381355,
+                "omero:roiId": 1381355,
+                "omero:shapeId": 1683141
+            },
+            {
+                "label-value": 1381356,
+                "omero:roiId": 1381356,
+                "omero:shapeId": 1683174
+            },
+            {
+                "label-value": 1381357,
+                "omero:roiId": 1381357,
+                "omero:shapeId": 1683206
+            },
+            {
+                "label-value": 1381358,
+                "omero:roiId": 1381358,
+                "omero:shapeId": 1683254
+            },
+            {
+                "label-value": 1381359,
+                "omero:roiId": 1381359,
+                "omero:shapeId": 1683301
+            },
+            {
+                "label-value": 1381360,
+                "omero:roiId": 1381360,
+                "omero:shapeId": 1683340
+            },
+            {
+                "label-value": 1381361,
+                "omero:roiId": 1381361,
+                "omero:shapeId": 1683384
+            },
+            {
+                "label-value": 1381362,
+                "omero:roiId": 1381362,
+                "omero:shapeId": 1683419
+            },
+            {
+                "label-value": 1381363,
+                "omero:roiId": 1381363,
+                "omero:shapeId": 1683462
+            },
+            {
+                "label-value": 1381364,
+                "omero:roiId": 1381364,
+                "omero:shapeId": 1683508
+            },
+            {
+                "label-value": 1381365,
+                "omero:roiId": 1381365,
+                "omero:shapeId": 1683550
+            },
+            {
+                "label-value": 1381366,
+                "omero:roiId": 1381366,
+                "omero:shapeId": 1683583
+            },
+            {
+                "label-value": 1381367,
+                "omero:roiId": 1381367,
+                "omero:shapeId": 1683619
+            },
+            {
+                "label-value": 1381368,
+                "omero:roiId": 1381368,
+                "omero:shapeId": 1683654
+            },
+            {
+                "label-value": 1381369,
+                "omero:roiId": 1381369,
+                "omero:shapeId": 1683694
+            },
+            {
+                "label-value": 1381370,
+                "omero:roiId": 1381370,
+                "omero:shapeId": 1683734
+            },
+            {
+                "label-value": 1381371,
+                "omero:roiId": 1381371,
+                "omero:shapeId": 1683770
+            },
+            {
+                "label-value": 1381372,
+                "omero:roiId": 1381372,
+                "omero:shapeId": 1683802
+            },
+            {
+                "label-value": 1381373,
+                "omero:roiId": 1381373,
+                "omero:shapeId": 1683830
+            },
+            {
+                "label-value": 1381374,
+                "omero:roiId": 1381374,
+                "omero:shapeId": 1683865
+            },
+            {
+                "label-value": 1381375,
+                "omero:roiId": 1381375,
+                "omero:shapeId": 1683903
+            },
+            {
+                "label-value": 1381376,
+                "omero:roiId": 1381376,
+                "omero:shapeId": 1683935
+            },
+            {
+                "label-value": 1381377,
+                "omero:roiId": 1381377,
+                "omero:shapeId": 1683950
+            },
+            {
+                "label-value": 1381378,
+                "omero:roiId": 1381378,
+                "omero:shapeId": 1683987
+            },
+            {
+                "label-value": 1381379,
+                "omero:roiId": 1381379,
+                "omero:shapeId": 1684018
+            },
+            {
+                "label-value": 1381380,
+                "omero:roiId": 1381380,
+                "omero:shapeId": 1684061
+            },
+            {
+                "label-value": 1381381,
+                "omero:roiId": 1381381,
+                "omero:shapeId": 1684088
+            },
+            {
+                "label-value": 1381382,
+                "omero:roiId": 1381382,
+                "omero:shapeId": 1684112
+            },
+            {
+                "label-value": 1381383,
+                "omero:roiId": 1381383,
+                "omero:shapeId": 1684142
+            },
+            {
+                "label-value": 1381384,
+                "omero:roiId": 1381384,
+                "omero:shapeId": 1684164
+            },
+            {
+                "label-value": 1381385,
+                "omero:roiId": 1381385,
+                "omero:shapeId": 1684189
+            },
+            {
+                "label-value": 1381386,
+                "omero:roiId": 1381386,
+                "omero:shapeId": 1684215
+            },
+            {
+                "label-value": 1381387,
+                "omero:roiId": 1381387,
+                "omero:shapeId": 1684234
+            },
+            {
+                "label-value": 1381388,
+                "omero:roiId": 1381388,
+                "omero:shapeId": 1684253
+            },
+            {
+                "label-value": 1381389,
+                "omero:roiId": 1381389,
+                "omero:shapeId": 1684303
+            }
+        ],
+        "source": {
+            "image": "../.."
+        },
+        "version": "0.4"
+    },
+    "multiscales": [
+        {
+            "axes": [
+                {
+                    "name": "c",
+                    "type": "channel"
+                },
+                {
+                    "name": "z",
+                    "type": "space",
+                    "unit": "angstrom",
+                    "units": "micrometer"
+                },
+                {
+                    "name": "y",
+                    "type": "space",
+                    "unit": "angstrom",
+                    "units": "micrometer"
+                },
+                {
+                    "name": "x",
+                    "type": "space",
+                    "unit": "angstrom",
+                    "units": "micrometer"
+                }
+            ],
+            "datasets": [
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                0.500202734375,
+                                0.3603981534640209,
+                                0.3603981534640209
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "0"
+                },
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                0.500202734375,
+                                0.7207963069280418,
+                                0.7207963069280418
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "1"
+                },
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                0.500202734375,
+                                1.4415926138560835,
+                                1.4415926138560835
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "2"
+                },
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                0.500202734375,
+                                2.883185227712167,
+                                2.883185227712167
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "3"
+                }
+            ],
+            "version": "0.4"
+        }
+    ]
+}
