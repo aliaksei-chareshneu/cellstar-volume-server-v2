@@ -35,18 +35,19 @@ def extract_annotations_from_sff_segmentation(
             segmentation_lattice_info = {"lattice_id": lattice_id, "segment_list": []}
 
             for segment in internal_segmentation.raw_sff_annotations["segment_list"]:
-                segmentation_lattice_info["segment_list"].append(
-                    {
-                        "id": segment["id"],
-                        "biological_annotation": {
-                            "name": segment["biological_annotation"]["name"],
-                            "external_references": segment["biological_annotation"][
-                                "external_references"
-                            ],
-                        },
-                        "color": segment["colour"],
-                    }
-                )
+                if str(segment["three_d_volume"]["lattice_id"]) == str(lattice_id):
+                    segmentation_lattice_info["segment_list"].append(
+                        {
+                            "id": segment["id"],
+                            "biological_annotation": {
+                                "name": segment["biological_annotation"]["name"],
+                                "external_references": segment["biological_annotation"][
+                                    "external_references"
+                                ],
+                            },
+                            "color": segment["colour"],
+                        }
+                    )
 
             d["segmentation_lattices"].append(segmentation_lattice_info)
     elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
