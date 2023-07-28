@@ -9,8 +9,8 @@ TEST_MAP_PATH = Path('test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.ma
 TEST_SFF_PATH = Path('test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff')
 TEST_MAP_PATH_ZYX_ORDER = Path('preprocessor/cellstar_preprocessor/tests/test_data/fake_ccp4_ZYX.map')
 TEST_MAP_PATH_XYZ_ORDER = Path('preprocessor/cellstar_preprocessor/tests/test_data/fake_ccp4_XYZ.map')
-TEST_OME_ZARR_PATH_5_AXES = Path('preprocessor/cellstar_preprocessor/tests/test_data/5514375.zarr')
-TEST_OME_ZARR_PATH_4_AXES = Path('preprocessor/cellstar_preprocessor/tests/test_data/6001247.zarr')
+TEST_OME_ZARR_PATH_5_AXES = Path('preprocessor/temp/test_data/5514375.zarr')
+TEST_OME_ZARR_PATH_4_AXES = Path('preprocessor/temp/test_data/6001247.zarr')
 
 INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES = InternalSegmentation(
         intermediate_zarr_structure_path=INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS,
