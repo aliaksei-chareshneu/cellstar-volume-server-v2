@@ -6,7 +6,7 @@ from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 
 
-def _convert_hex_to_rgba_fractional(channel_color_hex):
+def convert_hex_to_rgba_fractional(channel_color_hex):
     channel_color_rgba = ImageColor.getcolor(f"#{channel_color_hex}", "RGBA")
     channel_color_rgba_fractional = tuple([i / 255 for i in channel_color_rgba])
     return channel_color_rgba_fractional
@@ -17,7 +17,7 @@ def _get_channel_annotations(ome_zarr_attrs, volume_channel_annotations):
         volume_channel_annotations.append(
             {
                 "channel_id": channel_id,
-                "color": _convert_hex_to_rgba_fractional(channel["color"]),
+                "color": convert_hex_to_rgba_fractional(channel["color"]),
                 "label": channel["label"],
             }
         )
