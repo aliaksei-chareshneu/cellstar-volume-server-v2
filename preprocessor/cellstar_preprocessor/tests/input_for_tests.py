@@ -7,6 +7,7 @@ DB_PATH_FOR_TESTS = Path('temp/db_for_tests')
 INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS = Path('temp/intermediate_zarr_structure_for_tests')
 TEST_MAP_PATH = Path('test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map')
 TEST_SFF_PATH = Path('test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff')
+TEST_MESH_SFF_PATH = Path('test-data/preprocessor/sample_segmentations/empiar/empiar_10070_b3talongmusc20130301.hff')
 TEST_MAP_PATH_ZYX_ORDER = Path('preprocessor/cellstar_preprocessor/tests/test_data/fake_ccp4_ZYX.map')
 TEST_MAP_PATH_XYZ_ORDER = Path('preprocessor/cellstar_preprocessor/tests/test_data/fake_ccp4_XYZ.map')
 TEST_OME_ZARR_PATH_5_AXES = Path('preprocessor/temp/test_data/5514375.zarr')
@@ -129,5 +130,18 @@ INTERNAL_SEGMENTATION_FOR_TESTING = InternalSegmentation(
             source_db="emdb",
             source_db_id="emd-1832",
             source_db_name="emdb",
+        )
+)
+
+INTERNAL_MESH_SEGMENTATION_FOR_TESTING = InternalSegmentation(
+    intermediate_zarr_structure_path=INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS,
+    segmentation_input_path=TEST_MESH_SFF_PATH,
+    params_for_storing=StoringParams(),
+    downsampling_parameters=DownsamplingParams(),
+    entry_data=EntryData(
+            entry_id="empiar-10070",
+            source_db="empiar",
+            source_db_id="empiar-10070",
+            source_db_name="empiar",
         )
 )

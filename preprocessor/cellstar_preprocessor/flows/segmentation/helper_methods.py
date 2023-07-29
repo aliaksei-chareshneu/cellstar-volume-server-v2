@@ -39,13 +39,13 @@ def check_if_omezarr_has_labels(internal_volume: InternalVolume):
         return False
 
 
-def _open_hdf5_as_segmentation_object(file_path: Path) -> SFFSegmentation:
+def open_hdf5_as_segmentation_object(file_path: Path) -> SFFSegmentation:
     return SFFSegmentation.from_file(str(file_path.resolve()))
 
 
 def extract_raw_annotations_from_sff(segm_file_path: Path) -> dict:
     """Returns dict of annotation metadata (some fields are removed)"""
-    segm_obj = _open_hdf5_as_segmentation_object(segm_file_path)
+    segm_obj = open_hdf5_as_segmentation_object(segm_file_path)
     segm_dict = segm_obj.as_json()
     for lattice in segm_dict["lattice_list"]:
         del lattice["data"]
