@@ -8,7 +8,9 @@ import dask.array as da
 import numpy as np
 
 def _get_source_axes_units(nii_header):
-    spatial_units = nii_header.get_xyzt_units()[0]
+    # spatial_units = nii_header.get_xyzt_units()[0]
+    # NOTE: hardcoding this
+    spatial_units = 'angstrom'
     d = {
         "x": spatial_units,
         "y": spatial_units,
@@ -17,9 +19,10 @@ def _get_source_axes_units(nii_header):
     return d
 
 def _get_voxel_sizes_in_downsamplings(nii_header, volume_downsamplings):
-    # TODO: clarify units - units in img header don't correspond to the article/github repo
-    pixdim = nii_header['pixdim']
-    original_voxel_size = (pixdim[1], pixdim[2], pixdim[3])
+    # TODO: hardcoding this (mistake in header, correct size for mouse github dataset x = 16 nm, y = 16 nm, and z = 15 nm)
+    # pixdim = nii_header['pixdim']
+    # original_voxel_size = (pixdim[1], pixdim[2], pixdim[3])
+    original_voxel_size = (160, 160, 150)
 
     voxel_sizes_in_downsamplings: dict = {}
     for rate in volume_downsamplings:
