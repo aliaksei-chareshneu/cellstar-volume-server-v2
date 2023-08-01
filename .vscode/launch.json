@@ -166,7 +166,7 @@
                 "--input-kind",
                 "nii_segmentation",
                 "--input-path",
-                "preprocessor/temp/mouse_github_dataset/nii_custom_annotations.json",
+                "preprocessor/temp/mouse_github_dataset/nii_custom_annotations_0-0-0_mito.json",
                 "--input-kind",
                 "custom_annotations",
                 "--entry-id",
@@ -202,7 +202,7 @@
                 "--db-path", "preprocessor/temp/test_db",
                 // "--quantize-dtype-str", "u1",
                 // "--quantize-downsampling-levels", "1 2",
-                // "--force-volume-dtype", "f1"
+                // "--force-volume-dtype", "f2"
             ]
         },
         {
@@ -221,6 +221,27 @@
                 "--source-db",
                 "idr",
                 "--source-db-id", "idr-10501752",
+                "--source-db-name", "idr",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db"
+            ]
+        },
+        {
+            "name": "XYC_v03_omezarr",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "temp/v2_temp_static_entry_files_dir/idr/idr-11511419/11511419.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "idr-11511419",
+                "--source-db",
+                "idr",
+                "--source-db-id", "idr-11511419",
                 "--source-db-name", "idr",
                 "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
                 "--db-path", "preprocessor/temp/test_db"
@@ -247,7 +268,7 @@
                 "--db-path", "preprocessor/temp/test_db",
                 // "--quantize-dtype-str", "u1",
                 // "--quantize-downsampling-levels", "1 2",
-                // "--force-volume-dtype", "f1"
+                // "--force-volume-dtype", "f2"
             ]
         },
         {
@@ -271,7 +292,7 @@
                 "--db-path", "preprocessor/temp/test_db",
                 // "--quantize-dtype-str", "u1",
                 // "--quantize-downsampling-levels", "1 2",
-                // "--force-volume-dtype", "f1"
+                // "--force-volume-dtype", "f2"
             ]
         },
         {
@@ -350,7 +371,7 @@
                 "--db-path", "preprocessor/temp/test_db",
                 // "--quantize-dtype-str", "u1",
                 // "--quantize-downsampling-levels", "1 2",
-                // "--force-volume-dtype", "f1"
+                // "--force-volume-dtype", "f2"
             ]
         },
         {
@@ -404,7 +425,7 @@
                 "--db-path", "preprocessor/temp/test_db",
                 // "--quantize-dtype-str", "u1",
                 // "--quantize-downsampling-levels", "1 2",
-                // "--force-volume-dtype", "f1"
+                // "--force-volume-dtype", "f2"
             ]
         },
         {
@@ -426,9 +447,9 @@
                 "--source-db-name", "idr",
                 "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
                 "--db-path", "preprocessor/temp/test_db",
-                "--quantize-dtype-str", "u1",
+                // "--quantize-dtype-str", "u1",
                 // "--quantize-downsampling-levels", "1 2",
-                // "--force-volume-dtype", "f1"
+                "--force-volume-dtype", "f2"
             ]
         },
         {
