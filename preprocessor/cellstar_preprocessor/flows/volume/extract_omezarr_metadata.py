@@ -294,7 +294,7 @@ def _get_source_axes_units(ome_zarr_root_attrs: zarr.hierarchy.group):
     # NOTE: can be multiple multiscales, here picking just 1st
     axes = multiscales[0]["axes"]
     for axis in axes:
-        if not "unit" in axis or axis["type"] != "channel":
+        if not "unit" in axis or axis["type"] == "channel":
             d[axis["name"]] = None
         else:
             d[axis["name"]] = axis["unit"]
