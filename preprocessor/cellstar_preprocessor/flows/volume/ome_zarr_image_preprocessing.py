@@ -82,31 +82,31 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                 del corrected_volume_arr_data
                 gc.collect()
         # TODO: later
-        # elif len(axes) == 3:
-        #     # NOTE: assumes CYX order
-        #     if axes[0]["name"] == 'c':
-        #         # PLAN:
-        #         # create time group
-        #         # add z dimension to volume_arr
-        #         # NOTE: be careful with axes order
-        #         # NOTE: modify also ome_zarr_labels_preprocessing.py
-        #         time_group = resolution_group.create_group("0")
-        #         for j in range(volume_arr.shape[0]):
-        #             # swap Y and X
-        #             corrected_volume_arr_data = volume_arr[...][j].swapaxes(0, 1)
-        #             # add Z dimension = 1
-        #             corrected_volume_arr_data = np.expand_dims(corrected_volume_arr_data, axis=2)
-        #             assert corrected_volume_arr_data.shape[2] == 1
-        #             our_channel_arr = create_dataset_wrapper(
-        #                 zarr_group=time_group,
-        #                 name=j,
-        #                 shape=corrected_volume_arr_data.shape,
-        #                 data=corrected_volume_arr_data,
-        #                 dtype=corrected_volume_arr_data.dtype,
-        #                 params_for_storing=internal_volume.params_for_storing,
-        #             )
-        #     else:
-        #         pass
+        elif len(axes) == 3:
+            # NOTE: assumes CYX order
+            if axes[0]["name"] == 'c':
+                # PLAN:
+                # create time group
+                # add z dimension to volume_arr
+                # NOTE: be careful with axes order
+                # NOTE: modify also ome_zarr_labels_preprocessing.py
+                time_group = resolution_group.create_group("0")
+                for j in range(volume_arr.shape[0]):
+                    # swap Y and X
+                    corrected_volume_arr_data = volume_arr[...][j].swapaxes(0, 1)
+                    # add Z dimension = 1
+                    corrected_volume_arr_data = np.expand_dims(corrected_volume_arr_data, axis=2)
+                    assert corrected_volume_arr_data.shape[2] == 1
+                    our_channel_arr = create_dataset_wrapper(
+                        zarr_group=time_group,
+                        name=j,
+                        shape=corrected_volume_arr_data.shape,
+                        data=corrected_volume_arr_data,
+                        dtype=corrected_volume_arr_data.dtype,
+                        params_for_storing=internal_volume.params_for_storing,
+                    )
+            else:
+                pass
         else:
             raise Exception("Axes number/order is not supported")
 

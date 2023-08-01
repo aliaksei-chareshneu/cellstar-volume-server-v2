@@ -21,8 +21,26 @@ def _get_axis_order_omezarr(ome_zarr_attrs):
     multiscales = ome_zarr_attrs["multiscales"]
     # NOTE: can be multiple multiscales, here picking just 1st
     axes = multiscales[0]["axes"]
-    for axis in axes[-3:]:
-        axes_order.append(axes_names_to_numbers[axis["name"]])
+    for axis in axes:
+        if axis['name'] in ['x', 'y', 'z']:
+            axes_order.append(axes_names_to_numbers[axis["name"]])
+    
+    # temp hack for XYC case
+    if len(axes_order) == 2:
+        axes_order.append(2)
+
+    # if len(axes) > 3:
+    #     for axis in axes[-3:]:
+    #         axes_order.append(axes_names_to_numbers[axis["name"]])
+    # elif len(axes) == 3:
+    #     # https://idr.github.io/ome-ngff-samples/
+    #     # only XYC/XYT cases
+    #     for axis in axes[-2:]:
+    #         axes_order.append(axes_names_to_numbers[axis["name"]])
+        
+    #     axes_order.append(2)
+    # else:
+    #     raise Exception('Number of axes is not supported')
 
     return axes_order
 
@@ -37,8 +55,11 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
             # NOTE: checks if there is translation in the list, since if present it is always 2nd
             len(level["coordinateTransformations"]) == 2
             and level["coordinateTransformations"][1]["type"] == "translation"
-        ):
+        ):  
             translation_arr = level["coordinateTransformations"][1]["translation"]
+
+            if len(translation_arr) == 2:
+                translation_arr.insert(0, 0)
 
             # instead of swapaxes, -1, -2, -3
             boxes_dict[level["path"]]["origin"] = [
@@ -56,6 +77,10 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
             global_translation_arr = multiscales[0]["coordinateTransformations"][1][
                 "translation"
             ]
+
+            if len(global_translation_arr) == 2:
+                global_translation_arr.insert(0, 0)
+
             global_translation_arr = global_translation_arr[-3:]
             global_translation_arr[0], global_translation_arr[2] = (
                 global_translation_arr[2],
@@ -78,9 +103,15 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
         boxes_dict[resolution]["origin"][1] = _convert_to_angstroms(
             boxes_dict[resolution]["origin"][1], input_unit=axes[-2]["unit"]
         )
-        boxes_dict[resolution]["origin"][2] = _convert_to_angstroms(
-            boxes_dict[resolution]["origin"][2], input_unit=axes[-3]["unit"]
-        )
+
+        if len(axes) == 3 and axes[0]['name'] == 'c':
+            boxes_dict[resolution]["origin"][2] = _convert_to_angstroms(
+                boxes_dict[resolution]["origin"][2], input_unit="angstrom"
+            )
+        else:
+            boxes_dict[resolution]["origin"][2] = _convert_to_angstroms(
+                boxes_dict[resolution]["origin"][2], input_unit=axes[-3]["unit"]
+            )
 
     return boxes_dict
 
@@ -125,14 +156,23 @@ def get_voxel_sizes_in_downsamplings(ome_zarr_attrs, boxes_dict):
             scale_arr = scale_arr[2:]
         elif len(scale_arr) == 4:
             scale_arr = scale_arr[1:]
+        elif len(scale_arr) == 3:
+            # NOTE: artificially prepend 1.0 for z dimension 
+            scale_arr = scale_arr[1:]
+            scale_arr.insert(0, 1.0)
         else:
             raise Exception("Length of scale arr is not supported")
 
         # x and z swapped
+        
+        if len(axes) == 3 and axes[0]['name'] == 'c':
+            z_axes_unit = "angstrom"
+        else:
+            z_axes_unit = axes[-3]["unit"]
         boxes_dict[level["path"]]["voxel_size"] = [
             _convert_to_angstroms(scale_arr[2], input_unit=axes[-1]["unit"]),
             _convert_to_angstroms(scale_arr[1], input_unit=axes[-2]["unit"]),
-            _convert_to_angstroms(scale_arr[0], input_unit=axes[-3]["unit"]),
+            _convert_to_angstroms(scale_arr[0], input_unit=z_axes_unit),
         ]
 
         if "coordinateTransformations" in multiscales[0]:
@@ -144,6 +184,9 @@ def get_voxel_sizes_in_downsamplings(ome_zarr_attrs, boxes_dict):
                     global_scale_arr = global_scale_arr[2:]
                 elif len(global_scale_arr) == 4:
                     global_scale_arr = global_scale_arr[1:]
+                elif len(global_scale_arr) == 3:
+                    global_scale_arr = global_scale_arr[1:]
+                    global_scale_arr.insert(0, 1.0)
                 else:
                     raise Exception("Length of scale arr is not supported")
                 boxes_dict[level["path"]]["voxel_size"][0] = (
@@ -294,7 +337,7 @@ def _get_source_axes_units(ome_zarr_root_attrs: zarr.hierarchy.group):
     # NOTE: can be multiple multiscales, here picking just 1st
     axes = multiscales[0]["axes"]
     for axis in axes:
-        if not "unit" in axis or axis["type"] != "channel":
+        if not "unit" in axis or axis["type"] == "channel":
             d[axis["name"]] = None
         else:
             d[axis["name"]] = axis["unit"]
@@ -323,6 +366,7 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
     )
     ome_zarr_root = open_zarr_structure_from_path(internal_volume.volume_input_path)
 
+    # this works for 2D dataset
     new_volume_attrs_dict = _add_defaults_to_ome_zarr_attrs(ome_zarr_root=ome_zarr_root)
     ome_zarr_root.attrs.put(new_volume_attrs_dict)
 
