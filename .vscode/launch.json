@@ -11,6 +11,30 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "preprocessor_omezarr_5D",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "temp/v2_temp_static_entry_files_dir/idr/idr-13457537/13457537.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "idr-13457537",
+                "--source-db",
+                "idr",
+                "--source-db-id", "idr-13457537",
+                "--source-db-name", "idr",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
+                // "--quantize-dtype-str", "u1",
+                // "--quantize-downsampling-levels", "1 2",
+                // "--force-volume-dtype", "f2"
+            ]
+        },
+        {
             "name": "nii_multiple_segmentations_4-3-0_subvolume",
             "type": "python",
             "request": "launch",
@@ -227,7 +251,7 @@
             ]
         },
         {
-            "name": "XYC_v03_omezarr",
+            "name": "preprocessor_XYC_v03_omezarr_11511419",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -242,6 +266,27 @@
                 "--source-db",
                 "idr",
                 "--source-db-id", "idr-11511419",
+                "--source-db-name", "idr",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db"
+            ]
+        },
+        {
+            "name": "preprocessor_XYC_v03_omezarr_9836842",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "temp/v2_temp_static_entry_files_dir/idr/idr-9836842/9836842.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "idr-9836842",
+                "--source-db",
+                "idr",
+                "--source-db-id", "idr-9836842",
                 "--source-db-name", "idr",
                 "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
                 "--db-path", "preprocessor/temp/test_db"

@@ -26,6 +26,9 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
     # # NOTE: can be multiple multiscales, here picking just 1st
     # axes = multiscales[0]["axes"]
 
+    # NOTE: hack to support NGFFs where image has time dimension > 1 and label has time dimension = 1
+    first_available_resolution = ome_zarr_root.attrs["multiscales"][0]["datasets"][0]["path"]
+    
     for label_gr_name, label_gr in ome_zarr_root.labels.groups():
         label_gr_zattrs = label_gr.attrs
         label_gr_multiscales = label_gr_zattrs["multiscales"]
@@ -36,10 +39,13 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
         for arr_name, arr in label_gr.arrays():
             our_resolution_gr = lattice_id_gr.create_group(arr_name)
             if len(axes) == 5 and axes[0]["name"] == "t":
-                for i in range(arr.shape[0]):
+
+                # NOTE: hack to support NGFFs where image has time dimension > 1 and label has time dimension = 1
+                time_dimension = ome_zarr_root[first_available_resolution].shape[0]
+                for i in range(time_dimension):
                     time_group = our_resolution_gr.create_group(str(i))
                     for j in range(arr.shape[1]):
-                        corrected_arr_data = arr[...][i][j].swapaxes(0, 2)
+                        corrected_arr_data = arr[...][arr.shape[0] - 1][j].swapaxes(0, 2)
                         # i8 is not supported by CIFTools
                         if corrected_arr_data.dtype == "i8":
                             corrected_arr_data = corrected_arr_data.astype("i4")
