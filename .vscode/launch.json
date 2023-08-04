@@ -11,6 +11,30 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "preprocessor_omezarr_Airyscan_hook_BM",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "temp/v2_temp_static_entry_files_dir/ssbd/170-Tsutsui-HookBM/Airyscan_hook_BM.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "ssbd-Airyscan_hook_BM",
+                "--source-db",
+                "ssbd",
+                "--source-db-id", "ssbd-Airyscan_hook_BM",
+                "--source-db-name", "ssbd",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
+                // "--quantize-dtype-str", "u1",
+                // "--quantize-downsampling-levels", "1 2",
+                // "--force-volume-dtype", "f2"
+            ]
+        },
+        {
             "name": "preprocessor_omezarr_5D",
             "type": "python",
             "request": "launch",
@@ -222,8 +246,8 @@
                 "idr",
                 "--source-db-id", "idr-9846152",
                 "--source-db-name", "idr",
-                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
-                "--db-path", "preprocessor/temp/test_db",
+                "--working-folder", "/mnt/temp/temp_zarr_hierarchy_storage_for_big_omezarr",
+                "--db-path", "/mnt/test_db_for_big_omezarr",
                 // "--quantize-dtype-str", "u1",
                 // "--quantize-downsampling-levels", "1 2",
                 // "--force-volume-dtype", "f2"
