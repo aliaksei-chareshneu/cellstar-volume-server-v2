@@ -23,7 +23,7 @@ class InputKind(str, Enum):
     sff = "sff"
     # ometiff = 'ometiff'
     omezarr = "omezarr"
-    # mask = 'mask'
+    mask = 'mask'
     # do we need to have it as separate types (am, mod, seg), or better to have general one and
     # leave it for a specific conversion function to check the extension and run conversion?
     application_specific_segmentation = "application_specific_segmentation"

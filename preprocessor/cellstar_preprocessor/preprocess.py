@@ -6,6 +6,7 @@ import typing
 from argparse import ArgumentError
 from pathlib import Path
 from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
+from cellstar_preprocessor.flows.segmentation.mask_segmentation_preprocessing import mask_segmentation_preprocessing
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_downsampling import nii_segmentation_downsampling
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_preprocessing import nii_segmentation_preprocessing
 from cellstar_preprocessor.flows.volume.extract_nii_metadata import extract_nii_metadata
@@ -103,6 +104,9 @@ class NIIVolumeInput(InputT):
     pass
 
 class NIISegmentationInput(InputT):
+    pass
+
+class MaskInput(InputT):
     pass
 
 class TaskBase(typing.Protocol):
@@ -271,6 +275,15 @@ class SFFMetadataCollectionTask(TaskBase):
             internal_segmentation=self.internal_segmentation
         )
 
+class MaskMetadataCollectionTask(TaskBase):
+    def __init__(self, internal_segmentation: InternalSegmentation):
+        self.internal_segmentation = internal_segmentation
+
+    def execute(self) -> None:
+        metadata_dict = extract_metadata_from_sff_segmentation(
+            internal_segmentation=self.internal_segmentation
+        )
+
 class NIISegmentationMetadataCollectionTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
         self.internal_segmentation = internal_segmentation
@@ -324,6 +337,16 @@ class SFFProcessSegmentationTask(TaskBase):
 
         sff_segmentation_downsampling(segmentation)
 
+class MaskProcessSegmentationTask(TaskBase):
+    def __init__(self, internal_segmentation: InternalSegmentation):
+        self.internal_segmentation = internal_segmentation
+
+    def execute(self) -> None:
+        segmentation = self.internal_segmentation
+
+        mask_segmentation_preprocessing(internal_segmentation=segmentation)
+        # TODO: downsampling, copy from sff_segmentation downsampling, excluding primary descriptor
+        sff_segmentation_downsampling(segmentation)
 
 class Preprocessor:
     def __init__(self, preprocessor_input: PreprocessorInput):
@@ -393,6 +416,27 @@ class Preprocessor:
                 )
                 tasks.append(
                     SFFAnnotationCollectionTask(
+                        internal_segmentation=self.get_internal_segmentation()
+                    )
+                )
+            
+            elif isinstance(input, MaskInput):
+                self.store_internal_segmentation(
+                    internal_segmentation=InternalSegmentation(
+                        intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                        segmentation_input_path=input.input_path,
+                        params_for_storing=self.preprocessor_input.storing_params,
+                        downsampling_parameters=self.preprocessor_input.downsampling,
+                        entry_data=self.preprocessor_input.entry_data,
+                    )
+                )
+                tasks.append(
+                    MaskProcessSegmentationTask(
+                        internal_segmentation=self.get_internal_segmentation()
+                    )
+                )
+                tasks.append(
+                    MaskMetadataCollectionTask(
                         internal_segmentation=self.get_internal_segmentation()
                     )
                 )
@@ -535,6 +579,8 @@ class Preprocessor:
                 analyzed_inputs.append(MAPInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.sff:
                 analyzed_inputs.append(SFFInput(input_path=input_item[0]))
+            elif input_item[1] == InputKind.mask:
+                analyzed_inputs.append(MaskInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.omezarr:
                 analyzed_inputs.append(OMEZARRInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.custom_annotations:
