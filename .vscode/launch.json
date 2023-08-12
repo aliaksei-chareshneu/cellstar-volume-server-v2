@@ -11,6 +11,30 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "preprocessor_omezarr_fig2ab_trajectory_epithelialcell",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--input-path",
+                "temp/v2_temp_static_entry_files_dir/ssbd/98-Morita-ToothEpiCellDev/fig2ab_trajectory_epithelialcell.zarr",
+                "--input-kind",
+                "omezarr",
+                "--entry-id",
+                "ssbd-fig2ab_trajectory_epithelialcell",
+                "--source-db",
+                "ssbd",
+                "--source-db-id", "ssbd-fig2ab_trajectory_epithelialcell",
+                "--source-db-name", "ssbd",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
+                // "--quantize-dtype-str", "u1",
+                // "--quantize-downsampling-levels", "1 2",
+                // "--force-volume-dtype", "f2"
+            ]
+        },
+        {
             "name": "preprocessor_emd_1273_custom_annotations",
             "type": "python",
             "request": "launch",
