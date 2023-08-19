@@ -689,6 +689,9 @@ async def main_preprocessor(
     quantize_dtype_str: typing.Optional[QuantizationDtype],
     quantize_downsampling_levels: typing.Optional[str],
     force_volume_dtype: typing.Optional[str],
+    max_size_per_channel_mb: typing.Optional[float],
+    min_downsampling_level: typing.Optional[int],
+    max_downsampling_level: typing.Optional[int],
     entry_id: str,
     source_db: str,
     source_db_id: str,
@@ -697,6 +700,7 @@ async def main_preprocessor(
     db_path: Path,
     input_paths: list[Path],
     input_kinds: list[InputKind],
+    min_size_per_channel_mb: typing.Optional[float] = 5,
 ):
     if quantize_downsampling_levels:
         quantize_downsampling_levels = quantize_downsampling_levels.split(" ")
@@ -711,7 +715,12 @@ async def main_preprocessor(
             quantize_downsampling_levels=quantize_downsampling_levels,
             force_volume_dtype=force_volume_dtype,
         ),
-        downsampling=DownsamplingParams(),
+        downsampling=DownsamplingParams(
+            min_size_per_channel_mb=min_size_per_channel_mb,
+            max_size_per_channel_mb=max_size_per_channel_mb,
+            min_downsampling_level=min_downsampling_level,
+            max_downsampling_level=max_downsampling_level
+        ),
         entry_data=EntryData(
             entry_id=entry_id,
             source_db=source_db,
@@ -742,6 +751,10 @@ def main(
         typing.Optional[str], typer.Option(None, help="Space-separated list of numbers")
     ] = None,
     force_volume_dtype: Annotated[typing.Optional[str], typer.Option(None)] = None,
+    max_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = None,
+    min_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5,
+    min_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
+    max_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
     source_db_id: str = typer.Option(default=...),
@@ -764,6 +777,10 @@ def main(
             quantize_dtype_str=quantize_dtype_str,
             quantize_downsampling_levels=quantize_downsampling_levels,
             force_volume_dtype=force_volume_dtype,
+            max_size_per_channel_mb=max_size_per_channel_mb,
+            min_size_per_channel_mb=min_size_per_channel_mb,
+            min_downsampling_level=min_downsampling_level,
+            max_downsampling_level=max_downsampling_level
         )
     )
 
