@@ -361,6 +361,8 @@ class ProcessGeometricSegmentationTask(TaskBase):
 
         geometric_segmentation_preprocessing(internal_segmentation=segmentation)
 
+        # TODO: downsampling, changes to api (detail_lvl = resolution like in meshes)
+
 
 class Preprocessor:
     def __init__(self, preprocessor_input: PreprocessorInput):

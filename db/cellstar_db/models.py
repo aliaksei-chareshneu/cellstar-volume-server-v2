@@ -9,14 +9,15 @@ class ShapePrimitiveKind(str, Enum):
 
 class ShapePrimitiveBase(TypedDict):
     # XYZ
-    center_coordinates: tuple[float, float, float]
+    center: tuple[float, float, float]
     # NOTE: to be able to refer to it in annotations
-    segment_id: int
+    label: int
     kind: ShapePrimitiveKind
+    color: str
 
 class Sphere(ShapePrimitiveBase):
     # in grid pofloats
-    diameter: float
+    radius: float
 
 class Tube(ShapePrimitiveBase):
     inner_diameter: float

@@ -129,6 +129,7 @@ class VolumeServerService:
         with self.db.read(req.source, req.structure_id) as context:
             try:
                 gs = await context.read_geometric_segmentation()
+                # TODO: fix "error": "local variable 'gs' referenced before assignment"
             except Exception as e:
                 raise Exception("Exception in get_geometric_segmentation: " + str(e))
         return gs

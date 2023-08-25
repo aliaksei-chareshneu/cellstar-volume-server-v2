@@ -15,23 +15,25 @@ def _process_geometric_segmentation_data(data: dict, segm_data_gr: zarr.hierarch
         params = sp['parameters']
         kind = sp['kind']
         segment_id = params['segment_id']
+        color = params['color']
         if kind == ShapePrimitiveKind.sphere:
             shape_primitives_processed.append(
                 Sphere(
                     kind=kind,
-                    center_coordinates=params['center'],
-                    segment_id=segment_id
+                    center=params['center'],
+                    label=segment_id,
+                    color=color
                 )
             )
         elif kind == ShapePrimitiveKind.tube:
             shape_primitives_processed.append(
                 Tube(
                     kind=kind,
-                    center_coordinates=params['center'],
+                    center=params['center'],
                     inner_diameter=params['inner_diameter'],
                     outer_diameter=params['outer_diameter'],
                     height=params['height'],
-                    segment_id=segment_id
+                    label=segment_id
                 )
             )
         else:
