@@ -30,6 +30,7 @@ class InputKind(str, Enum):
     custom_annotations = 'custom_annotations'
     nii_volume = 'nii_volume'
     nii_segmentation = 'nii_segmentation'
+    geometric_segmentation = 'geometric_segmentation'
 
 
 class QuantizationDtype(str, Enum):

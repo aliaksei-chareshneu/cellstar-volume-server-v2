@@ -29,6 +29,12 @@ class DBReadContext(Protocol):
         """
         ...
 
+    async def read_geometric_segmentation() -> list[object]:
+        """
+        Returns list of shape primitives for geometric segmentation
+        """
+        ...
+
     async def read_volume_slice(
         self,
         down_sampling_ratio: int,

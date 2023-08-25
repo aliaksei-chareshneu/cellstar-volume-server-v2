@@ -41,6 +41,9 @@ class EntriesRequest(BaseModel):
     limit: int
     keyword: str
 
+class GeometricSegmentationRequest(BaseModel):
+    source: str
+    structure_id: str
 
 class MeshRequest(BaseModel):
     source: str

@@ -1,6 +1,39 @@
+from enum import Enum
 from typing import Dict, List, Optional, Protocol, TypedDict, Union
 
 import numpy as np
+
+class ShapePrimitiveKind(str, Enum):
+    sphere = "sphere"
+    tube = "tube"
+
+class ShapePrimitiveBase(TypedDict):
+    # XYZ
+    center_coordinates: tuple[float, float, float]
+    # NOTE: to be able to refer to it in annotations
+    segment_id: int
+    kind: ShapePrimitiveKind
+
+class Sphere(ShapePrimitiveBase):
+    # in grid pofloats
+    diameter: float
+
+class Tube(ShapePrimitiveBase):
+    inner_diameter: float
+    outer_diameter: float
+    height: float
+
+class Ellipsoid(ShapePrimitiveBase):
+    # XYZ
+    extent: tuple[float, float, float]
+
+class Cuboid(ShapePrimitiveBase):
+    # XYZ
+    extent: tuple[float, float, float]
+
+class ShapePrimitiveData(TypedDict):
+    shape_primitive_list: list[ShapePrimitiveBase]
+
 
 class EntryId(TypedDict):
     source_db_name: str

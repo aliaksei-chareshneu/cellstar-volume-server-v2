@@ -8,6 +8,7 @@ from cellstar_db.protocol import VolumeServerDB
 
 from server.app.api.requests import (
     EntriesRequest,
+    GeometricSegmentationRequest,
     MeshRequest,
     MetadataRequest,
     VolumeRequestBox,
@@ -123,6 +124,14 @@ class VolumeServerService:
         metadata = await self.db.read_metadata(req.source, req.structure_id)
         box = self._decide_slice_box(None, None, metadata)
         return serialize_volume_info(metadata, box)
+
+    async def get_geometric_segmentation(self, req: GeometricSegmentationRequest) -> list[object]:
+        with self.db.read(req.source, req.structure_id) as context:
+            try:
+                gs = await context.read_geometric_segmentation()
+            except Exception as e:
+                raise Exception("Exception in get_geometric_segmentation: " + str(e))
+        return gs
 
     async def get_meshes_bcif(self, req: MeshRequest) -> bytes:
         with Timing("read metadata"):

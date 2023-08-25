@@ -143,6 +143,16 @@ class FileSystemDBReadContext(DBReadContext):
 
         return mesh_list
 
+    async def read_geometric_segmentation(self) -> list[object]:
+        try:
+            root: zarr.hierarchy.group = zarr.group(self.store)
+            shape_primitive_list = root[SEGMENTATION_DATA_GROUPNAME].attrs['geometric_segmentation']['shape_primitive_list']
+        except Exception as e:
+            logging.error(e, stack_info=True, exc_info=True)
+            raise e
+
+        return shape_primitive_list
+    
     async def read_volume_slice(
         self,
         down_sampling_ratio: int,

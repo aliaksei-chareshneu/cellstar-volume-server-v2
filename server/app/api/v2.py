@@ -14,6 +14,7 @@ from app.api.requests import (
 from app.core.service import VolumeServerService
 from app.serialization.json_numpy_response import JSONNumpyResponse
 from app.settings import settings
+from server.app.api.requests import GeometricSegmentationRequest
 HTTP_CODE_UNPROCESSABLE_ENTITY = 422
 
 
@@ -141,6 +142,17 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         try:
             meshes = await volume_server.get_meshes(request)
             return JSONNumpyResponse(meshes)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
+
+    # TODO: time, channel?
+    # TODO: segment id or all shape primitives segments at once? probably at once
+    @app.get("/v2/{source}/{id}/geometric_segmentation")
+    async def get_geometric_segmentation(source: str, id: str):
+        request = GeometricSegmentationRequest(source=source, structure_id=id)
+        try:
+            geometric_segmentation = await volume_server.get_geometric_segmentation(request)
+            return JSONNumpyResponse(geometric_segmentation)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
 
