@@ -96,6 +96,7 @@ class PreprocessorInput(BaseModel):
     # storing params perhaps should be here as temporary internal format (zarr) also uses them
     db_path: Path
     storing_params: StoringParams
+    add_segmentation_to_entry: bool = False
 
 
 DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(

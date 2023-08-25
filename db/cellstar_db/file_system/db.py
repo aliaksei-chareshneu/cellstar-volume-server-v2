@@ -12,6 +12,8 @@ from cellstar_db.file_system.constants import (
     ANNOTATION_METADATA_FILENAME,
     DB_NAMESPACES,
     GRID_METADATA_FILENAME,
+    SEGMENTATION_DATA_GROUPNAME,
+    VOLUME_DATA_GROUPNAME,
     ZIP_STORE_DATA_ZIP_NAME,
 )
 from cellstar_db.file_system.models import FileSystemVolumeMedatada
@@ -109,6 +111,86 @@ class FileSystemVolumeServerDB(VolumeServerDB):
                     path.unlink()
                 if path.is_dir():
                     shutil.rmtree(path, ignore_errors=True)
+    
+    async def add_segmentation_to_entry(self, namespace: str, key: str, temp_store_path: Path) -> bool:
+        """
+        Takes path to temp zarr structure returned by preprocessor as argument
+        """
+        # Storing as a file (ZIP, bzip2 compression)
+        # Compression constants for compression arg of ZipStore()
+        # ZIP_STORED = 0
+        # ZIP_DEFLATED = 8 (zlib)
+        # ZIP_BZIP2 = 12
+        # ZIP_LZMA = 1
+        # close store after writing, or use 'with' https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.ZipStore
+        temp_store: zarr.storage.DirectoryStore = zarr.DirectoryStore(
+            str(temp_store_path)
+        )
+
+        # WHAT NEEDS TO BE CHANGED
+        # perm_store = zarr.ZipStore(self._path_to_object(namespace, key) + '.zip', mode='w', compression=12)
+
+        # plan:
+        # open existing store using open_zarr_zip in reading mode
+        # copy data from it to temp store with segmentation
+        # store.rmdir()
+        # open zip store again for writing
+        # copy_store from temp store to perm zip store
+
+        if self.store_type == "zip":
+            existing_store = zarr.ZipStore(
+                path=str(self.path_to_zarr_root_data(namespace, key)),
+                compression=0,
+                allowZip64=True,
+                mode='r'
+            )
+            # Re-create zarr hierarchy from opened store
+            existing_root: zarr.hierarchy.group = zarr.group(store=existing_store)
+
+            # copy data from existing to temp store
+            zarr.copy_store(source=existing_store, dest=temp_store, source_path=VOLUME_DATA_GROUPNAME, dest_path=VOLUME_DATA_GROUPNAME)
+
+            existing_store.close()
+
+            # remove existing store
+            # TODO: find a better way to remove it
+            self.path_to_zarr_root_data(namespace, key).unlink()
+
+            # create it again
+            perm_store = zarr.ZipStore(
+                path=str(self.path_to_zarr_root_data(namespace, key)),
+                compression=0,
+                allowZip64=True,
+                mode="w",
+            )
+            zarr.copy_store(temp_store, perm_store) # , log=stdout)
+
+        else:
+            raise ArgumentError("store type is wrong: {self.store_type}")
+
+        # PART BELOW WILL STAY AS IT IS probably
+        print("A: " + str(temp_store_path))
+        print("B: " + GRID_METADATA_FILENAME)
+
+        if (temp_store_path / GRID_METADATA_FILENAME).exists():
+            shutil.copy2(
+                temp_store_path / GRID_METADATA_FILENAME,
+                self._path_to_object(namespace, key) / GRID_METADATA_FILENAME,
+            )
+        if (temp_store_path / ANNOTATION_METADATA_FILENAME).exists():
+            shutil.copy2(
+                temp_store_path / ANNOTATION_METADATA_FILENAME,
+                self._path_to_object(namespace, key) / ANNOTATION_METADATA_FILENAME,
+            )
+        else:
+            print("no annotation metadata file found, continuing without copying it")
+
+        if self.store_type == "zip":
+            perm_store.close()
+
+        temp_store.rmdir()
+        # TODO: check if copied and store closed properly
+        return True
 
     async def store(self, namespace: str, key: str, temp_store_path: Path) -> bool:
         """
