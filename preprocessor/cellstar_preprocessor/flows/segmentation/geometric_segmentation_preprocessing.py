@@ -22,7 +22,8 @@ def _process_geometric_segmentation_data(data: dict, segm_data_gr: zarr.hierarch
                     kind=kind,
                     center=params['center'],
                     label=segment_id,
-                    color=color
+                    color=color,
+                    radius=params['radius']
                 )
             )
         elif kind == ShapePrimitiveKind.tube:
