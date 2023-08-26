@@ -50,12 +50,14 @@ class ExternalReference(TypedDict):
 class BiologicalAnnotation(TypedDict):
     name: str
     external_references: list[ExternalReference]
+    is_hidden: Optional[bool]
 
 class Segment(TypedDict):
     # label-value in NGFF
     id: int
     color: Optional[tuple[float, float, float, float]]
-    biological_annotation: Optional[list[BiologicalAnnotation]]
+    biological_annotation: Optional[BiologicalAnnotation]
+    extra_annotations: Optional[list[BiologicalAnnotation]]
 
 class ChannelAnnotation(TypedDict):
     channel_id: str
@@ -71,6 +73,8 @@ class ChannelAnnotation(TypedDict):
 #     # channel_id -> channel label; from omero - channels (e.g. "DAPI")
 #     labels: Optional[dict[str, str]]
 
+# NOTE: currently it is rather SegmentationInfo, since it is used for both mesh and lattice
+# to display list of segments with their annotations
 class SegmentationLatticeInfo(TypedDict):
     lattice_id: str
     segment_list: list[Segment]
@@ -185,11 +189,15 @@ class MeshesMetadata(TypedDict):
     mesh_component_numbers: MeshComponentNumbers
     detail_lvl_to_fraction: dict
 
+class GeometricSegmentationMetadata(TypedDict):
+    exists: bool
+
 class Metadata(TypedDict):
     entry_id: EntryId
     volumes: VolumesMetadata
     segmentation_lattices: SegmentationLatticesMetadata
     segmentation_meshes: MeshesMetadata
+    geometric_segmentation: Optional[GeometricSegmentationMetadata]
 
 class VolumeMetadata(Protocol):
     def json_metadata(self) -> str:

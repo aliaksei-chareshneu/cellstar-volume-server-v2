@@ -6,6 +6,7 @@ import typing
 from argparse import ArgumentError
 from pathlib import Path
 from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
+from cellstar_preprocessor.flows.segmentation.extract_metadata_geometric_segmentation import extract_metadata_geometric_segmentation
 from cellstar_preprocessor.flows.segmentation.geometric_segmentation_preprocessing import geometric_segmentation_preprocessing
 from cellstar_preprocessor.flows.segmentation.mask_segmentation_preprocessing import mask_segmentation_preprocessing
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_downsampling import nii_segmentation_downsampling
@@ -288,6 +289,15 @@ class MaskMetadataCollectionTask(TaskBase):
             internal_segmentation=self.internal_segmentation
         )
 
+class GeometricSegmentationMetadataCollectionTask(TaskBase):
+    def __init__(self, internal_segmentation: InternalSegmentation):
+        self.internal_segmentation = internal_segmentation
+
+    def execute(self) -> None:
+        metadata_dict = extract_metadata_geometric_segmentation(
+            internal_segmentation=self.internal_segmentation
+        )
+
 class NIISegmentationMetadataCollectionTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
         self.internal_segmentation = internal_segmentation
@@ -360,9 +370,6 @@ class ProcessGeometricSegmentationTask(TaskBase):
         segmentation = self.internal_segmentation
 
         geometric_segmentation_preprocessing(internal_segmentation=segmentation)
-
-        # TODO: downsampling, changes to api (detail_lvl = resolution like in meshes)
-
 
 class Preprocessor:
     def __init__(self, preprocessor_input: PreprocessorInput):
@@ -510,6 +517,9 @@ class Preprocessor:
                 )
                 tasks.append(
                     ProcessGeometricSegmentationTask(self.get_internal_segmentation())
+                )
+                tasks.append(
+                    GeometricSegmentationMetadataCollectionTask(self.get_internal_segmentation())
                 )
 
             elif isinstance(input, NIIVolumeInput):
