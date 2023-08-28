@@ -6,19 +6,27 @@ import numpy as np
 class ShapePrimitiveKind(str, Enum):
     sphere = "sphere"
     tube = "tube"
+    cylinder = "cylinder"
 
 class ShapePrimitiveBase(TypedDict):
-    # XYZ
-    center: tuple[float, float, float]
     # NOTE: to be able to refer to it in annotations
     label: int
     kind: ShapePrimitiveKind
     color: str
 
 class Sphere(ShapePrimitiveBase):
+    # XYZ
+    center: tuple[float, float, float]
     # in grid pofloats
     radius: float
 
+class Cylinder(ShapePrimitiveBase):
+    start: tuple[float, float, float]
+    end: tuple[float, float, float]
+    radius: float
+
+
+# TODO: fix tube (take params from mol*)
 class Tube(ShapePrimitiveBase):
     inner_diameter: float
     outer_diameter: float

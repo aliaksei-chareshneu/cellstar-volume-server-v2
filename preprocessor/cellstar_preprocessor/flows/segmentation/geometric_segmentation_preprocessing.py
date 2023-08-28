@@ -1,5 +1,5 @@
 import json
-from cellstar_db.models import ShapePrimitiveData, ShapePrimitiveKind, Sphere, Tube
+from cellstar_db.models import Cylinder, ShapePrimitiveData, ShapePrimitiveKind, Sphere, Tube
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
 import zarr
@@ -26,17 +26,28 @@ def _process_geometric_segmentation_data(data: dict, segm_data_gr: zarr.hierarch
                     radius=params['radius']
                 )
             )
-        elif kind == ShapePrimitiveKind.tube:
+        elif kind == ShapePrimitiveKind.cylinder:
             shape_primitives_processed.append(
-                Tube(
+                Cylinder(
                     kind=kind,
-                    center=params['center'],
-                    inner_diameter=params['inner_diameter'],
-                    outer_diameter=params['outer_diameter'],
-                    height=params['height'],
+                    color=params['color'],
+                    start=params['start'],
+                    end=params['end'],
+                    radius=params['radius'],
                     label=segment_id
                 )
             )
+        # elif kind == ShapePrimitiveKind.tube:
+        #     shape_primitives_processed.append(
+        #         Tube(
+        #             kind=kind,
+        #             center=params['center'],
+        #             inner_diameter=params['inner_diameter'],
+        #             outer_diameter=params['outer_diameter'],
+        #             height=params['height'],
+        #             label=segment_id
+        #         )
+        #     )
         else:
             raise Exception(f'Shape primitive kind {kind} is not supported')
 
