@@ -7,6 +7,7 @@ class ShapePrimitiveKind(str, Enum):
     sphere = "sphere"
     tube = "tube"
     cylinder = "cylinder"
+    box = "box"
 
 class ShapePrimitiveBase(TypedDict):
     # NOTE: to be able to refer to it in annotations
@@ -19,6 +20,12 @@ class Sphere(ShapePrimitiveBase):
     center: tuple[float, float, float]
     # in grid pofloats
     radius: float
+
+class Box(ShapePrimitiveBase):
+    # with respect to origin 0, 0, 0
+    translation: tuple[float, float, float]
+    # default size 2, 2, 2 in mol* units
+    scaling: tuple[float, float, float]
 
 class Cylinder(ShapePrimitiveBase):
     start: tuple[float, float, float]
