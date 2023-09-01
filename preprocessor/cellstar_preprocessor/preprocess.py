@@ -13,6 +13,7 @@ from cellstar_preprocessor.flows.segmentation.nii_segmentation_downsampling impo
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_preprocessing import nii_segmentation_preprocessing
 from cellstar_preprocessor.flows.volume.extract_nii_metadata import extract_nii_metadata
 from cellstar_preprocessor.flows.volume.nii_preprocessing import nii_preprocessing
+from cellstar_preprocessor.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 
 import typer
 import zarr
@@ -629,6 +630,10 @@ class Preprocessor:
             elif input_item[1] == InputKind.custom_annotations:
                 analyzed_inputs.append(CustomAnnotationsInput(input_path=input_item[0]))
                 # TODO: application specific
+            elif input_item[1] == InputKind.application_specific_segmentation:
+                sff_path = convert_app_specific_segm_to_sff(input_item[0])
+                analyzed_inputs.append(SFFInput(input_path=sff_path))
+                # TODO: remove app specific segm file?
             elif input_item[1] == InputKind.nii_volume:
                 analyzed_inputs.append(NIIVolumeInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.nii_segmentation:
