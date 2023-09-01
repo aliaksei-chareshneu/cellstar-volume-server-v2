@@ -1,5 +1,5 @@
 import json
-from cellstar_db.models import Box, Cylinder, ShapePrimitiveData, ShapePrimitiveKind, Sphere, Tube
+from cellstar_db.models import Box, Cylinder, Ellipsoid, ShapePrimitiveData, ShapePrimitiveKind, Sphere, Tube
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
 import zarr
@@ -44,6 +44,18 @@ def _process_geometric_segmentation_data(data: dict, segm_data_gr: zarr.hierarch
                     color=params['color'],
                     translation=params['translation'],
                     scaling=params['scaling'],
+                    label=segment_id
+                )
+            )
+        elif kind == ShapePrimitiveKind.ellipsoid:
+            shape_primitives_processed.append(
+                Ellipsoid(
+                    kind=kind,
+                    color=params['color'],
+                    dir_major=params['dir_major'],
+                    dir_minor=params['dir_minor'],
+                    center=params['center'],
+                    radius_scale=params['radius_scale'],
                     label=segment_id
                 )
             )

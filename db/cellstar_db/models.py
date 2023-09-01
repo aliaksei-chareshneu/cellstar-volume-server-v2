@@ -8,6 +8,7 @@ class ShapePrimitiveKind(str, Enum):
     tube = "tube"
     cylinder = "cylinder"
     box = "box"
+    ellipsoid = "ellipsoid"
 
 class ShapePrimitiveBase(TypedDict):
     # NOTE: to be able to refer to it in annotations
@@ -40,8 +41,10 @@ class Tube(ShapePrimitiveBase):
     height: float
 
 class Ellipsoid(ShapePrimitiveBase):
-    # XYZ
-    extent: tuple[float, float, float]
+    dir_major: tuple[float, float, float]
+    dir_minor: tuple[float, float, float]
+    center: tuple[float, float, float]
+    radius_scale: tuple[float, float, float]
 
 class Cuboid(ShapePrimitiveBase):
     # XYZ
