@@ -698,7 +698,7 @@ class Preprocessor:
                 "name": None,
                 "volume_channels_annotations": [],
             }
-            
+
             if self.preprocessor_input.add_segmentation_to_entry:
                 db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
                 metadata_file_path: Path = (
@@ -711,7 +711,7 @@ class Preprocessor:
 
                 root.attrs["metadata_dict"] = read_json_of_metadata
                 print('Adding segmentation to existing entry: Prefilled metadata dict is read from existing entry')
-            elif self.preprocessor_input.add_custom_annotations:
+            if self.preprocessor_input.add_custom_annotations:
                 db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
                 annotations_file_path: Path = (
                     db._path_to_object(namespace=self.preprocessor_input.entry_data.source_db,
