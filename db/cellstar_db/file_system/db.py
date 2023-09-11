@@ -112,6 +112,32 @@ class FileSystemVolumeServerDB(VolumeServerDB):
                 if path.is_dir():
                     shutil.rmtree(path, ignore_errors=True)
     
+    async def add_custom_annotations(self, namespace: str, key: str, temp_store_path: Path) -> bool:
+        """
+        Takes path to temp zarr structure returned by preprocessor as argument
+        """
+        # Storing as a file (ZIP, bzip2 compression)
+        # Compression constants for compression arg of ZipStore()
+        # ZIP_STORED = 0
+        # ZIP_DEFLATED = 8 (zlib)
+        # ZIP_BZIP2 = 12
+        # ZIP_LZMA = 1
+        # close store after writing, or use 'with' https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.ZipStore
+        temp_store: zarr.storage.DirectoryStore = zarr.DirectoryStore(
+            str(temp_store_path)
+        )
+        if (temp_store_path / ANNOTATION_METADATA_FILENAME).exists():
+            shutil.copy2(
+                temp_store_path / ANNOTATION_METADATA_FILENAME,
+                self._path_to_object(namespace, key) / ANNOTATION_METADATA_FILENAME,
+            )
+        else:
+            print("no annotation metadata file found, continuing without copying it")
+
+        temp_store.rmdir()
+        # TODO: check if copied and store closed properly
+        return True
+
     async def add_segmentation_to_entry(self, namespace: str, key: str, temp_store_path: Path) -> bool:
         """
         Takes path to temp zarr structure returned by preprocessor as argument

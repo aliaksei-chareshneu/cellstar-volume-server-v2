@@ -629,7 +629,6 @@ class Preprocessor:
                 analyzed_inputs.append(GeometricSegmentationInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.custom_annotations:
                 analyzed_inputs.append(CustomAnnotationsInput(input_path=input_item[0]))
-                # TODO: application specific
             elif input_item[1] == InputKind.application_specific_segmentation:
                 sff_path = convert_app_specific_segm_to_sff(input_item[0])
                 analyzed_inputs.append(SFFInput(input_path=sff_path))
@@ -655,6 +654,51 @@ class Preprocessor:
                 str(self.intermediate_zarr_structure)
             )
             root = zarr.group(store=store)
+
+            # first initialize metadata and annotations dicts as empty
+            root.attrs["metadata_dict"] = {
+                "entry_id": {"source_db_name": None, "source_db_id": None},
+                "volumes": {
+                    "channel_ids": [],
+                    # Values of time dimension
+                    "time_info": {
+                        "kind": "range",
+                        "start": None,
+                        "end": None,
+                        "units": None,
+                    },
+                    "volume_sampling_info": {
+                        # Info about "downsampling dimension"
+                        "spatial_downsampling_levels": [],
+                        # the only thing with changes with SPATIAL downsampling is box!
+                        "boxes": {},
+                        # time -> channel_id
+                        "descriptive_statistics": {},
+                        "time_transformations": [],
+                        "source_axes_units": None,
+                    },
+                    "original_axis_order": None,
+                },
+                "segmentation_lattices": {
+                    "segmentation_lattice_ids": [],
+                    "segmentation_sampling_info": {},
+                    "channel_ids": {},
+                    "time_info": {},
+                },
+                "segmentation_meshes": {
+                    "mesh_component_numbers": {},
+                    "detail_lvl_to_fraction": {},
+                },
+            }
+
+            root.attrs["annotations_dict"] = {
+                "entry_id": {"source_db_name": None, "source_db_id": None},
+                "segmentation_lattices": [],
+                "details": None,
+                "name": None,
+                "volume_channels_annotations": [],
+            }
+            
             if self.preprocessor_input.add_segmentation_to_entry:
                 db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
                 metadata_file_path: Path = (
@@ -667,49 +711,20 @@ class Preprocessor:
 
                 root.attrs["metadata_dict"] = read_json_of_metadata
                 print('Adding segmentation to existing entry: Prefilled metadata dict is read from existing entry')
-            else:
-                root.attrs["metadata_dict"] = {
-                    "entry_id": {"source_db_name": None, "source_db_id": None},
-                    "volumes": {
-                        "channel_ids": [],
-                        # Values of time dimension
-                        "time_info": {
-                            "kind": "range",
-                            "start": None,
-                            "end": None,
-                            "units": None,
-                        },
-                        "volume_sampling_info": {
-                            # Info about "downsampling dimension"
-                            "spatial_downsampling_levels": [],
-                            # the only thing with changes with SPATIAL downsampling is box!
-                            "boxes": {},
-                            # time -> channel_id
-                            "descriptive_statistics": {},
-                            "time_transformations": [],
-                            "source_axes_units": None,
-                        },
-                        "original_axis_order": None,
-                    },
-                    "segmentation_lattices": {
-                        "segmentation_lattice_ids": [],
-                        "segmentation_sampling_info": {},
-                        "channel_ids": {},
-                        "time_info": {},
-                    },
-                    "segmentation_meshes": {
-                        "mesh_component_numbers": {},
-                        "detail_lvl_to_fraction": {},
-                    },
-                }
+            elif self.preprocessor_input.add_custom_annotations:
+                db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
+                annotations_file_path: Path = (
+                    db._path_to_object(namespace=self.preprocessor_input.entry_data.source_db,
+                                        key=self.preprocessor_input.entry_data.entry_id) / ANNOTATION_METADATA_FILENAME
+                )
 
-            root.attrs["annotations_dict"] = {
-                "entry_id": {"source_db_name": None, "source_db_id": None},
-                "segmentation_lattices": [],
-                "details": None,
-                "name": None,
-                "volume_channels_annotations": [],
-            }
+                with open(annotations_file_path.resolve(), "r", encoding="utf-8") as f:
+                    # reads into dict
+                    read_json_of_annotations: dict = json.load(f)
+
+                root.attrs["annotations_dict"] = read_json_of_annotations
+                print('Adding custom annotations to existing entry: Prefilled annotations dict is read from existing entry')
+            
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
             raise e
@@ -730,6 +745,12 @@ class Preprocessor:
         db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
         if self.preprocessor_input.add_segmentation_to_entry:
             await db.add_segmentation_to_entry(
+                namespace=self.preprocessor_input.entry_data.source_db,
+                key=self.preprocessor_input.entry_data.entry_id,
+                temp_store_path=self.intermediate_zarr_structure,
+            )
+        elif self.preprocessor_input.add_custom_annotations:
+            await db.add_custom_annotations(
                 namespace=self.preprocessor_input.entry_data.source_db,
                 key=self.preprocessor_input.entry_data.entry_id,
                 temp_store_path=self.intermediate_zarr_structure,
@@ -770,6 +791,7 @@ async def main_preprocessor(
     input_kinds: list[InputKind],
     min_size_per_channel_mb: typing.Optional[float] = 5,
     add_segmentation_to_entry: typing.Optional[bool] = False,
+    add_custom_annotations: typing.Optional[bool] = False,
 ):
     if quantize_downsampling_levels:
         quantize_downsampling_levels = quantize_downsampling_levels.split(" ")
@@ -799,7 +821,8 @@ async def main_preprocessor(
         working_folder=Path(working_folder),
         storing_params=StoringParams(),
         db_path=Path(db_path),
-        add_segmentation_to_entry=add_segmentation_to_entry
+        add_segmentation_to_entry=add_segmentation_to_entry,
+        add_custom_annotations=add_custom_annotations
     )
 
     for input_path, input_kind in zip(input_paths, input_kinds):
@@ -834,6 +857,7 @@ def main(
     input_path: list[Path] = typer.Option(default=...),
     input_kind: list[InputKind] = typer.Option(default=...),
     add_segmentation_to_entry: bool = typer.Option(default=False),
+    add_custom_annotations: bool = typer.Option(default=False),
 ):
     asyncio.run(
         main_preprocessor(
@@ -852,7 +876,8 @@ def main(
             min_size_per_channel_mb=min_size_per_channel_mb,
             min_downsampling_level=min_downsampling_level,
             max_downsampling_level=max_downsampling_level,
-            add_segmentation_to_entry=add_segmentation_to_entry
+            add_segmentation_to_entry=add_segmentation_to_entry,
+            add_custom_annotations=add_custom_annotations
         )
     )
 

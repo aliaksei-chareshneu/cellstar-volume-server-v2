@@ -97,6 +97,7 @@ class PreprocessorInput(BaseModel):
     db_path: Path
     storing_params: StoringParams
     add_segmentation_to_entry: bool = False
+    add_custom_annotations: bool = False
 
 
 DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
