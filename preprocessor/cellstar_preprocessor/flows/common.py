@@ -16,8 +16,8 @@ def update_dict(orig_dict, new_dict: dict):
         if isinstance(val, collections.abc.Mapping):
             tmp = update_dict(orig_dict.get(key, { }), val)
             orig_dict[key] = tmp
-        elif isinstance(val, list):
-            orig_dict[key] = (orig_dict.get(key, []) + val)
+        # elif isinstance(val, list):
+        #     orig_dict[key] = (orig_dict.get(key, []) + val)
         else:
             orig_dict[key] = new_dict[key]
     return orig_dict
