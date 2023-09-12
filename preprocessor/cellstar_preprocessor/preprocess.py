@@ -147,8 +147,21 @@ class CustomAnnotationsCollectionTask(TaskBase):
                         
                         to_be_added_segment_ids = [segment['id'] for segment in to_be_added_segment_list]
                         list_1 = [segment for segment in old_segment_list if segment['id'] not in to_be_added_segment_ids]
-                        updated_segment_list = list_1 + to_be_added_segment_list
 
+                        # list_1 - old segments that should not be modified, we do not touch them
+                        # but we need to compare each segment in segments to be modified
+                        # with segments from to_be_added_segment_list
+
+                        segments_to_be_modified = [segment for segment in old_segment_list if segment['id'] in to_be_added_segment_ids]
+
+                        for segment in segments_to_be_modified:
+                            new_segment_data = list(filter(
+                                lambda x: x['id'] == segment['id'], to_be_added_segment_list
+                            ))[0]
+                            for k, v in new_segment_data.items():
+                                segment[k] = v
+
+                        updated_segment_list = list_1 + segments_to_be_modified
                         lattice["segment_list"] = updated_segment_list
                 else:
                     current_d["segmentation_lattices"] = d["segmentation_lattices"]
