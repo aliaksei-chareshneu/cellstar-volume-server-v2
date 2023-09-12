@@ -9,6 +9,19 @@ import zarr
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 
+import collections.abc
+
+def update_dict(orig_dict, new_dict: dict):
+    for key, val in new_dict.items():
+        if isinstance(val, collections.abc.Mapping):
+            tmp = update_dict(orig_dict.get(key, { }), val)
+            orig_dict[key] = tmp
+        elif isinstance(val, list):
+            orig_dict[key] = (orig_dict.get(key, []) + val)
+        else:
+            orig_dict[key] = new_dict[key]
+    return orig_dict
+
 
 def get_downsamplings(data_group) -> list[int]:
     downsamplings = []

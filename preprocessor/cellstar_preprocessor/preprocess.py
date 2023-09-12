@@ -26,6 +26,7 @@ from cellstar_db.models import AnnotationsMetadata
 from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
     temp_save_metadata,
+    update_dict,
 )
 from cellstar_preprocessor.flows.constants import (
     ANNOTATION_METADATA_FILENAME,
@@ -158,12 +159,13 @@ class CustomAnnotationsCollectionTask(TaskBase):
                             new_segment_data = list(filter(
                                 lambda x: x['id'] == segment['id'], to_be_added_segment_list
                             ))[0]
-                            for k, v in new_segment_data.items():
-                                if k == "biological_annotation":
-                                    for k1, v1 in new_segment_data[k].items():
-                                        segment[k][k1] = v1
-                                else:
-                                    segment[k] = v
+                            update_dict(segment, new_segment_data)
+                            # for k, v in new_segment_data.items():
+                            #     if k == "biological_annotation":
+                            #         for k1, v1 in new_segment_data[k].items():
+                            #             segment[k][k1] = v1
+                            #     else:
+                            #         segment[k] = v
 
                         updated_segment_list = list_1 + segments_to_be_modified
                         lattice["segment_list"] = updated_segment_list
