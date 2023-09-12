@@ -159,7 +159,11 @@ class CustomAnnotationsCollectionTask(TaskBase):
                                 lambda x: x['id'] == segment['id'], to_be_added_segment_list
                             ))[0]
                             for k, v in new_segment_data.items():
-                                segment[k] = v
+                                if k == "biological_annotation":
+                                    for k1, v1 in new_segment_data[k].items():
+                                        segment[k][k1] = v1
+                                else:
+                                    segment[k] = v
 
                         updated_segment_list = list_1 + segments_to_be_modified
                         lattice["segment_list"] = updated_segment_list
