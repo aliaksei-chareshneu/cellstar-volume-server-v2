@@ -101,14 +101,11 @@ class SegmentationLatticeInfo(TypedDict):
 class AnnotationsMetadata(TypedDict):
     name: Optional[str]
     entry_id: EntryId
-    # segment_list: list[Segment]
-    # lattice_id => list of Segments
-    # segment_list: dict[int, list[Segment]]
     segmentation_lattices: list[SegmentationLatticeInfo]
-    # lattices: list[LatticeInfo]
     # Only in SFF
     details: Optional[str]
     volume_channels_annotations: list[ChannelAnnotation]
+    non_segment_annotation: Optional[BiologicalAnnotation]
 
 class TimeTransformation(TypedDict):
     # to which downsampling level it is applied: can be to specific level, can be to all lvls

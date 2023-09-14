@@ -656,6 +656,7 @@ class Preprocessor:
                 "details": None,
                 "name": None,
                 "volume_channels_annotations": [],
+                "non_segment_annotation": {}
             }
 
             if self.preprocessor_input.add_segmentation_to_entry:

@@ -65,6 +65,9 @@ def collect_custom_annotations(input_path: Path, intermediate_zarr_structure_pat
 
             current_d["volume_channels_annotations"] = updated_vol_ch_ann_list
 
+        if 'non_segment_annotation' in d:
+            update_dict(current_d['non_segment_annotation'], d['non_segment_annotation'])
+
         root.attrs["annotations_dict"] = current_d
 
     print('Annotations updated')
