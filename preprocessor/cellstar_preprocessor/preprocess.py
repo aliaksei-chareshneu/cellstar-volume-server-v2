@@ -354,6 +354,7 @@ class Preprocessor:
     def _process_inputs(self, inputs: list[InputT]) -> list[TaskBase]:
         tasks = []
         nii_segmentation_inputs: list[NIISegmentationInput] = []
+        mask_segmentation_inputs: list[MaskInput] = []
         for input in inputs:
             if isinstance(input, MAPInput):
                 self.store_internal_volume(
@@ -403,25 +404,26 @@ class Preprocessor:
                 )
             
             elif isinstance(input, MaskInput):
-                self.store_internal_segmentation(
-                    internal_segmentation=InternalSegmentation(
-                        intermediate_zarr_structure_path=self.intermediate_zarr_structure,
-                        segmentation_input_path=input.input_path,
-                        params_for_storing=self.preprocessor_input.storing_params,
-                        downsampling_parameters=self.preprocessor_input.downsampling,
-                        entry_data=self.preprocessor_input.entry_data,
-                    )
-                )
-                tasks.append(
-                    MaskProcessSegmentationTask(
-                        internal_segmentation=self.get_internal_segmentation()
-                    )
-                )
-                tasks.append(
-                    MaskMetadataCollectionTask(
-                        internal_segmentation=self.get_internal_segmentation()
-                    )
-                )
+                mask_segmentation_inputs.append(input)
+                # self.store_internal_segmentation(
+                #     internal_segmentation=InternalSegmentation(
+                #         intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                #         segmentation_input_path=input.input_path,
+                #         params_for_storing=self.preprocessor_input.storing_params,
+                #         downsampling_parameters=self.preprocessor_input.downsampling,
+                #         entry_data=self.preprocessor_input.entry_data,
+                #     )
+                # )
+                # tasks.append(
+                #     MaskProcessSegmentationTask(
+                #         internal_segmentation=self.get_internal_segmentation()
+                #     )
+                # )
+                # tasks.append(
+                #     MaskMetadataCollectionTask(
+                #         internal_segmentation=self.get_internal_segmentation()
+                #     )
+                # )
 
             elif isinstance(input, OMEZARRInput):
                 self.store_internal_volume(
@@ -557,6 +559,28 @@ class Preprocessor:
             )
             tasks.append(
                 NIISegmentationMetadataCollectionTask(
+                    internal_segmentation=self.get_internal_segmentation()
+                )
+            )
+
+        if mask_segmentation_inputs:
+            mask_segmentation_input_paths = [i.input_path for i in mask_segmentation_inputs]
+            self.store_internal_segmentation(
+                internal_segmentation=InternalSegmentation(
+                    intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                    segmentation_input_path=mask_segmentation_input_paths,
+                    params_for_storing=self.preprocessor_input.storing_params,
+                    downsampling_parameters=self.preprocessor_input.downsampling,
+                    entry_data=self.preprocessor_input.entry_data,
+                )
+            )
+            tasks.append(
+                MaskProcessSegmentationTask(
+                    internal_segmentation=self.get_internal_segmentation()
+                )
+            )
+            tasks.append(
+                MaskMetadataCollectionTask(
                     internal_segmentation=self.get_internal_segmentation()
                 )
             )

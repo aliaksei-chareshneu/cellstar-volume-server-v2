@@ -34,24 +34,44 @@ def mask_segmentation_preprocessing(internal_segmentation: InternalSegmentation)
 
     segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
 
-    # TODO: get data from map
-    with mrcfile.mmap(str(internal_segmentation.segmentation_input_path.resolve())) as mrc_original:
-        data: np.memmap = mrc_original.data
-        header = mrc_original.header
+    global_data = None
+    for index, mask in enumerate(internal_segmentation.segmentation_input_path):
+        with mrcfile.open(str(mask.resolve())) as mrc_original:
+            data = mrc_original.data
+            # non_zero_indices[index] = data.nonzero()
+            header = mrc_original.header
+        
+        if index == 0:
+            global_data = data
+            global_data.setflags(write=1)
+        else:
+            overlap = np.where((data==global_data) & (data == 1) & (global_data == 1))
+            if len(overlap[0]) == 0:
+                # get indices of non zero values (basically 1s)
+                non_zero_indices = np.nonzero(data)
+                # insert 'index+1' (basically 2s) at those indices in global_data
+                global_data[non_zero_indices] = index + 1
+            else:
+                raise Exception(f'Segments in {mask} overlap with segments in other mask')
 
-    data = _normalize_axis_order_mrcfile_numpy(arr=data, mrc_header=header)
+    # TODO: get data from map
+    # with mrcfile.mmap(str(internal_segmentation.segmentation_input_path.resolve())) as mrc_original:
+    #     data: np.memmap = mrc_original.data
+    #     header = mrc_original.header
+
+    global_data = _normalize_axis_order_mrcfile_numpy(arr=global_data, mrc_header=header)
 
     # artificially create value_to_segment_id_dict
     internal_segmentation.value_to_segment_id_dict = {}
     internal_segmentation.value_to_segment_id_dict[0] = {}
-    for value in np.unique(data):
+    for value in np.unique(global_data):
         internal_segmentation.value_to_segment_id_dict[0][int(value)] = int(value)
 
     lattice_gr = segmentation_data_gr.create_group(str(0))
     params_for_storing = internal_segmentation.params_for_storing
 
     store_segmentation_data_in_zarr_structure(
-        original_data=data,
+        original_data=global_data,
         lattice_data_group=lattice_gr,
         value_to_segment_id_dict_for_specific_lattice_id=internal_segmentation.value_to_segment_id_dict[
             0

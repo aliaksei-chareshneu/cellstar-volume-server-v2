@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Union
 
 from cellstar_preprocessor.model.input import DownsamplingParams, EntryData
 
@@ -7,7 +8,7 @@ class InternalSegmentation:
     def __init__(
         self,
         intermediate_zarr_structure_path: Path,
-        segmentation_input_path: Path,
+        segmentation_input_path: Union[Path, list[Path]],
         params_for_storing: dict,
         downsampling_parameters: DownsamplingParams,
         entry_data: EntryData,
