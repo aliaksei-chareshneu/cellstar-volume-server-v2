@@ -319,7 +319,6 @@ class MaskProcessSegmentationTask(TaskBase):
         segmentation = self.internal_segmentation
 
         mask_segmentation_preprocessing(internal_segmentation=segmentation)
-        # TODO: downsampling, copy from sff_segmentation downsampling, excluding primary descriptor
         sff_segmentation_downsampling(segmentation)
 
 class ProcessGeometricSegmentationTask(TaskBase):
