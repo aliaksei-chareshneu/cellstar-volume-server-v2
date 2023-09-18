@@ -2,7 +2,7 @@ from cellstar_db.models import EntryId
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
-
+import seaborn as sns
 
 def mask_annotation_creation(internal_segmentation: InternalSegmentation):
     
@@ -30,21 +30,25 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
         value_to_segment_id_dict = internal_segmentation.value_to_segment_id_dict[int(lattice_id)]
         # TODO: check if 0
         number_of_keys = len(value_to_segment_id_dict.keys())
-        for k, v in value_to_segment_id_dict.items():
-            if k > 0:
+
+        palette = sns.color_palette(None, number_of_keys)
+
+        for index, value in enumerate(value_to_segment_id_dict.keys()):
+            segment_id = value_to_segment_id_dict[value]
+            if segment_id > 0:
                 segmentation_lattice_info["segment_list"].append(
                         {
-                            "id": k,
+                            "id": segment_id,
                             "biological_annotation": {
-                                "name": f"Segment {k}",
+                                "name": f"Segment {segment_id}",
                                 "external_references": [
                                 ],
                             },
                             # TODO: find way to map integers to unique colors
                             "color": [
-                                        1/number_of_keys * k,
-                                        1/number_of_keys * k,
-                                        1/number_of_keys * k,
+                                        palette[index][0],
+                                        palette[index][1],
+                                        palette[index][2],
                                         1.0
                                         ],
                         }
