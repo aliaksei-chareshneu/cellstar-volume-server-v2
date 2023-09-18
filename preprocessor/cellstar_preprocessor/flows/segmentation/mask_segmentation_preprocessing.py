@@ -64,6 +64,22 @@ def mask_segmentation_preprocessing(internal_segmentation: InternalSegmentation)
     # artificially create value_to_segment_id_dict
     internal_segmentation.value_to_segment_id_dict = {}
     internal_segmentation.value_to_segment_id_dict[0] = {}
+
+    # Temp hack to preprocess masks with float values:
+    # get unique values as array
+    # loop over that array
+    # on each iteration replace that value by index of loop iteration
+    unique_values = np.unique(global_data)
+    unique_values_without_zero = unique_values[unique_values > 0]
+    if unique_values_without_zero.dtype.kind == 'f':
+        # start from highest value found in the array + 1
+        start = int(unique_values_without_zero.max() + 1)
+        for index, value in enumerate(unique_values_without_zero, start=start):
+            global_data[global_data == value] = index
+    
+        global_data = global_data.astype('i4')
+
+
     for value in np.unique(global_data):
         internal_segmentation.value_to_segment_id_dict[0][int(value)] = int(value)
 

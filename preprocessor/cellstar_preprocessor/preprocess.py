@@ -9,6 +9,7 @@ from cellstar_preprocessor.flows.segmentation.collect_custom_annotations import 
 from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
 from cellstar_preprocessor.flows.segmentation.extract_metadata_geometric_segmentation import extract_metadata_geometric_segmentation
 from cellstar_preprocessor.flows.segmentation.geometric_segmentation_preprocessing import geometric_segmentation_preprocessing
+from cellstar_preprocessor.flows.segmentation.mask_annotation_creation import mask_annotation_creation
 from cellstar_preprocessor.flows.segmentation.mask_segmentation_preprocessing import mask_segmentation_preprocessing
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_downsampling import nii_segmentation_downsampling
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_preprocessing import nii_segmentation_preprocessing
@@ -179,6 +180,15 @@ class SFFAnnotationCollectionTask(TaskBase):
             internal_segmentation=self.internal_segmentation
         )
 
+class MaskAnnotationCreationTask(TaskBase):
+    def __init__(self, internal_segmentation: InternalSegmentation):
+        self.internal_segmentation = internal_segmentation
+
+    def execute(self) -> None:
+        # annotations_dict = extract_annotations_from_sff_segmentation(
+        #     internal_segmentation=self.internal_segmentation
+        # )
+        mask_annotation_creation(internal_segmentation=self.internal_segmentation)
 
 class NIIMetadataCollectionTask(TaskBase):
     def __init__(self, internal_volume: InternalVolume):
@@ -583,6 +593,10 @@ class Preprocessor:
                 MaskMetadataCollectionTask(
                     internal_segmentation=self.get_internal_segmentation()
                 )
+            )
+
+            tasks.append(
+                MaskAnnotationCreationTask(internal_segmentation=self.get_internal_segmentation())
             )
 
         tasks.append(SaveMetadataTask(self.intermediate_zarr_structure))
