@@ -9,15 +9,25 @@ from server.app.serialization.data.segment_set_table import SegmentSetTable
 from server.app.serialization.volume_cif_categories import encoders
 
 class Spheres(CIFCategoryDesc):
+    name='spheres'
     @staticmethod
     def get_row_count(ctx: SpheresContext) -> int:
         return len(ctx.center_x)
 
     @staticmethod
     def get_field_descriptors(ctx: SpheresContext):
-        encoder, dtype = encoders.decide_encoder(ctx, "VolumeData3d")
+
+        # TODO: change encoder
+        encoder = encoders.bytearray_encoder
+
         return [
-            Field.number_array(name="x", array=lambda ctx: ctx["center_x"], encoder=lambda _: encoder, dtype=dtype),
+            Field[SpheresContext].number_array(name="x", array=lambda ctx: ctx.center_x, encoder=lambda _: encoder, dtype=ctx.center_x.dtype),
+            Field[SpheresContext].number_array(name="y", array=lambda ctx: ctx.center_y, encoder=lambda _: encoder, dtype=ctx.center_y.dtype),
+            Field[SpheresContext].number_array(name="z", array=lambda ctx: ctx.center_z, encoder=lambda _: encoder, dtype=ctx.center_z.dtype),
+            Field[SpheresContext].number_array(name="id", array=lambda ctx: ctx.id, encoder=lambda _: encoder, dtype=ctx.id.dtype),
+            Field[SpheresContext].number_array(name="radius", array=lambda ctx: ctx.radius, encoder=lambda _: encoder, dtype=ctx.radius.dtype),
+            Field[SpheresContext].number_array(name="color", array=lambda ctx: ctx.color, encoder=lambda _: encoder, dtype=ctx.color.dtype),
+            Field[SpheresContext].string_array(name="label", array=lambda ctx: ctx.label, encoder=lambda _: encoder, dtype=ctx.label.dtype)
         ]
 
 
