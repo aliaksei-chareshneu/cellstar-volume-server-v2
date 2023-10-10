@@ -8,7 +8,7 @@ from server.app.serialization.data.segment_set_table import SegmentSetTable
 
 from server.app.serialization.volume_cif_categories import encoders
 
-class Spheres(CIFCategoryDesc):
+class SpheresCategory(CIFCategoryDesc):
     name='spheres'
     @staticmethod
     def get_row_count(ctx: SpheresContext) -> int:
