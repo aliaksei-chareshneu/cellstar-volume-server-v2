@@ -3,13 +3,14 @@ from typing import Union
 import numpy as np
 from ciftools.serialization import create_binary_writer
 from cellstar_db.models import MeshesData, VolumeMetadata, VolumeSliceData
-from serialization.volume_cif_categories.spheres_category import SpheresCategory
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.spheres_category import SpheresCategory
+# from new_server_for_tomograms.app.serialization.volume_cif_categories.spheres_category import SpheresCategory
 
 from server.app.core.models import GridSliceBox
 from server.app.core.timing import Timing
 from server.app.serialization.data.meshes_for_cif import MeshesForCif
 from server.app.serialization.data.segment_set_table import SegmentSetTable
-from server.app.serialization.data.spheres_context import SpheresContext
+from new_server_for_tomoprocessor.app.serialization.data.spheres_context import SpheresContext
 from server.app.serialization.data.volume_info import VolumeInfo
 from server.app.serialization.volume_cif_categories.meshes import (
     CategoryWriterProvider_Mesh,

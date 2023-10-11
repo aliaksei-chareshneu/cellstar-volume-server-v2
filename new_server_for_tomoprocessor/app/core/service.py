@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 
 from cellstar_db.models import VolumeMetadata
 from cellstar_db.protocol import VolumeServerDB
+import numpy as np
 
 from server.app.api.requests import (
     EntriesRequest,
@@ -71,6 +72,8 @@ class VolumeServerService:
 
         return {"grid": grid.json_metadata(), "annotation": annotation}
 
+    
+
     async def get_volume_data(self, req: VolumeRequestInfo, req_box: Optional[VolumeRequestBox] = None) -> bytes:
         metadata = await self.db.read_metadata(req.source, req.structure_id)
 
@@ -119,6 +122,60 @@ class VolumeServerService:
                 raise RuntimeError(f"{req.data_kind} is not a valid request data kind")
 
         return serialize_volume_slice(db_slice, metadata, slice_box)
+
+    async def get_nonserialized_volume_data(self, req: VolumeRequestInfo, req_box: Optional[VolumeRequestBox] = None) -> dict:
+        metadata = await self.db.read_metadata(req.source, req.structure_id)
+
+        # lattice_ids = metadata.segmentation_lattice_ids() or []
+        # if req.segmentation_id not in lattice_ids:
+        #     lattice_id = lattice_ids[0] if len(lattice_ids) > 0 else None
+        # else:
+        #     lattice_id = req.segmentation_id
+
+        slice_box = self._decide_slice_box(req.max_points, req_box, metadata)
+
+        if slice_box is None:
+            # TODO: return empty result instead of exception?
+            raise RuntimeError("No data for request box")
+
+        print(f"Request Box")
+        print(f"  Downsampling: {slice_box.downsampling_rate}")
+        print(f"  Bottom Left: {slice_box.bottom_left}")
+        print(f"  Top Right: {slice_box.top_right}")
+        print(f"  Volume: {slice_box.volume}")
+
+        with self.db.read(namespace=req.source, key=req.structure_id) as reader:
+            # if req.data_kind == VolumeRequestDataKind.all:
+            #     db_slice = await reader.read_slice(
+            #         lattice_id=lattice_id,
+            #         down_sampling_ratio=slice_box.downsampling_rate,
+            #         box=(slice_box.bottom_left, slice_box.top_right),
+            #     )
+            if req.data_kind == VolumeRequestDataKind.volume:
+                db_slice = await reader.read_volume_slice(
+                    down_sampling_ratio=slice_box.downsampling_rate,
+                    box=(slice_box.bottom_left, slice_box.top_right),
+                    channel_id=req.channel_id,
+                    time=req.time
+                )
+            # elif req.data_kind == VolumeRequestDataKind.segmentation:
+            #     db_slice = await reader.read_segmentation_slice(
+            #         lattice_id=lattice_id,
+            #         down_sampling_ratio=slice_box.downsampling_rate,
+            #         box=(slice_box.bottom_left, slice_box.top_right),
+            #         channel_id=req.channel_id,
+            #         time=req.time
+            #     )
+            else:
+                # This should be validated on the Pydantic data model level, but one never knows...
+                raise RuntimeError(f"{req.data_kind} is not a valid request data kind")
+
+        return {
+            "volume_slice": db_slice["volume_slice"],
+            "slice_box": slice_box
+            }
+        # return serialize_volume_slice(db_slice, metadata, slice_box)
+
 
     async def get_volume_info(self, req: MetadataRequest) -> bytes:
         metadata = await self.db.read_metadata(req.source, req.structure_id)
