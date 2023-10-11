@@ -3,11 +3,13 @@ from typing import Union
 import numpy as np
 from ciftools.serialization import create_binary_writer
 from cellstar_db.models import MeshesData, VolumeMetadata, VolumeSliceData
+from serialization.volume_cif_categories.spheres_category import SpheresCategory
 
 from server.app.core.models import GridSliceBox
 from server.app.core.timing import Timing
 from server.app.serialization.data.meshes_for_cif import MeshesForCif
 from server.app.serialization.data.segment_set_table import SegmentSetTable
+from server.app.serialization.data.spheres_context import SpheresContext
 from server.app.serialization.data.volume_info import VolumeInfo
 from server.app.serialization.volume_cif_categories.meshes import (
     CategoryWriterProvider_Mesh,
@@ -20,6 +22,70 @@ from server.app.serialization.volume_cif_categories.volume_data_3d import Volume
 from server.app.serialization.volume_cif_categories.volume_data_3d_info import VolumeData3dInfoCategory
 from server.app.serialization.volume_cif_categories.volume_data_time_and_channel_info import VolumeDataTimeAndChannelInfo
 
+def serialize_tomogram_and_spheres(volume_data, particles_data, metadata: VolumeMetadata, box: GridSliceBox) -> Union[bytes, str]:
+    writer = create_binary_writer(encoder="cellstar-volume-server")
+
+    writer.start_data_block("SERVER")
+
+    volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=slice['time'], channel_id=slice["channel_id"])
+
+    # volume
+    writer.start_data_block("volume")  # Currently needs to be EM for
+    writer.write_category(VolumeData3dInfoCategory, [volume_info])
+    # which channel_id and time_id is it
+    writer.write_category(VolumeDataTimeAndChannelInfo, [volume_info])
+
+    data_category = VolumeData3dCategory()
+    writer.write_category(data_category, [np.ravel(volume_data, order='F')])
+
+
+    # particles data
+    writer.start_data_block("spheres")
+    particles_data = SpheresContext.from_list_of_sphere_objects(particles_data)
+    
+    writer.write_category(SpheresCategory, particles_data)
+    
+    
+    
+    
+    
+    # which channel_id and time_id is it
+    
+    
+    
+    writer.write_category(VolumeDataTimeAndChannelInfo, [volume_info])
+
+    segmentation = slice["segmentation_slice"]
+
+    # table
+    set_dict = segmentation["category_set_dict"]
+    segment_set_table = SegmentSetTable.from_dict(set_dict)
+    writer.write_category(SegmentationDataTableCategory, [segment_set_table])
+
+    # 3d_ids
+    # uint32
+    writer.write_category(SegmentationData3dCategory, [np.ravel(segmentation["category_set_ids"], order='F')])
+
+    # segmentation
+    # if "segmentation_slice" in slice and slice["segmentation_slice"]["category_set_ids"] is not None:
+    #     # TODO: add lattice_id info
+    #     writer.start_data_block("segmentation_data")
+    #     writer.write_category(VolumeData3dInfoCategory, [volume_info])
+    #     # which channel_id and time_id is it
+    #     writer.write_category(VolumeDataTimeAndChannelInfo, [volume_info])
+
+    #     segmentation = slice["segmentation_slice"]
+
+    #     # table
+    #     set_dict = segmentation["category_set_dict"]
+    #     segment_set_table = SegmentSetTable.from_dict(set_dict)
+    #     writer.write_category(SegmentationDataTableCategory, [segment_set_table])
+
+    #     # 3d_ids
+    #     # uint32
+    #     writer.write_category(SegmentationData3dCategory, [np.ravel(segmentation["category_set_ids"], order='F')])
+
+    return writer.encode()
 
 def serialize_volume_slice(slice: VolumeSliceData, metadata: VolumeMetadata, box: GridSliceBox) -> Union[bytes, str]:
     writer = create_binary_writer(encoder="cellstar-volume-server")
