@@ -28,7 +28,7 @@ def serialize_tomogram_and_spheres(volume_data, particles_data, metadata: Volume
 
     writer.start_data_block("SERVER")
 
-    volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=slice['time'], channel_id=slice["channel_id"])
+    volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=0, channel_id=0)
 
     # volume
     writer.start_data_block("volume")  # Currently needs to be EM for
@@ -44,7 +44,7 @@ def serialize_tomogram_and_spheres(volume_data, particles_data, metadata: Volume
     writer.start_data_block("spheres")
     particles_data = SpheresContext.from_list_of_sphere_objects(particles_data)
     
-    writer.write_category(SpheresCategory, particles_data)
+    writer.write_category(SpheresCategory, [particles_data])
     
     
     
@@ -56,16 +56,16 @@ def serialize_tomogram_and_spheres(volume_data, particles_data, metadata: Volume
     
     writer.write_category(VolumeDataTimeAndChannelInfo, [volume_info])
 
-    segmentation = slice["segmentation_slice"]
+    # segmentation = slice["segmentation_slice"]
 
-    # table
-    set_dict = segmentation["category_set_dict"]
-    segment_set_table = SegmentSetTable.from_dict(set_dict)
-    writer.write_category(SegmentationDataTableCategory, [segment_set_table])
+    # # table
+    # set_dict = segmentation["category_set_dict"]
+    # segment_set_table = SegmentSetTable.from_dict(set_dict)
+    # writer.write_category(SegmentationDataTableCategory, [segment_set_table])
 
-    # 3d_ids
-    # uint32
-    writer.write_category(SegmentationData3dCategory, [np.ravel(segmentation["category_set_ids"], order='F')])
+    # # 3d_ids
+    # # uint32
+    # writer.write_category(SegmentationData3dCategory, [np.ravel(segmentation["category_set_ids"], order='F')])
 
     # segmentation
     # if "segmentation_slice" in slice and slice["segmentation_slice"]["category_set_ids"] is not None:

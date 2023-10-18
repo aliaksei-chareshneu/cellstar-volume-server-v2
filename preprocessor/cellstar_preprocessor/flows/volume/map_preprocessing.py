@@ -27,7 +27,13 @@ def map_preprocessing(internal_volume: InternalVolume):
         else:
             internal_volume.volume_force_dtype = data.dtype
 
+        # temp hack to process rec files with cella 0 0 0
+        if mrc_original.header.cella.x == 0 and mrc_original.header.cella.y == 0 and mrc_original.header.cella.z == 0:
+            mrc_original.voxel_size = 4 * internal_volume.pixel_size
+
         header = mrc_original.header
+
+        
 
     print(f"Processing volume file {internal_volume.volume_input_path}")
     dask_arr = da.from_array(data)

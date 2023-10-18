@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from numcodecs import Blosc
 from pydantic import BaseModel
@@ -31,6 +31,7 @@ class InputKind(str, Enum):
     nii_volume = 'nii_volume'
     nii_segmentation = 'nii_segmentation'
     geometric_segmentation = 'geometric_segmentation'
+    star_file_geometric_segmentation = 'star_file_geometric_segmentation'
 
 
 class QuantizationDtype(str, Enum):
@@ -98,6 +99,7 @@ class PreprocessorInput(BaseModel):
     storing_params: StoringParams
     add_segmentation_to_entry: bool = False
     add_custom_annotations: bool = False
+    custom_data: Optional[dict[str, Any]]
 
 
 DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(

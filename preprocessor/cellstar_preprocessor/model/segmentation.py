@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from cellstar_preprocessor.model.input import DownsamplingParams, EntryData
 
@@ -12,6 +12,8 @@ class InternalSegmentation:
         params_for_storing: dict,
         downsampling_parameters: DownsamplingParams,
         entry_data: EntryData,
+        sphere_radius: Optional[float],
+        color: Optional[float]
     ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.segmentation_input_path = segmentation_input_path
@@ -22,3 +24,5 @@ class InternalSegmentation:
         self.simplification_curve: dict[int, float] = {}
         self.entry_data = entry_data
         self.raw_sff_annotations = {}
+        self.sphere_radius = sphere_radius
+        self.color = color

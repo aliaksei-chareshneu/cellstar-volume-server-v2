@@ -172,7 +172,8 @@ class VolumeServerService:
 
         return {
             "volume_slice": db_slice["volume_slice"],
-            "slice_box": slice_box
+            "slice_box": slice_box,
+            "metadata": metadata
             }
         # return serialize_volume_slice(db_slice, metadata, slice_box)
 
