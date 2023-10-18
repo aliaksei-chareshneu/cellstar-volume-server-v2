@@ -12,6 +12,28 @@
         },
         {
             "justMyCode": false,
+            "name": "tomoprocessor_empiar_dataset_171.rec",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--map", "preprocessor/temp/171.rec",
+                "--particles-star-file", "preprocessor/temp/80S_bin1_cryoDRGN-ET_clean_tomo_171.star",
+                "--pixel-size", "1.96",
+                "--max-volume-size-mb", "100",
+                "--default-isovalue-sigma", "2",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--out", "preprocessor/temp/171.zip",
+                // "--db-path", "preprocessor/temp/test_db",
+                "--sphere-radius", "16",
+                "--sphere-color", "16776960",
+                "--entry-id", "80S_bin1_cryoDRGN-ET_clean_tomo_171",
+                "--source-db", "pdbe"
+            ]
+        },
+        {
+            "justMyCode": false,
             "name": "custom_preprocessor_geometric_segmentation",
             "type": "python",
             "request": "launch",
