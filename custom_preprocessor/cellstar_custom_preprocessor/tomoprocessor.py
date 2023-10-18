@@ -5,17 +5,17 @@ import shutil
 import typing
 from argparse import ArgumentError
 from pathlib import Path
-from cellstar_preprocessor.flows.segmentation.collect_custom_annotations import collect_custom_annotations
-from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
+# from cellstar_preprocessor.flows.segmentation.collect_custom_annotations import collect_custom_annotations
+# from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
 from cellstar_preprocessor.flows.segmentation.extract_metadata_geometric_segmentation import extract_metadata_geometric_segmentation
 from cellstar_preprocessor.flows.segmentation.geometric_segmentation_preprocessing import geometric_segmentation_preprocessing
-from cellstar_preprocessor.flows.segmentation.mask_annotation_creation import mask_annotation_creation
-from cellstar_preprocessor.flows.segmentation.mask_segmentation_preprocessing import mask_segmentation_preprocessing
-from cellstar_preprocessor.flows.segmentation.nii_segmentation_downsampling import nii_segmentation_downsampling
-from cellstar_preprocessor.flows.segmentation.nii_segmentation_preprocessing import nii_segmentation_preprocessing
-from cellstar_preprocessor.flows.volume.extract_nii_metadata import extract_nii_metadata
-from cellstar_preprocessor.flows.volume.nii_preprocessing import nii_preprocessing
-from cellstar_preprocessor.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
+# from cellstar_preprocessor.flows.segmentation.mask_annotation_creation import mask_annotation_creation
+# from cellstar_preprocessor.flows.segmentation.mask_segmentation_preprocessing import mask_segmentation_preprocessing
+# from cellstar_preprocessor.flows.segmentation.nii_segmentation_downsampling import nii_segmentation_downsampling
+# from cellstar_preprocessor.flows.segmentation.nii_segmentation_preprocessing import nii_segmentation_preprocessing
+# from cellstar_preprocessor.flows.volume.extract_nii_metadata import extract_nii_metadata
+# from cellstar_preprocessor.flows.volume.nii_preprocessing import nii_preprocessing
+# from cellstar_preprocessor.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 
 import typer
 import zarr
@@ -141,17 +141,17 @@ class TaskBase(typing.Protocol):
         ...
 
 
-class CustomAnnotationsCollectionTask(TaskBase):
-    # NOTE: for this to work, custom annotations json must contain only the keys that 
-    # need to be updated
-    def __init__(
-        self, input_path: Path, intermediate_zarr_structure_path: Path
-    ) -> None:
-        self.input_path = input_path
-        self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
+# class CustomAnnotationsCollectionTask(TaskBase):
+#     # NOTE: for this to work, custom annotations json must contain only the keys that 
+#     # need to be updated
+#     def __init__(
+#         self, input_path: Path, intermediate_zarr_structure_path: Path
+#     ) -> None:
+#         self.input_path = input_path
+#         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
 
-    def execute(self) -> None:
-        collect_custom_annotations(self.input_path, self.intermediate_zarr_structure_path)
+#     def execute(self) -> None:
+#         collect_custom_annotations(self.input_path, self.intermediate_zarr_structure_path)
 
 
 
@@ -198,23 +198,23 @@ class SFFAnnotationCollectionTask(TaskBase):
             internal_segmentation=self.internal_segmentation
         )
 
-class MaskAnnotationCreationTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
+# class MaskAnnotationCreationTask(TaskBase):
+#     def __init__(self, internal_segmentation: InternalSegmentation):
+#         self.internal_segmentation = internal_segmentation
 
-    def execute(self) -> None:
-        # annotations_dict = extract_annotations_from_sff_segmentation(
-        #     internal_segmentation=self.internal_segmentation
-        # )
-        mask_annotation_creation(internal_segmentation=self.internal_segmentation)
+#     def execute(self) -> None:
+#         # annotations_dict = extract_annotations_from_sff_segmentation(
+#         #     internal_segmentation=self.internal_segmentation
+#         # )
+#         mask_annotation_creation(internal_segmentation=self.internal_segmentation)
 
-class NIIMetadataCollectionTask(TaskBase):
-    def __init__(self, internal_volume: InternalVolume):
-        self.internal_volume = internal_volume
+# class NIIMetadataCollectionTask(TaskBase):
+#     def __init__(self, internal_volume: InternalVolume):
+#         self.internal_volume = internal_volume
 
-    def execute(self) -> None:
-        volume = self.internal_volume
-        metadata_dict = extract_nii_metadata(internal_volume=volume)
+#     def execute(self) -> None:
+#         volume = self.internal_volume
+#         metadata_dict = extract_nii_metadata(internal_volume=volume)
 
 class MAPMetadataCollectionTask(TaskBase):
     def __init__(self, internal_volume: InternalVolume):
@@ -286,14 +286,14 @@ class GeometricSegmentationMetadataCollectionTask(TaskBase):
             internal_segmentation=self.internal_segmentation
         )
 
-class NIISegmentationMetadataCollectionTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
+# class NIISegmentationMetadataCollectionTask(TaskBase):
+#     def __init__(self, internal_segmentation: InternalSegmentation):
+#         self.internal_segmentation = internal_segmentation
 
-    def execute(self) -> None:
-        metadata_dict = extract_metadata_from_nii_segmentation(
-            internal_segmentation=self.internal_segmentation
-        )
+#     def execute(self) -> None:
+#         metadata_dict = extract_metadata_from_nii_segmentation(
+#             internal_segmentation=self.internal_segmentation
+#         )
 
 class MAPProcessVolumeTask(TaskBase):
     def __init__(self, internal_volume: InternalVolume):
@@ -306,27 +306,27 @@ class MAPProcessVolumeTask(TaskBase):
         # in processing part do
         volume_downsampling(volume)
 
-class NIIProcessVolumeTask(TaskBase):
-    def __init__(self, internal_volume: InternalVolume):
-        self.internal_volume = internal_volume
+# class NIIProcessVolumeTask(TaskBase):
+#     def __init__(self, internal_volume: InternalVolume):
+#         self.internal_volume = internal_volume
 
-    def execute(self) -> None:
-        volume = self.internal_volume
+#     def execute(self) -> None:
+#         volume = self.internal_volume
 
-        nii_preprocessing(volume)
-        # in processing part do
-        volume_downsampling(volume)
+#         nii_preprocessing(volume)
+#         # in processing part do
+#         volume_downsampling(volume)
 
-class NIIProcessSegmentationTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
+# class NIIProcessSegmentationTask(TaskBase):
+#     def __init__(self, internal_segmentation: InternalSegmentation):
+#         self.internal_segmentation = internal_segmentation
 
-    def execute(self) -> None:
-        segmentation = self.internal_segmentation
+#     def execute(self) -> None:
+#         segmentation = self.internal_segmentation
 
-        nii_segmentation_preprocessing(internal_segmentation=segmentation)
+#         nii_segmentation_preprocessing(internal_segmentation=segmentation)
 
-        nii_segmentation_downsampling(internal_segmentation=segmentation)
+#         nii_segmentation_downsampling(internal_segmentation=segmentation)
 
 class SFFProcessSegmentationTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
@@ -339,15 +339,15 @@ class SFFProcessSegmentationTask(TaskBase):
 
         sff_segmentation_downsampling(segmentation)
 
-class MaskProcessSegmentationTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
+# class MaskProcessSegmentationTask(TaskBase):
+#     def __init__(self, internal_segmentation: InternalSegmentation):
+#         self.internal_segmentation = internal_segmentation
 
-    def execute(self) -> None:
-        segmentation = self.internal_segmentation
+#     def execute(self) -> None:
+#         segmentation = self.internal_segmentation
 
-        mask_segmentation_preprocessing(internal_segmentation=segmentation)
-        sff_segmentation_downsampling(segmentation)
+#         mask_segmentation_preprocessing(internal_segmentation=segmentation)
+#         sff_segmentation_downsampling(segmentation)
 
 class ProcessGeometricSegmentationTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
@@ -615,30 +615,7 @@ async def main_preprocessor(
     sphere_color,
     entry_id,
     source_db
-    # quantize_dtype_str: typing.Optional[QuantizationDtype],
-    # quantize_downsampling_levels: typing.Optional[str],
-    # force_volume_dtype: typing.Optional[str],
-    # max_size_per_channel_mb: typing.Optional[float],
-    # min_downsampling_level: typing.Optional[int],
-    # max_downsampling_level: typing.Optional[int],
-    # entry_id: str,
-    # source_db: str,
-    # source_db_id: str,
-    # source_db_name: str,
-    # working_folder: Path,
-    # db_path: Path,
-    # input_paths: list[Path],
-    # input_kinds: list[InputKind],
-    # min_size_per_channel_mb: typing.Optional[float] = 5,
-    # add_segmentation_to_entry: typing.Optional[bool] = False,
-    # add_custom_annotations: typing.Optional[bool] = False,
 ):
-    # if quantize_downsampling_levels:
-    #     quantize_downsampling_levels = quantize_downsampling_levels.split(" ")
-    #     quantize_downsampling_levels = tuple(
-    #         [int(level) for level in quantize_downsampling_levels]
-    #     )
-
     db_path: Path = Path(working_folder) / 'tomoprocessor_db'
     preprocessor_input = PreprocessorInput(
         inputs=Inputs(files=[]),
