@@ -23,8 +23,8 @@ def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: int) 
     lst = []
     df = starfile.read(str(path.resolve()))
     for index, row in df.iterrows():
-        micrograph_name = row['rlnTomoName'].split('_')
-        label = micrograph_name
+        # micrograph_name = row['rlnTomoName'].split('_')
+        label = row['rlnTomoName']
         # radius = 0.08 * 200
         radius = sphere_radius
 
