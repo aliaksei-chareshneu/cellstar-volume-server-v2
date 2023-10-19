@@ -14,7 +14,7 @@ from app.api.requests import (
 from app.core.service import VolumeServerService
 from app.serialization.json_numpy_response import JSONNumpyResponse
 from app.settings import settings
-from server.app.api.requests import GeometricSegmentationRequest
+from new_server_for_tomoprocessor.app.api.requests import GeometricSegmentationRequest
 HTTP_CODE_UNPROCESSABLE_ENTITY = 422
 
 

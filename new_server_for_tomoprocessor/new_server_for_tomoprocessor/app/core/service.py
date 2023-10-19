@@ -7,7 +7,7 @@ from cellstar_db.models import VolumeMetadata
 from cellstar_db.protocol import VolumeServerDB
 import numpy as np
 
-from server.app.api.requests import (
+from new_server_for_tomoprocessor.app.api.requests import (
     EntriesRequest,
     GeometricSegmentationRequest,
     MeshRequest,
@@ -16,9 +16,9 @@ from server.app.api.requests import (
     VolumeRequestDataKind,
     VolumeRequestInfo,
 )
-from server.app.core.models import GridSliceBox
-from server.app.core.timing import Timing
-from server.app.serialization.cif import serialize_meshes, serialize_volume_info, serialize_volume_slice
+from new_server_for_tomoprocessor.app.core.models import GridSliceBox
+from new_server_for_tomoprocessor.app.core.timing import Timing
+from new_server_for_tomoprocessor.app.serialization.cif import serialize_meshes, serialize_volume_info, serialize_volume_slice
 
 __MAX_DOWN_SAMPLING_VALUE__ = 1000000
 

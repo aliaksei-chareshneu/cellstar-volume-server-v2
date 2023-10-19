@@ -1,8 +1,8 @@
 from ciftools.models.writer import CIFCategoryDesc
 from ciftools.models.writer import CIFFieldDesc as Field
 
-from server.app.serialization.data.volume_info import VolumeInfo
-from server.app.serialization.volume_cif_categories import encoders
+from new_server_for_tomoprocessor.app.serialization.data.volume_info import VolumeInfo
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories import encoders
 
 
 class VolumeData3dInfoCategory(CIFCategoryDesc):

@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Optional
 from fastapi import Query, Response
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
-from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
-from server.app.core.service import VolumeServerService
+from new_server_for_tomoprocessor.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
+from new_server_for_tomoprocessor.app.core.service import VolumeServerService
 
 
 FILENAME = 'server/app/dev/test_cif.bcif'

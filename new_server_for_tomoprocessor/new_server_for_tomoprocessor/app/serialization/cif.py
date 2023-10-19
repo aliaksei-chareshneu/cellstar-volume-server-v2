@@ -6,22 +6,22 @@ from cellstar_db.models import MeshesData, VolumeMetadata, VolumeSliceData
 from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.spheres_category import SpheresCategory
 # from new_server_for_tomograms.app.serialization.volume_cif_categories.spheres_category import SpheresCategory
 
-from server.app.core.models import GridSliceBox
-from server.app.core.timing import Timing
-from server.app.serialization.data.meshes_for_cif import MeshesForCif
-from server.app.serialization.data.segment_set_table import SegmentSetTable
+from new_server_for_tomoprocessor.app.core.models import GridSliceBox
+from new_server_for_tomoprocessor.app.core.timing import Timing
+from new_server_for_tomoprocessor.app.serialization.data.meshes_for_cif import MeshesForCif
+from new_server_for_tomoprocessor.app.serialization.data.segment_set_table import SegmentSetTable
 from new_server_for_tomoprocessor.app.serialization.data.spheres_context import SpheresContext
-from server.app.serialization.data.volume_info import VolumeInfo
-from server.app.serialization.volume_cif_categories.meshes import (
+from new_server_for_tomoprocessor.app.serialization.data.volume_info import VolumeInfo
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.meshes import (
     CategoryWriterProvider_Mesh,
     CategoryWriterProvider_MeshTriangle,
     CategoryWriterProvider_MeshVertex,
 )
-from server.app.serialization.volume_cif_categories.segmentation_data_3d import SegmentationData3dCategory
-from server.app.serialization.volume_cif_categories.segmentation_table import SegmentationDataTableCategory
-from server.app.serialization.volume_cif_categories.volume_data_3d import VolumeData3dCategory
-from server.app.serialization.volume_cif_categories.volume_data_3d_info import VolumeData3dInfoCategory
-from server.app.serialization.volume_cif_categories.volume_data_time_and_channel_info import VolumeDataTimeAndChannelInfo
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.segmentation_data_3d import SegmentationData3dCategory
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.segmentation_table import SegmentationDataTableCategory
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.volume_data_3d import VolumeData3dCategory
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.volume_data_3d_info import VolumeData3dInfoCategory
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.volume_data_time_and_channel_info import VolumeDataTimeAndChannelInfo
 
 def serialize_tomogram_and_spheres(volume_data, particles_data, metadata: VolumeMetadata, box: GridSliceBox) -> Union[bytes, str]:
     writer = create_binary_writer(encoder="cellstar-volume-server")

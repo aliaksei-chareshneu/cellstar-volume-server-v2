@@ -5,12 +5,12 @@ from new_server_for_tomoprocessor.app.serialization.data.spheres_context import 
 # from new_server_for_tomograms.app.serialization.data.spheres_context import SpheresContext
 # from new_server_for_tomograms.app.serialization.data.spheres_context import SpheresContext
 # from new_server_for_tomograms.app.serialization.data.spheres_context import SpheresContext
-# from server.app.serialization.data.spheres_context import ParticlesData, SpheresContext
-from server.app.serialization.data.segment_set_table import SegmentSetTable
+# from new_server_for_tomoprocessor.app.serialization.data.spheres_context import ParticlesData, SpheresContext
+from new_server_for_tomoprocessor.app.serialization.data.segment_set_table import SegmentSetTable
 
-# from server.app.serialization.data.segment_set_table import SegmentSetTable
+# from new_server_for_tomoprocessor.app.serialization.data.segment_set_table import SegmentSetTable
 
-from server.app.serialization.volume_cif_categories import encoders
+from new_server_for_tomoprocessor.app.serialization.volume_cif_categories import encoders
 
 class SpheresCategory(CIFCategoryDesc):
     name='spheres'

@@ -1,6 +1,6 @@
 from cellstar_db.models import VolumeMetadata
 
-from server.app.core.models import GridSliceBox
+from new_server_for_tomoprocessor.app.core.models import GridSliceBox
 
 
 class VolumeInfo:

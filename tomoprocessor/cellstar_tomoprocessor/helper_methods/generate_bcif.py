@@ -9,8 +9,8 @@ from new_server_for_tomoprocessor.app.api.requests import GeometricSegmentationR
 from new_server_for_tomoprocessor.app.core.service import VolumeServerService
 from new_server_for_tomoprocessor.app.serialization.cif import serialize_tomogram_and_spheres
 # from serialization.cif import serialize_tomogram_and_spheres
-# from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
-# from server.app.core.service import VolumeServerService
+# from new_server_for_tomoprocessor.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
+# from new_server_for_tomoprocessor.app.core.service import VolumeServerService
 
 
 async def generate_bcif(preprocessor_input: PreprocessorInput, entry_folder: Path):
