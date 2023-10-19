@@ -50,3 +50,4 @@ dependencies:
     - -e ./preprocessor
     - -e ./db
     - -e ./new_server_for_tomoprocessor
+    - -e ./tomoprocessor
