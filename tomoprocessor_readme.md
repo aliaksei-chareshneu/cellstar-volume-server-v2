@@ -44,13 +44,13 @@ python tomoprocessor\cellstar_tomoprocessor\tomoprocessor.py
                 --map MAP_FILE_PATH.map
                 --particles-star-file PARTICLES_STAR_FILE_PATH.star
                 --pixel-size 1.96
-                --max-volume-size-mb 100,
-                --default-isovalue-sigma 2,
+                --max-volume-size-mb 100
+                --default-isovalue-sigma 2
                 --working-folder TEMP_WORKING_FOLDER
                 --out OUTPUT_ZIP.zip
-                --sphere-radius 16,
+                --sphere-radius 16
                 --sphere-color 16776960
-                --entry-id ENTRY-123,
+                --entry-id ENTRY-123
                 --source-db pdbe
 
 ```
