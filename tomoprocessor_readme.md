@@ -35,20 +35,41 @@ Activate created conda environment, e.g.
 conda activate tomoprocessor
 ```
 
-From root project directory (cellstar-volume-server-v2 by default) run:
+From root project directory (cellstar-volume-server-v2 by default) run e.g.:
 
 
 <!-- TODO add args -->
 ```
-python tomoprocessor\cellstar_tomoprocessor\tomoprocessor.py 
+python tomoprocessor\cellstar_tomoprocessor\tomoprocessor.py
+                --map MAP_FILE_PATH.map
+                --particles-star-file PARTICLES_STAR_FILE_PATH.star
+                --pixel-size 1.96
+                --max-volume-size-mb 100,
+                --default-isovalue-sigma 2,
+                --working-folder TEMP_WORKING_FOLDER
+                --out OUTPUT_ZIP.zip
+                --sphere-radius 16,
+                --sphere-color 16776960
+                --entry-id ENTRY-123,
+                --source-db pdbe
+
 ```
 
-This will build db with 11 EMDB entries, and using default values of all other arguments.
 Arguments description:
- - `--csv_with_entry_ids` - csv file with entry ids and info for preprocessor, default - test-data\preprocessor\db_building_parameters_all_entries.csv (not recommended to use default for users, as it requires static files to be hosted at specific location, use --csv_with_entry_ids test-data/preprocessor/db_building_parameters_custom_entries.csv instead)
- - `--raw_input_files_dir` dir with raw input files for preprocessor, default - test-data/preprocessor//raw_input_files
- - `--db_path` - path to db folder, default - test-data/db
- - `--temp_zarr_hierarchy_storage_path` - path to directory where temporary files will be stored during the build process. Default - test-data/preprocessor/temp_zarr_hierarchy_storage/YOUR_DB_PATH
+ <!-- - `--csv_with_entry_ids` - csv file with entry ids and info for preprocessor, default - test-data\preprocessor\db_building_parameters_all_entries.csv (not recommended to use default for users, as it requires static files to be hosted at specific location, use --csv_with_entry_ids test-data/preprocessor/db_building_parameters_custom_entries.csv instead) -->
+ <!-- - `--raw_input_files_dir` dir with raw input files for preprocessor, default - test-data/preprocessor//raw_input_files
+ - `--db_path` - path to db folder, default - test-data/db -->
+ - `--map` - path to map file
+ - `--particles-star-file` - path to star file with particles
+ - `--pixel-size` - desired pixel size for map
+ - `--max-volume-size-mb` - max size for downsampled volume data (determines the number of downsampling steps)
+ - `--default-isovalue-sigma` - (not used currently) isovalue
+ - `--working-folder` - path to directory where temporary files will be stored during the preprocessing
+ - `--out` - path to output zip archive
+ - `--sphere-radius` - radius of spheres
+ - `--sphere-color` - color of spheres as integer
+ - `--entry-id` - entry id
+ - `--source-db` - source db
 
 
 # Testing (sample datasets visualized at frontend)
