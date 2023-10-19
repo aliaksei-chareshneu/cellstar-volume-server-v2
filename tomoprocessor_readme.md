@@ -76,8 +76,9 @@ Arguments description:
  - Open [frontend webpage](https://aliaksei-chareshneu.github.io/tomo-project/index.html)
  - Click "Home tab"
  ![Alt text](image.png)
- - Click "Open Files" and then "Select files ..."
+ - Click "Open Files" and then "Select files ...", then "Apply"
  ![Alt text](image-1.png)
+ ![Alt text](image-2.png)
 
 # Testing (sample datasets visualized at [frontend](https://aliaksei-chareshneu.github.io/tomo-project/index.html))
 
