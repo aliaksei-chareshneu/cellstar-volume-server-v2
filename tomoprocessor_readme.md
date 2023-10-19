@@ -72,7 +72,14 @@ Arguments description:
  - `--source-db` - source db
 
 
-# Testing (sample datasets visualized at frontend)
+# Visualization at [frontend](https://aliaksei-chareshneu.github.io/tomo-project/index.html)
+ - Open [frontend webpage](https://aliaksei-chareshneu.github.io/tomo-project/index.html)
+ - Click "Home tab"
+ ![Alt text](image.png)
+ - Click "Open Files" and then "Select files ..."
+ ![Alt text](image-1.png)
+
+# Testing (sample datasets visualized at [frontend](https://aliaksei-chareshneu.github.io/tomo-project/index.html))
 
 [Dataset 1 (EMPIAR-11658, 9.rec and spheres based on 80S_bin1_cryoDRGN-ET_clean_tomo_9.star)](https://aliaksei-chareshneu.github.io/tomo-project/index.html?data-source=https://aliaksei-chareshneu.github.io/tomo-project/test_zip.zip)
 
