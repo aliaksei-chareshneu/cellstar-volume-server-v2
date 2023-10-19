@@ -9,7 +9,7 @@ from typing import TypedDict
 import starfile
 from pathlib import Path
 
-from custom_preprocessor.cellstar_custom_preprocessor.models import Sphere
+from cellstar_tomoprocessor.helper_methods.models import Sphere
 
 # from custom_preprocessor.models import Sphere
 
