@@ -28,7 +28,7 @@ class SpheresCategory(CIFCategoryDesc):
             Field[SpheresContext].number_array(name="x", array=lambda ctx: ctx.center_x, encoder=encoder, dtype=ctx.center_x.dtype),
             Field[SpheresContext].number_array(name="y", array=lambda ctx: ctx.center_y, encoder=encoder, dtype=ctx.center_y.dtype),
             Field[SpheresContext].number_array(name="z", array=lambda ctx: ctx.center_z, encoder=encoder, dtype=ctx.center_z.dtype),
-            Field[SpheresContext].number_array(name="id", array=lambda ctx: ctx.id, encoder=encoder, dtype=ctx.id.dtype),
+            Field[SpheresContext].number_array(name="id", array=lambda ctx: ctx.id, encoder=encoder, dtype='i4'),
             Field[SpheresContext].number_array(name="radius", array=lambda ctx: ctx.radius, encoder=encoder, dtype=ctx.radius.dtype),
             Field[SpheresContext].number_array(name="color", array=lambda ctx: ctx.color, encoder=encoder, dtype='u4'),
             Field[SpheresContext].string_array(name="label", array=lambda ctx: ctx.label)
