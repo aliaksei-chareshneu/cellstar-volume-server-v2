@@ -80,6 +80,13 @@ Arguments description:
  ![Alt text](image-1.png)
  ![Alt text](image-2.png)
 
+# Loading data from URL
+You can load data hosted elsewhere using "data-source" parameter, e.g.:
+
+```
+https://aliaksei-chareshneu.github.io/tomo-project/index.html?data-source=https://whatever.com/data.zip
+```
+
 # Testing (sample datasets visualized at [frontend](https://aliaksei-chareshneu.github.io/tomo-project/index.html))
 
 [Dataset 1 (EMPIAR-11658, 9.rec and spheres based on 80S_bin1_cryoDRGN-ET_clean_tomo_9.star)](https://aliaksei-chareshneu.github.io/tomo-project/index.html?data-source=https://aliaksei-chareshneu.github.io/tomo-project/test_zip.zip)
