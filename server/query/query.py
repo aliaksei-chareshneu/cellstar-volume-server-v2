@@ -1,5 +1,5 @@
 
-from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
+from server.app.api.requests import MetadataRequest, VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 from server.app.core.service import VolumeServerService
 
 
@@ -101,3 +101,11 @@ async def get_volume_cell_query(
     
     return response
 
+async def get_metadata_query(
+        volume_server: VolumeServerService,
+        id: str,
+    source: str,
+):
+    request = MetadataRequest(source=source, structure_id=id)
+    metadata = await volume_server.get_metadata(request)
+    return metadata
