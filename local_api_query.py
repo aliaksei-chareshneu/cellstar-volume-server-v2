@@ -101,48 +101,21 @@ from fastapi import Query
 from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
 from server.app.core.service import VolumeServerService
-from server.query.query import get_segmentation_box_query, get_volume_box_query
+from server.query.query import get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query
 
 # VOLUME SERVER AND DB
 
-async def main():
-    # initialize dependencies
-    # PARSING
-    main_parser = argparse.ArgumentParser(add_help=False)
-    
-    common_subparsers = main_parser.add_subparsers(dest='query_type', help='query type')
+DEFAULT_MAX_POINTS = 100000000
 
-    # COMMON ARGUMENTS
-    main_parser.add_argument('--db_path', type=str, required=True)
-    main_parser.add_argument('--entry-id', type=str, required=True)
-    main_parser.add_argument('--source-db', type=str, required=True)
-    main_parser.add_argument('--out', type=str, required=True)
-
-    box_parser = common_subparsers.add_parser('volume-box')
-    box_parser.add_argument('--time', required=True, type=int)
-    box_parser.add_argument('--channel-id', required=True, type=int)
-    box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
-    # TODO: fix default
-    box_parser.add_argument('--max-points', type=int, default=10000000)
-
-    args = main_parser.parse_args()
-
+async def _query(args):
     db = FileSystemVolumeServerDB(folder=Path(args.db_path))
 
     # initialize server
     VOLUME_SERVER = VolumeServerService(db)
-
     if args.query_type == 'volume-box':
         print('volume box query')
         # query
         a1, a2, a3, b1, b2, b3 = args.box_coords
-        # response = await VOLUME_SERVER.get_volume_data(
-        #     req=VolumeRequestInfo(
-        #         source=args.source_db, structure_id=args.entry_id, channel_id=args.channel_id,
-        #         time=args.time, max_points=args.max_points, data_kind=VolumeRequestDataKind.volume
-        #     ),
-        #     req_box=VolumeRequestBox(bottom_left=(a1, a2, a3), top_right=(b1, b2, b3)),
-        # )
         response = await get_volume_box_query(
             volume_server=VOLUME_SERVER,
             source=args.source_db,
@@ -158,16 +131,110 @@ async def main():
             max_points=args.max_points
         )
 
-        # write to file
-        with open(str((Path(args.out)).resolve()), 'wb') as f: 
-            f.write(response)
-
+    elif args.query_type == 'segmentation-box':
+        print('segmentation box query')
+        # query
+        a1, a2, a3, b1, b2, b3 = args.box_coords
+        response = await get_segmentation_box_query(
+            volume_server=VOLUME_SERVER,
+            segmentation=args.lattice_id,
+            source=args.source_db,
+            id=args.entry_id,
+            time=args.time,
+            channel_id=args.channel_id,
+            a1=a1,
+            a2=a2,
+            a3=a3,
+            b1=b1,
+            b2=b2,
+            b3=b3,
+            max_points=args.max_points
+        )
+    
+    elif args.query_type == 'segmentation-cell':
+        print('segmentation cell query')
+        response = await get_segmentation_cell_query(
+            volume_server=VOLUME_SERVER,
+            segmentation=args.lattice_id,
+            source=args.source_db,
+            id=args.entry_id,
+            time=args.time,
+            channel_id=args.channel_id,
+            max_points=args.max_points
+        )
     elif args.query_type == 'volume-cell':
         print('volume cell query')
+        response = await get_volume_cell_query(
+            volume_server=VOLUME_SERVER,
+            source=args.source_db,
+            id=args.entry_id,
+            time=args.time,
+            channel_id=args.channel_id,
+            max_points=args.max_points
+        )
 
-    # print(args)
+    return response
+
+async def main():
+    # initialize dependencies
+    # PARSING
+    main_parser = argparse.ArgumentParser(add_help=False)
+    
+    common_subparsers = main_parser.add_subparsers(dest='query_type', help='query type')
+    
+    # COMMON ARGUMENTS
+    main_parser.add_argument('--db_path', type=str, required=True)
+    main_parser.add_argument('--entry-id', type=str, required=True)
+    main_parser.add_argument('--source-db', type=str, required=True)
+    main_parser.add_argument('--out', type=str, required=True)
+
+    box_parser = common_subparsers.add_parser('volume-box')
+    box_parser.add_argument('--time', required=True, type=int)
+    box_parser.add_argument('--channel-id', required=True, type=int)
+    box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
+    # TODO: fix default
+    box_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+
+    # SEGMENTATION BOX
+    segm_box_parser = common_subparsers.add_parser('segmentation-box')
+    segm_box_parser.add_argument('--time', required=True, type=int)
+    segm_box_parser.add_argument('--channel-id', required=True, type=int)
+    segm_box_parser.add_argument('--lattice-id', type=int, required=True)
+    segm_box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
+    # TODO: fix default
+    segm_box_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+    
+    # VOLUME CELL
+    volume_cell_parser = common_subparsers.add_parser('volume-cell')
+    volume_cell_parser.add_argument('--time', required=True, type=int)
+    volume_cell_parser.add_argument('--channel-id', required=True, type=int)
+    # TODO: fix default
+    volume_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+
+    # SEGMENTATION CELL
+    segm_cell_parser = common_subparsers.add_parser('segmentation-cell')
+    segm_cell_parser.add_argument('--time', required=True, type=int)
+    segm_cell_parser.add_argument('--channel-id', required=True, type=int)
+    segm_cell_parser.add_argument('--lattice-id', type=int, required=True)
+    # TODO: fix default
+    segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+
+    args = main_parser.parse_args()
+
+    response = await _query(args)
+    
+    # write to file
+    with open(str((Path(args.out)).resolve()), 'wb') as f: 
+        f.write(response)
 
 if __name__ == '__main__':
     asyncio.run(main())
 
+
+# TODO: make if elif ... an async function accepting args and returning response: bytes
+# TODO: then write to file
+
 # python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif volume-box --time 0 --channel-id 0 --box-coords 1 1 1 10 10 10
+# python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif segmentation-box --time 0 --channel-id 0 --lattice-id 0 --box-coords 1 1 1 10 10 10
+
+# python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif segmentation-cell --time 0 --channel-id 0 --lattice-id 0

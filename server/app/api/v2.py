@@ -15,7 +15,7 @@ from app.core.service import VolumeServerService
 from app.serialization.json_numpy_response import JSONNumpyResponse
 from app.settings import settings
 from server.app.api.requests import GeometricSegmentationRequest
-from server.query.query import get_segmentation_box_query, get_volume_box_query
+from server.query.query import get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query
 HTTP_CODE_UNPROCESSABLE_ENTITY = 422
 
 
@@ -112,27 +112,27 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
     @app.get("/v2/{source}/{id}/segmentation/cell/{segmentation}/{time}/{channel_id}")
     async def get_segmentation_cell(source: str, id: str, segmentation: str, time: int, channel_id: int,  max_points: Optional[int] = Query(0)):
-        response = await volume_server.get_volume_data(
-            req=VolumeRequestInfo(
-                source=source,
-                structure_id=id,
-                segmentation_id=segmentation,
-                time=time,
-                channel_id=channel_id,
-                max_points=max_points,
-                data_kind=VolumeRequestDataKind.segmentation,
-            ),
+        response = await get_segmentation_cell_query(
+            volume_server=volume_server,
+            source=source,
+            id=id,
+            segmentation=segmentation,
+            time=time,
+            channel_id=channel_id,
+            max_points=max_points
         )
 
         return Response(response, headers={"Content-Disposition": f'attachment;filename="{id}.bcif"'})
 
     @app.get("/v2/{source}/{id}/volume/cell/{time}/{channel_id}")
     async def get_volume_cell(source: str, id: str, time: int, channel_id: int, max_points: Optional[int] = Query(0)):
-        response = await volume_server.get_volume_data(
-            req=VolumeRequestInfo(
-                source=source, structure_id=id,
-                time=time, channel_id=channel_id, max_points=max_points, data_kind=VolumeRequestDataKind.volume
-            ),
+        response = await get_volume_cell_query(
+            volume_server=volume_server,
+            source=source,
+            id=id,
+            time=time,
+            channel_id=channel_id,
+            max_points=max_points
         )
 
         return Response(response, headers={"Content-Disposition": f'attachment;filename="{id}.bcif"'})
