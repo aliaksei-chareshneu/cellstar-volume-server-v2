@@ -94,6 +94,7 @@
 
 import argparse
 import asyncio
+import json
 from pathlib import Path
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
@@ -101,7 +102,7 @@ from fastapi import Query
 from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
 from server.app.core.service import VolumeServerService
-from server.query.query import get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query
+from server.query.query import get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query
 
 # VOLUME SERVER AND DB
 
@@ -112,6 +113,9 @@ async def _query(args):
 
     # initialize server
     VOLUME_SERVER = VolumeServerService(db)
+
+    file_writing_mode = 'wb'
+
     if args.query_type == 'volume-box':
         print('volume box query')
         # query
@@ -173,7 +177,21 @@ async def _query(args):
             max_points=args.max_points
         )
 
-    return response
+    elif args.query_type == 'metadata':
+        print('metadata query')
+        file_writing_mode = 'w'
+        response = await get_metadata_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
+    
+    # elif args.query_type == ''
+
+    # write to file
+
+    
+    with open(str((Path(args.out)).resolve()), file_writing_mode) as f:
+        if args.query_type == 'metadata':
+            json.dump(response, f, indent=4)
+        else: 
+            f.write(response)
 
 async def main():
     # initialize dependencies
@@ -219,13 +237,13 @@ async def main():
     # TODO: fix default
     segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
 
+    # METADATA
+    metadata_parser = common_subparsers.add_parser('metadata')
+
     args = main_parser.parse_args()
 
-    response = await _query(args)
-    
-    # write to file
-    with open(str((Path(args.out)).resolve()), 'wb') as f: 
-        f.write(response)
+    await _query(args)
+
 
 if __name__ == '__main__':
     asyncio.run(main())
@@ -238,3 +256,5 @@ if __name__ == '__main__':
 # python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif segmentation-box --time 0 --channel-id 0 --lattice-id 0 --box-coords 1 1 1 10 10 10
 
 # python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif segmentation-cell --time 0 --channel-id 0 --lattice-id 0
+
+# python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out metadata1.json metadata
