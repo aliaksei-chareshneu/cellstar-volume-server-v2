@@ -101,9 +101,9 @@ from fastapi import Query
 from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
 from server.app.core.service import VolumeServerService
+from server.query.query import get_segmentation_box_query, get_volume_box_query
 
 # VOLUME SERVER AND DB
-# TODO: make db path a CLI arg?
 
 async def main():
     # initialize dependencies
@@ -136,12 +136,26 @@ async def main():
         print('volume box query')
         # query
         a1, a2, a3, b1, b2, b3 = args.box_coords
-        response = await VOLUME_SERVER.get_volume_data(
-            req=VolumeRequestInfo(
-                source=args.source_db, structure_id=args.entry_id, channel_id=args.channel_id,
-                time=args.time, max_points=args.max_points, data_kind=VolumeRequestDataKind.volume
-            ),
-            req_box=VolumeRequestBox(bottom_left=(a1, a2, a3), top_right=(b1, b2, b3)),
+        # response = await VOLUME_SERVER.get_volume_data(
+        #     req=VolumeRequestInfo(
+        #         source=args.source_db, structure_id=args.entry_id, channel_id=args.channel_id,
+        #         time=args.time, max_points=args.max_points, data_kind=VolumeRequestDataKind.volume
+        #     ),
+        #     req_box=VolumeRequestBox(bottom_left=(a1, a2, a3), top_right=(b1, b2, b3)),
+        # )
+        response = await get_volume_box_query(
+            volume_server=VOLUME_SERVER,
+            source=args.source_db,
+            id=args.entry_id,
+            time=args.time,
+            channel_id=args.channel_id,
+            a1=a1,
+            a2=a2,
+            a3=a3,
+            b1=b1,
+            b2=b2,
+            b3=b3,
+            max_points=args.max_points
         )
 
         # write to file
@@ -156,5 +170,4 @@ async def main():
 if __name__ == '__main__':
     asyncio.run(main())
 
-
-# python local_api_query.py --db-path  --entry-id emd-1832 --source-db emdb --out local_query.bcif volume-box --time 0 --channel-id 0 --box-coords 1 1 1 10 10 10
+# python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif volume-box --time 0 --channel-id 0 --box-coords 1 1 1 10 10 10
