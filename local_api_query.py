@@ -102,7 +102,7 @@ from fastapi import Query
 from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
 from server.app.core.service import VolumeServerService
-from server.query.query import get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query
+from server.query.query import get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
 
 # VOLUME SERVER AND DB
 
@@ -182,7 +182,9 @@ async def _query(args):
         file_writing_mode = 'w'
         response = await get_metadata_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
     
-    # elif args.query_type == ''
+    elif args.query_type == 'volume-info':
+        print('volume info query')
+        response = await get_volume_info_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
 
     # write to file
 
@@ -239,6 +241,9 @@ async def main():
 
     # METADATA
     metadata_parser = common_subparsers.add_parser('metadata')
+
+    # VOLUME INFO
+    metadata_parser = common_subparsers.add_parser('volume-info')
 
     args = main_parser.parse_args()
 

@@ -15,7 +15,7 @@ from app.core.service import VolumeServerService
 from app.serialization.json_numpy_response import JSONNumpyResponse
 from app.settings import settings
 from server.app.api.requests import GeometricSegmentationRequest
-from server.query.query import get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query
+from server.query.query import get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
 HTTP_CODE_UNPROCESSABLE_ENTITY = 422
 
 
@@ -171,8 +171,8 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         source: str,
         id: str,
     ):
-        request = MetadataRequest(source=source, structure_id=id)
-        response_bytes = await volume_server.get_volume_info(request)
+        response_bytes = await get_volume_info_query(volume_server=volume_server, source=source, id=id)
+
         return Response(response_bytes, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'})
 
     @app.get("/v2/{source}/{id}/mesh_bcif/{segment_id}/{detail_lvl}/{time}/{channel_id}")

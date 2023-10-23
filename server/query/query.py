@@ -109,3 +109,14 @@ async def get_metadata_query(
     request = MetadataRequest(source=source, structure_id=id)
     metadata = await volume_server.get_metadata(request)
     return metadata
+
+async def get_volume_info_query(
+        volume_server: VolumeServerService,
+        id: str,
+    source: str,
+):
+    
+    request = MetadataRequest(source=source, structure_id=id)
+    response_bytes = await volume_server.get_volume_info(request)
+
+    return response_bytes    
