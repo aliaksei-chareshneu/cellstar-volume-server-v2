@@ -129,3 +129,12 @@ async def get_list_entries_query(
     response = await volume_server.get_entries(request)
 
     return response    
+
+async def get_list_entries_keywords_query(
+        volume_server: VolumeServerService,
+        limit: int,
+        keyword: str
+):
+    request = EntriesRequest(limit=limit, keyword=keyword)
+    response = await volume_server.get_entries(request)
+    return response
