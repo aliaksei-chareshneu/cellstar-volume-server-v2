@@ -102,7 +102,7 @@ from fastapi import Query
 from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
 from server.app.core.service import VolumeServerService
-from server.query.query import get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
+from cellstar_query.query import get_list_entries_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
 
 # VOLUME SERVER AND DB
 
@@ -186,6 +186,16 @@ async def _query(args):
         print('volume info query')
         response = await get_volume_info_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
 
+    elif args.query_type == 'list-entries':
+        print('list_entries query')
+        file_writing_mode = 'w'
+        response = await get_list_entries_query(volume_server=VOLUME_SERVER, limit=args.limit)
+    
+    elif args.query_type == 'list-entries-keyword':
+        print('list_entries query')
+        file_writing_mode = 'w'
+        response = await get_list_entries_keyword_query(volume_server=VOLUME_SERVER, limit=args.limit)
+    
     # write to file
 
     
@@ -201,14 +211,15 @@ async def main():
     main_parser = argparse.ArgumentParser(add_help=False)
     
     common_subparsers = main_parser.add_subparsers(dest='query_type', help='query type')
-    
     # COMMON ARGUMENTS
     main_parser.add_argument('--db_path', type=str, required=True)
-    main_parser.add_argument('--entry-id', type=str, required=True)
-    main_parser.add_argument('--source-db', type=str, required=True)
+    # main_parser.add_argument('--entry-id', type=str, required=True)
+    # main_parser.add_argument('--source-db', type=str, required=True)
     main_parser.add_argument('--out', type=str, required=True)
 
     box_parser = common_subparsers.add_parser('volume-box')
+    box_parser.add_argument('--entry-id', type=str, required=True)
+    box_parser.add_argument('--source-db', type=str, required=True)
     box_parser.add_argument('--time', required=True, type=int)
     box_parser.add_argument('--channel-id', required=True, type=int)
     box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
@@ -217,6 +228,8 @@ async def main():
 
     # SEGMENTATION BOX
     segm_box_parser = common_subparsers.add_parser('segmentation-box')
+    segm_box_parser.add_argument('--entry-id', type=str, required=True)
+    segm_box_parser.add_argument('--source-db', type=str, required=True)
     segm_box_parser.add_argument('--time', required=True, type=int)
     segm_box_parser.add_argument('--channel-id', required=True, type=int)
     segm_box_parser.add_argument('--lattice-id', type=int, required=True)
@@ -226,6 +239,8 @@ async def main():
     
     # VOLUME CELL
     volume_cell_parser = common_subparsers.add_parser('volume-cell')
+    volume_cell_parser.add_argument('--entry-id', type=str, required=True)
+    volume_cell_parser.add_argument('--source-db', type=str, required=True)
     volume_cell_parser.add_argument('--time', required=True, type=int)
     volume_cell_parser.add_argument('--channel-id', required=True, type=int)
     # TODO: fix default
@@ -233,6 +248,8 @@ async def main():
 
     # SEGMENTATION CELL
     segm_cell_parser = common_subparsers.add_parser('segmentation-cell')
+    segm_cell_parser.add_argument('--entry-id', type=str, required=True)
+    segm_cell_parser.add_argument('--source-db', type=str, required=True)
     segm_cell_parser.add_argument('--time', required=True, type=int)
     segm_cell_parser.add_argument('--channel-id', required=True, type=int)
     segm_cell_parser.add_argument('--lattice-id', type=int, required=True)
@@ -245,6 +262,16 @@ async def main():
     # VOLUME INFO
     metadata_parser = common_subparsers.add_parser('volume-info')
 
+    # TODO: 2 mesh queries 
+
+    # 
+    list_entries_parser = common_subparsers.add_parser('list_entries')
+    list_entries_parser.add_argument('--limit', type=int, default=100, required=True)
+
+    list_entries_keyword_parser = common_subparsers.add_parser('list_entries_keyword')
+    list_entries_keyword_parser.add_argument('--limit', type=int, default=100, required=True)
+    list_entries_keyword_parser.add_argument('--keyword', type=str, required=True)
+    
     args = main_parser.parse_args()
 
     await _query(args)
@@ -257,9 +284,4 @@ if __name__ == '__main__':
 # TODO: make if elif ... an async function accepting args and returning response: bytes
 # TODO: then write to file
 
-# python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif volume-box --time 0 --channel-id 0 --box-coords 1 1 1 10 10 10
-# python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif segmentation-box --time 0 --channel-id 0 --lattice-id 0 --box-coords 1 1 1 10 10 10
-
-# python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out local_query1.bcif segmentation-cell --time 0 --channel-id 0 --lattice-id 0
-
-# python local_api_query.py --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --out metadata1.json metadata
+# python local_api_query.py --out local_query1.bcif volume-cell --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --time 0 --channel-id 0 --lattice-id 0

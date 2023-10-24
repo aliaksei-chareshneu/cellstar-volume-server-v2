@@ -1,5 +1,5 @@
 
-from server.app.api.requests import MetadataRequest, VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
+from server.app.api.requests import EntriesRequest, MetadataRequest, VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 from server.app.core.service import VolumeServerService
 
 
@@ -119,4 +119,13 @@ async def get_volume_info_query(
     request = MetadataRequest(source=source, structure_id=id)
     response_bytes = await volume_server.get_volume_info(request)
 
-    return response_bytes    
+    return response_bytes
+
+async def get_list_entries_query(
+        volume_server: VolumeServerService,
+        limit: int
+):
+    request = EntriesRequest(limit=limit, keyword="")
+    response = await volume_server.get_entries(request)
+
+    return response    

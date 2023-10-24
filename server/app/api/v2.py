@@ -15,7 +15,7 @@ from app.core.service import VolumeServerService
 from app.serialization.json_numpy_response import JSONNumpyResponse
 from app.settings import settings
 from server.app.api.requests import GeometricSegmentationRequest
-from server.query.query import get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
+from cellstar_query.query import get_list_entries_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
 HTTP_CODE_UNPROCESSABLE_ENTITY = 422
 
 
@@ -34,16 +34,14 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
     @app.get("/v2/list_entries/{limit}")
     async def get_entries(limit: int = 100):
-        request = EntriesRequest(limit=limit, keyword="")
-        response = await volume_server.get_entries(request)
-
+        response = await get_list_entries_query(volume_server=volume_server, limit=limit)
         return response
 
     @app.get("/v2/list_entries/{limit}/{keyword}")
     async def get_entries_keyword(keyword: str, limit: int = 100):
         request = EntriesRequest(limit=limit, keyword=keyword)
         response = await volume_server.get_entries(request)
-
+        response = await get_list_entries_keywords_query()
         return response
 
     @app.get("/v2/{source}/{id}/segmentation/box/{segmentation}/{time}/{channel_id}/{a1}/{a2}/{a3}/{b1}/{b2}/{b3}")
