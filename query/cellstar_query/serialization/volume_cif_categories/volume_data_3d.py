@@ -2,7 +2,7 @@ import numpy as np
 from ciftools.models.writer import CIFCategoryDesc
 from ciftools.models.writer import CIFFieldDesc as Field
 
-from server.app.serialization.volume_cif_categories import encoders
+from cellstar_query.serialization.volume_cif_categories import encoders
 
 
 class VolumeData3dCategory(CIFCategoryDesc):

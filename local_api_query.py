@@ -99,10 +99,10 @@ from pathlib import Path
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from fastapi import Query
-from server.app.api.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
+from cellstar_query.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
-from server.app.core.service import VolumeServerService
-from cellstar_query.query import get_list_entries_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
+from cellstar_query.core.service import VolumeServerService
+from cellstar_query.query import get_list_entries_keywords_query, get_list_entries_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
 
 # VOLUME SERVER AND DB
 
@@ -194,7 +194,7 @@ async def _query(args):
     elif args.query_type == 'list-entries-keyword':
         print('list_entries query')
         file_writing_mode = 'w'
-        response = await get_list_entries_keyword_query(volume_server=VOLUME_SERVER, limit=args.limit)
+        response = await get_list_entries_keywords_query(volume_server=VOLUME_SERVER, limit=args.limit)
     
     # write to file
 

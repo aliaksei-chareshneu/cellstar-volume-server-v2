@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import FastAPI, Query, Response
 from starlette.responses import JSONResponse
 
-from app.api.requests import (
+from cellstar_query.requests import (
     EntriesRequest,
     MeshRequest,
     MetadataRequest,
@@ -11,9 +11,9 @@ from app.api.requests import (
     VolumeRequestDataKind,
     VolumeRequestInfo,
 )
-from app.core.service import VolumeServerService
-from app.serialization.json_numpy_response import JSONNumpyResponse
-from app.settings import settings
+from cellstar_query.core.service import VolumeServerService
+from cellstar_query.json_numpy_response import JSONNumpyResponse
+from new_server_for_tomoprocessor.app.settings import settings
 from new_server_for_tomoprocessor.app.api.requests import GeometricSegmentationRequest
 HTTP_CODE_UNPROCESSABLE_ENTITY = 422
 

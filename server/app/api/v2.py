@@ -3,21 +3,12 @@ from typing import Optional
 from fastapi import FastAPI, Query, Response
 from starlette.responses import JSONResponse
 
-from app.api.requests import (
-    EntriesRequest,
-    MeshRequest,
-    MetadataRequest,
-    VolumeRequestBox,
-    VolumeRequestDataKind,
-    VolumeRequestInfo,
-)
-from app.core.service import VolumeServerService
-from app.serialization.json_numpy_response import JSONNumpyResponse
+from cellstar_query.core.service import VolumeServerService
+from cellstar_query.json_numpy_response import JSONNumpyResponse
 from app.settings import settings
-from server.app.api.requests import GeometricSegmentationRequest
-from cellstar_query.query import get_list_entries_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query, get_list_entries_keywords_query
-HTTP_CODE_UNPROCESSABLE_ENTITY = 422
-
+from cellstar_query.query import HTTP_CODE_UNPROCESSABLE_ENTITY
+from cellstar_query.requests import GeometricSegmentationRequest
+from cellstar_query.query import get_meshes_bcif_query, get_meshes_query, get_list_entries_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query, get_list_entries_keywords_query
 
 def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
     @app.get("/v2/version")
@@ -146,13 +137,18 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
     @app.get("/v2/{source}/{id}/mesh/{segment_id}/{detail_lvl}/{time}/{channel_id}")
     async def get_meshes(source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int):
-        request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl, time=time, channel_id=channel_id)
-        try:
-            meshes = await volume_server.get_meshes(request)
-            return JSONNumpyResponse(meshes)
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
-
+        response = await get_meshes_query(
+            volume_server=volume_server,
+            source=source,
+            id=id,
+            time=time,
+            channel_id=channel_id,
+            segment_id=segment_id,
+            detail_lvl=detail_lvl
+        )
+        
+        return response
+    
     # TODO: time, channel?
     # TODO: segment id or all shape primitives segments at once? probably at once
     @app.get("/v2/{source}/{id}/geometric_segmentation")
@@ -175,13 +171,13 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
     @app.get("/v2/{source}/{id}/mesh_bcif/{segment_id}/{detail_lvl}/{time}/{channel_id}")
     async def get_meshes_bcif(source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int):
-        request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl, time=time, channel_id=channel_id)
-        try:
-            response_bytes = await volume_server.get_meshes_bcif(request)
-            return Response(
-                response_bytes, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'}
-            )
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
-        finally:
-            pass
+        response = await get_meshes_bcif_query(
+            volume_server=volume_server,
+            source=source,
+            id=id,
+            time=time,
+            channel_id=channel_id,
+            segment_id=segment_id,
+            detail_lvl=detail_lvl
+        )
+        return response

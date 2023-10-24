@@ -3,10 +3,10 @@ from typing import Optional
 from fastapi import FastAPI, Response
 from starlette.responses import JSONResponse
 
-from app.api.requests import EntriesRequest, MeshRequest, MetadataRequest, VolumeRequestBox, VolumeRequestInfo
-from app.core.service import VolumeServerService
-from app.serialization.json_numpy_response import JSONNumpyResponse
-from app.settings import settings
+from cellstar_query.requests import EntriesRequest, MeshRequest, MetadataRequest, VolumeRequestBox, VolumeRequestInfo
+from cellstar_query.core.service import VolumeServerService
+from cellstar_query.json_numpy_response import JSONNumpyResponse
+from new_server_for_tomoprocessor.app.settings import settings
 HTTP_CODE_UNPROCESSABLE_ENTITY = 422
 
 

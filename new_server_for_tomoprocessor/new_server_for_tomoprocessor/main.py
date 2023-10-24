@@ -3,10 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-import app.api.v1 as api_v1
-import app.api.v2 as api_v2
-from app.core.service import VolumeServerService
-from app.settings import settings
+import new_server_for_tomoprocessor.app.api.v1 as api_v1
+import new_server_for_tomoprocessor.app.api.v2 as api_v2
+from cellstar_query.core.service import VolumeServerService
+from new_server_for_tomoprocessor.app.settings import settings
 
 print("Server Settings: ", settings.dict())
 

@@ -1,6 +1,6 @@
 from cellstar_db.models import VolumeMetadata
 
-from server.app.core.models import GridSliceBox
+from cellstar_query.core.models import GridSliceBox
 
 
 class VolumeInfo:
