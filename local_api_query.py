@@ -220,7 +220,7 @@ async def _query(args):
     elif args.query_type == 'list-entries-keyword':
         print('list_entries query')
         file_writing_mode = 'w'
-        response = await get_list_entries_keywords_query(volume_server=VOLUME_SERVER, limit=args.limit)
+        response = await get_list_entries_keywords_query(volume_server=VOLUME_SERVER, limit=args.limit, keyword=args.keyword)
     
     # write to file
 
@@ -309,10 +309,10 @@ async def main():
     meshes_bcif_parser.add_argument('--segment-id', required=True, type=int)
     meshes_bcif_parser.add_argument('--detail-lvl', required=True, type=int)
     
-    list_entries_parser = common_subparsers.add_parser('list_entries')
+    list_entries_parser = common_subparsers.add_parser('list-entries')
     list_entries_parser.add_argument('--limit', type=int, default=100, required=True)
 
-    list_entries_keyword_parser = common_subparsers.add_parser('list_entries_keyword')
+    list_entries_keyword_parser = common_subparsers.add_parser('list-entries-keyword')
     list_entries_keyword_parser.add_argument('--limit', type=int, default=100, required=True)
     list_entries_keyword_parser.add_argument('--keyword', type=str, required=True)
     
