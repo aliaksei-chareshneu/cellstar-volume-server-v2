@@ -165,12 +165,17 @@ async def get_meshes_bcif_query(
         source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int
 ):
     request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl, time=time, channel_id=channel_id)
-    try:
-        response_bytes = await volume_server.get_meshes_bcif(request)
-        return Response(
-            response_bytes, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'}
-        )
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
-    finally:
-        pass
+    response_bytes = await volume_server.get_meshes_bcif(request)
+    return response_bytes
+
+
+    # request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl, time=time, channel_id=channel_id)
+    # try:
+    #     response_bytes = await volume_server.get_meshes_bcif(request)
+    #     return Response(
+    #         response_bytes, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'}
+    #     )
+    # except Exception as e:
+    #     return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
+    # finally:
+    #     pass

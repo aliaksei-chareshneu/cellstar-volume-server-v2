@@ -174,6 +174,23 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
     @app.get("/v2/{source}/{id}/mesh_bcif/{segment_id}/{detail_lvl}/{time}/{channel_id}")
     async def get_meshes_bcif(source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int):
+        try:
+            response = await get_meshes_bcif_query(
+                volume_server=volume_server,
+                source=source,
+                id=id,
+                time=time,
+                channel_id=channel_id,
+                segment_id=segment_id,
+                detail_lvl=detail_lvl
+            )
+            return Response(response, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'}
+            )
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
+        finally:
+            pass
+        
         response = await get_meshes_bcif_query(
             volume_server=volume_server,
             source=source,
