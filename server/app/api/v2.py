@@ -190,14 +190,3 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
             return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
         finally:
             pass
-        
-        response = await get_meshes_bcif_query(
-            volume_server=volume_server,
-            source=source,
-            id=id,
-            time=time,
-            channel_id=channel_id,
-            segment_id=segment_id,
-            detail_lvl=detail_lvl
-        )
-        return response
