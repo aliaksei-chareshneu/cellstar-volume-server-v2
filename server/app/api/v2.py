@@ -137,17 +137,20 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
     @app.get("/v2/{source}/{id}/mesh/{segment_id}/{detail_lvl}/{time}/{channel_id}")
     async def get_meshes(source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int):
-        response = await get_meshes_query(
-            volume_server=volume_server,
-            source=source,
-            id=id,
-            time=time,
-            channel_id=channel_id,
-            segment_id=segment_id,
-            detail_lvl=detail_lvl
-        )
+        try:
+            response = await get_meshes_query(
+                volume_server=volume_server,
+                source=source,
+                id=id,
+                time=time,
+                channel_id=channel_id,
+                segment_id=segment_id,
+                detail_lvl=detail_lvl
+            )
+            return JSONNumpyResponse(response)
+        except Exception as e:
+            JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
         
-        return response
     
     # TODO: time, channel?
     # TODO: segment id or all shape primitives segments at once? probably at once

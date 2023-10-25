@@ -98,11 +98,12 @@ import json
 from pathlib import Path
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
+from cellstar_query.json_numpy_response import _NumpyJsonEncoder, JSONNumpyResponse
 from fastapi import Query
 from cellstar_query.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
 from cellstar_query.core.service import VolumeServerService
-from cellstar_query.query import get_list_entries_keywords_query, get_list_entries_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
+from cellstar_query.query import get_list_entries_keywords_query, get_list_entries_query, get_meshes_bcif_query, get_meshes_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
 
 # VOLUME SERVER AND DB
 
@@ -177,6 +178,31 @@ async def _query(args):
             max_points=args.max_points
         )
 
+    elif args.query_type == 'mesh':
+        print('mesh query')
+        file_writing_mode = 'w'
+        response = await get_meshes_query(
+            volume_server=VOLUME_SERVER,
+            source=args.source_db,
+            id=args.entry_id,
+            time=args.time,
+            channel_id=args.channel_id,
+            segment_id=args.segment_id,
+            detail_lvl=args.detail_lvl
+        )
+
+    elif args.query_type == 'mesh-bcif':
+        print('mesh-bcif query')
+        response = await get_meshes_bcif_query(
+            volume_server=VOLUME_SERVER,
+            source=args.source_db,
+            id=args.entry_id,
+            time=args.time,
+            channel_id=args.channel_id,
+            segment_id=args.segment_id,
+            detail_lvl=args.detail_lvl
+        )
+
     elif args.query_type == 'metadata':
         print('metadata query')
         file_writing_mode = 'w'
@@ -200,8 +226,12 @@ async def _query(args):
 
     
     with open(str((Path(args.out)).resolve()), file_writing_mode) as f:
-        if args.query_type == 'metadata':
+        if args.query_type in ['metadata', 'list-entries', 'list-entries-keyword']:
             json.dump(response, f, indent=4)
+        elif args.query_type == 'mesh':
+            json_dump = json.dumps(response, 
+                       cls=_NumpyJsonEncoder)
+            json.dump(json_dump, f, indent=4)
         else: 
             f.write(response)
 
@@ -262,9 +292,23 @@ async def main():
     # VOLUME INFO
     metadata_parser = common_subparsers.add_parser('volume-info')
 
-    # TODO: 2 mesh queries 
+    # MESHES
+    meshes_parser = common_subparsers.add_parser('mesh')
+    meshes_parser.add_argument('--entry-id', type=str, required=True)
+    meshes_parser.add_argument('--source-db', type=str, required=True)
+    meshes_parser.add_argument('--time', required=True, type=int)
+    meshes_parser.add_argument('--channel-id', required=True, type=int)
+    meshes_parser.add_argument('--segment-id', required=True, type=int)
+    meshes_parser.add_argument('--detail-lvl', required=True, type=int)
 
-    # 
+    meshes_bcif_parser = common_subparsers.add_parser('mesh-bcif')
+    meshes_bcif_parser.add_argument('--entry-id', type=str, required=True)
+    meshes_bcif_parser.add_argument('--source-db', type=str, required=True)
+    meshes_bcif_parser.add_argument('--time', required=True, type=int)
+    meshes_bcif_parser.add_argument('--channel-id', required=True, type=int)
+    meshes_bcif_parser.add_argument('--segment-id', required=True, type=int)
+    meshes_bcif_parser.add_argument('--detail-lvl', required=True, type=int)
+    
     list_entries_parser = common_subparsers.add_parser('list_entries')
     list_entries_parser.add_argument('--limit', type=int, default=100, required=True)
 
@@ -280,8 +324,5 @@ async def main():
 if __name__ == '__main__':
     asyncio.run(main())
 
-
-# TODO: make if elif ... an async function accepting args and returning response: bytes
-# TODO: then write to file
 
 # python local_api_query.py --out local_query1.bcif volume-cell --db_path preprocessor/temp/test_db --entry-id emd-1832 --source-db emdb --time 0 --channel-id 0 --lattice-id 0
