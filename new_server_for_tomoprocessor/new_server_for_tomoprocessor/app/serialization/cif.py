@@ -24,7 +24,7 @@ from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.volume
 from new_server_for_tomoprocessor.app.serialization.volume_cif_categories.volume_data_time_and_channel_info import VolumeDataTimeAndChannelInfo
 
 def serialize_tomogram_and_spheres(volume_data, particles_data, metadata: VolumeMetadata, box: GridSliceBox) -> Union[bytes, str]:
-    writer = create_binary_writer(encoder="cellstar-volume-server")
+    writer = create_binary_writer(encoder="tomocif")
 
     writer.start_data_block("SERVER")
 
