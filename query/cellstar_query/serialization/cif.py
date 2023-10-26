@@ -22,8 +22,13 @@ from cellstar_query.serialization.volume_cif_categories.volume_data_time_and_cha
 
 
 def serialize_volume_slice(slice: VolumeSliceData, metadata: VolumeMetadata, box: GridSliceBox) -> Union[bytes, str]:
-    writer = create_binary_writer(encoder="cellstar-volume-server")
-
+    if "volume_slice" in slice and not "segmentation_slice" in slice:
+        writer = create_binary_writer(encoder="volume-server-volume-cif")
+    elif not ("volume_slice" in slice) and ("segmentation_slice" in slice and slice["segmentation_slice"]["category_set_ids"] is not None):  
+        writer = create_binary_writer(encoder="volume-server-segmentation-cif")
+    else:
+        writer = create_binary_writer(encoder="cellstar-volume-server")
+        
     writer.start_data_block("SERVER")
     # NOTE: the SERVER category left empty for now
     # TODO: create new category with request and responce info (e.g. query region, timing info, etc.)
