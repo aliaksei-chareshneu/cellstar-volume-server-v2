@@ -12,6 +12,107 @@
         },
         {
             "justMyCode": false,
+            "name": "local_api_query_segmentation_cell",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--db_path", "preprocessor/temp/test_db",
+                "--out", "segm.bcif",
+                "segmentation-cell",
+                "--entry-id", "emd-1832",
+                "--source-db", "emdb",
+                "--time", "0",
+                "--channel-id", "0",
+                "--lattice-id", "0"
+            ]
+        },
+        {
+            "justMyCode": false,
+            "name": "query_composite_volume_and_segm_cell",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--db_path", "preprocessor/temp/test_db",
+                "--out", "my_zip.zip",
+                "volume-and-segmentation-cell",
+                // "--composite-query-type", "volume-and-segmentation-cell",
+                "--entry-id", "emd-1832",
+                "--source-db", "emdb",
+                "--time", "0",
+                "--channel-id", "0",
+                "--lattice-id", "0"
+            ]
+        },
+        {
+            "justMyCode": false,
+            "name": "local_api_query_volume_cell",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--db_path", "preprocessor/temp/test_db",
+                "--out", "volume.bcif",
+                "volume-cell",
+                "--entry-id", "emd-1832",
+                "--source-db", "emdb",
+                "--time", "0",
+                "--channel-id", "0",
+            ]
+        },
+        {
+            "justMyCode": false,
+            "name": "local_api_query_mesh",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--db_path", "preprocessor/temp/test_db",
+                "--out", "some.json",
+                "mesh",
+                "--entry-id", "empiar-10070",
+                "--source-db", "empiar",
+                "--time", "0",
+                "--channel-id", "0",
+                "--segment-id", "1", "--detail-lvl", "1"
+            ]
+        },
+        {
+            "justMyCode": false,
+            "name": "local_api_list_entries",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--db_path", "preprocessor/temp/test_db",
+                "--out", "some.json",
+                "list-entries",
+                "--limit", "100"
+            ]
+        },
+        {
+            "justMyCode": false,
+            "name": "local_api_list_entries_keyword",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--db_path", "preprocessor/temp/test_db",
+                "--out", "some.json",
+                "list-entries-keyword",
+                "--limit", "100",
+                "--keyword", "emd"
+            ]
+        },
+        {
+            "justMyCode": false,
             "name": "tomoprocessor_empiar_dataset_171.rec",
             "type": "python",
             "request": "launch",

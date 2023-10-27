@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
+from cellstar_preprocessor.flows import segmentation
+from cellstar_query.helper_methods.create_in_memory_zip_from_bytes import create_in_memory_zip_from_bytes
 from cellstar_query.json_numpy_response import _NumpyJsonEncoder, JSONNumpyResponse
 from fastapi import Query
 from cellstar_query.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
@@ -14,6 +16,9 @@ from cellstar_query.query import get_list_entries_keywords_query, get_list_entri
 # VOLUME SERVER AND DB
 
 DEFAULT_MAX_POINTS = 100000000
+
+# TODO: add others
+COMPOSITE_QUERY_TYPES = ['volume-and-segmentation-cell']
 
 async def _query(args):
     db = FileSystemVolumeServerDB(folder=Path(args.db_path))
@@ -128,6 +133,44 @@ async def _query(args):
         file_writing_mode = 'w'
         response = await get_list_entries_keywords_query(volume_server=VOLUME_SERVER, limit=args.limit, keyword=args.keyword)
     
+    elif args.query_type == 'volume-and-segmentation-cell':
+        print('volume-and-segmentation-cell')
+        # PLAN
+        # 1. get one file
+        # 2. get another file
+        # zip?
+        # in memory?
+        # https://stackoverflow.com/questions/71251353/how-to-create-a-zip-archive-containing-multiple-files-and-subfolders-in-memory
+        # then write to zip file
+        # https://stackoverflow.com/questions/18457678/python-write-in-memory-zip-to-file
+        # write bytes to file
+        # https://stackoverflow.com/a/54464733/13136429
+        # if not, this:
+        # https://stackoverflow.com/questions/54200941/zipfile-module-for-python3-6-write-to-bytes-instead-of-files-for-odoo
+        file_writing_mode = 'wb'
+        volume_bcif_bytes = await get_volume_cell_query(
+            volume_server=VOLUME_SERVER,
+            source=args.source_db,
+            id=args.entry_id,
+            time=args.time,
+            channel_id=args.channel_id,
+            max_points=args.max_points
+        )
+        segmentation_bcif_bytes = await get_segmentation_cell_query(
+            volume_server=VOLUME_SERVER,
+            segmentation=args.lattice_id,
+            source=args.source_db,
+            id=args.entry_id,
+            time=args.time,
+            channel_id=args.channel_id,
+            max_points=args.max_points
+        )
+        response = [
+            ('volume.bcif', volume_bcif_bytes),
+            ('segmentation.bcif', segmentation_bcif_bytes)
+        ]
+        
+
     # write to file
 
     
@@ -138,6 +181,9 @@ async def _query(args):
             json_dump = json.dumps(response, 
                        cls=_NumpyJsonEncoder)
             json.dump(json_dump, f, indent=4)
+        elif args.query_type in COMPOSITE_QUERY_TYPES:
+            zip_data = create_in_memory_zip_from_bytes(response)
+            f.write(zip_data)
         else: 
             f.write(response)
 
@@ -221,6 +267,15 @@ async def main():
     list_entries_keyword_parser = common_subparsers.add_parser('list-entries-keyword')
     list_entries_keyword_parser.add_argument('--limit', type=int, default=100, required=True)
     list_entries_keyword_parser.add_argument('--keyword', type=str, required=True)
+    
+    volume_and_segm_cell_parser = common_subparsers.add_parser('volume-and-segmentation-cell')
+    volume_and_segm_cell_parser.add_argument('--entry-id', type=str, required=True)
+    volume_and_segm_cell_parser.add_argument('--source-db', type=str, required=True)
+    volume_and_segm_cell_parser.add_argument('--time', required=True, type=int)
+    volume_and_segm_cell_parser.add_argument('--channel-id', required=True, type=int)
+    volume_and_segm_cell_parser.add_argument('--lattice-id', type=int, required=True)
+    # TODO: fix default
+    volume_and_segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
     
     args = main_parser.parse_args()
 
