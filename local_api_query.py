@@ -123,6 +123,12 @@ async def _query(args):
         print('volume info query')
         response = await get_volume_info_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
 
+    elif args.query_type == 'annotations':
+        print('annotations query')
+        file_writing_mode = 'w'
+        metadata_response = await get_metadata_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
+        response = metadata_response['annotation']
+
     elif args.query_type == 'list-entries':
         print('list_entries query')
         file_writing_mode = 'w'
@@ -240,9 +246,18 @@ async def main():
 
     # METADATA
     metadata_parser = common_subparsers.add_parser('metadata')
+    metadata_parser.add_argument('--entry-id', type=str, required=True)
+    metadata_parser.add_argument('--source-db', type=str, required=True)
 
     # VOLUME INFO
-    metadata_parser = common_subparsers.add_parser('volume-info')
+    volume_info_parser = common_subparsers.add_parser('volume-info')
+    volume_info_parser.add_argument('--entry-id', type=str, required=True)
+    volume_info_parser.add_argument('--source-db', type=str, required=True)
+
+    # ANNOTATIONS
+    annotations_parser = common_subparsers.add_parser('annotations')
+    annotations_parser.add_argument('--entry-id', type=str, required=True)
+    annotations_parser.add_argument('--source-db', type=str, required=True)
 
     # MESHES
     meshes_parser = common_subparsers.add_parser('mesh')
@@ -277,6 +292,7 @@ async def main():
     # TODO: fix default
     volume_and_segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
     
+
     args = main_parser.parse_args()
 
     await _query(args)
