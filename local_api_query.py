@@ -1,13 +1,16 @@
 import argparse
 import asyncio
+from enum import Enum
 import json
 from pathlib import Path
+from typing import Literal, TypedDict
+from attr import dataclass
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from cellstar_preprocessor.flows import segmentation
 from cellstar_query.helper_methods.create_in_memory_zip_from_bytes import create_in_memory_zip_from_bytes
 from cellstar_query.json_numpy_response import _NumpyJsonEncoder, JSONNumpyResponse
-from fastapi import Query
+# from fastapi import Query
 from cellstar_query.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
 from cellstar_query.core.service import VolumeServerService
@@ -17,8 +20,104 @@ from cellstar_query.query import get_list_entries_keywords_query, get_list_entri
 
 DEFAULT_MAX_POINTS = 100000000
 
+# class QueryTypes(str, Enum):
+#     TODO:
+# query types as typed dicts?
+# entryDataRequired: bool => entry-id source-db arguments
+# hasSegmentation: bool => lattice-id argument
+# 
+@dataclass
+class BaseQuery:
+    name: str # can be Enum
+
+@dataclass
+class EntryDataRequiredQuery(BaseQuery):
+    pass
+
+@dataclass
+class DataQuery(EntryDataRequiredQuery):
+    # time and channel-id args
+    pass
+
+@dataclass
+class VolumetricDataQuery(DataQuery):
+    # max points arg
+    isSegmentation: bool # => lattice-id arg
+    isBox: bool # => box-coords arg
+    type: Literal['volume', 'segmentation']
+
+@dataclass
+class MeshDataQuery(DataQuery):
+    # segment-id and detail-lvl args
+    pass
+
+@dataclass
+class EntryInfoQuery(EntryDataRequiredQuery):
+    # for metadata, annotations, volume info
+    pass
+
+@dataclass
+class GlobalInfoQuery(BaseQuery):
+    pass
+
+@dataclass
+class ListEntriesQuery(GlobalInfoQuery):
+    keywords: bool = False
+
+QUERY_TYPES = [
+    VolumetricDataQuery(name='volume-box', isSegmentation=False, isBox=True, type='volume'),
+    VolumetricDataQuery(name='segmentation-box', isSegmentation=True, isBox=True, type='volume'),
+    VolumetricDataQuery(name='volume-cell', isSegmentation=False, isBox=False, type='volume'),
+    VolumetricDataQuery(name='segmentation-cell', isSegmentation=True, isBox=False, type='volume'),
+    MeshDataQuery(name='mesh'),
+    MeshDataQuery(name='mesh-bcif'),
+    EntryInfoQuery(name='metadata'),
+    EntryInfoQuery(name='annotations'),
+    EntryInfoQuery(name='volume-info'),
+    ListEntriesQuery(name='list-entries'),
+    ListEntriesQuery(name='list-entries-keyword', keywords=True)
+]
+
+def _create_parsers(common_subparsers, query_types: list[BaseQuery]):
+    parsers = []
+    for query in query_types:
+        parser = common_subparsers.add_parser(query.name)
+        if isinstance(query, EntryDataRequiredQuery):
+            parser.add_argument('--entry-id', type=str, required=True)
+            parser.add_argument('--source-db', type=str, required=True)
+
+        if isinstance(query, DataQuery):
+            parser.add_argument('--time', required=True, type=int)
+            parser.add_argument('--channel-id', required=True, type=int)
+        
+        if isinstance(query, VolumetricDataQuery):
+            parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+
+            if query.isSegmentation:
+                parser.add_argument('--lattice-id', type=int, required=True)
+
+            if query.isBox:
+                parser.add_argument('--box-coords', nargs=6, required=True, type=float)
+
+
+        if isinstance(query, MeshDataQuery):
+            parser.add_argument('--segment-id', required=True, type=int)
+            parser.add_argument('--detail-lvl', required=True, type=int)
+        
+        if isinstance(query, ListEntriesQuery):
+            parser.add_argument('--limit', type=int, default=100, required=True)
+
+            if query.keywords:
+                parser.add_argument('--keyword', type=str, required=True)
+
+        # TODO: do we need them at all?
+        parsers.append(parser)
+    # print(parsers)
+    return parsers
+
 # TODO: add others
 COMPOSITE_QUERY_TYPES = ['volume-and-segmentation-cell']
+QUERY_TYPES_WITH_JSON_RESPONSE = ['annotations', 'metadata', 'list-entries', 'list-entries-keyword']
 
 async def _query(args):
     db = FileSystemVolumeServerDB(folder=Path(args.db_path))
@@ -181,7 +280,7 @@ async def _query(args):
 
     
     with open(str((Path(args.out)).resolve()), file_writing_mode) as f:
-        if args.query_type in ['metadata', 'list-entries', 'list-entries-keyword']:
+        if args.query_type in QUERY_TYPES_WITH_JSON_RESPONSE:
             json.dump(response, f, indent=4)
         elif args.query_type == 'mesh':
             json_dump = json.dumps(response, 
@@ -201,96 +300,96 @@ async def main():
     common_subparsers = main_parser.add_subparsers(dest='query_type', help='query type')
     # COMMON ARGUMENTS
     main_parser.add_argument('--db_path', type=str, required=True)
-    # main_parser.add_argument('--entry-id', type=str, required=True)
-    # main_parser.add_argument('--source-db', type=str, required=True)
     main_parser.add_argument('--out', type=str, required=True)
 
-    box_parser = common_subparsers.add_parser('volume-box')
-    box_parser.add_argument('--entry-id', type=str, required=True)
-    box_parser.add_argument('--source-db', type=str, required=True)
-    box_parser.add_argument('--time', required=True, type=int)
-    box_parser.add_argument('--channel-id', required=True, type=int)
-    box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
-    # TODO: fix default
-    box_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+    _create_parsers(common_subparsers=common_subparsers, query_types=QUERY_TYPES)
 
-    # SEGMENTATION BOX
-    segm_box_parser = common_subparsers.add_parser('segmentation-box')
-    segm_box_parser.add_argument('--entry-id', type=str, required=True)
-    segm_box_parser.add_argument('--source-db', type=str, required=True)
-    segm_box_parser.add_argument('--time', required=True, type=int)
-    segm_box_parser.add_argument('--channel-id', required=True, type=int)
-    segm_box_parser.add_argument('--lattice-id', type=int, required=True)
-    segm_box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
-    # TODO: fix default
-    segm_box_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+    # box_parser = common_subparsers.add_parser('volume-box')
+    # box_parser.add_argument('--entry-id', type=str, required=True)
+    # box_parser.add_argument('--source-db', type=str, required=True)
+    # box_parser.add_argument('--time', required=True, type=int)
+    # box_parser.add_argument('--channel-id', required=True, type=int)
+    # box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
+    # # TODO: fix default
+    # box_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+
+    # # SEGMENTATION BOX
+    # segm_box_parser = common_subparsers.add_parser('segmentation-box')
+    # segm_box_parser.add_argument('--entry-id', type=str, required=True)
+    # segm_box_parser.add_argument('--source-db', type=str, required=True)
+    # segm_box_parser.add_argument('--time', required=True, type=int)
+    # segm_box_parser.add_argument('--channel-id', required=True, type=int)
+    # segm_box_parser.add_argument('--lattice-id', type=int, required=True)
+    # segm_box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
+    # # TODO: fix default
+    # segm_box_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
     
-    # VOLUME CELL
-    volume_cell_parser = common_subparsers.add_parser('volume-cell')
-    volume_cell_parser.add_argument('--entry-id', type=str, required=True)
-    volume_cell_parser.add_argument('--source-db', type=str, required=True)
-    volume_cell_parser.add_argument('--time', required=True, type=int)
-    volume_cell_parser.add_argument('--channel-id', required=True, type=int)
-    # TODO: fix default
-    volume_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+    # # VOLUME CELL
+    # volume_cell_parser = common_subparsers.add_parser('volume-cell')
+    # volume_cell_parser.add_argument('--entry-id', type=str, required=True)
+    # volume_cell_parser.add_argument('--source-db', type=str, required=True)
+    # volume_cell_parser.add_argument('--time', required=True, type=int)
+    # volume_cell_parser.add_argument('--channel-id', required=True, type=int)
+    # # TODO: fix default
+    # volume_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
 
-    # SEGMENTATION CELL
-    segm_cell_parser = common_subparsers.add_parser('segmentation-cell')
-    segm_cell_parser.add_argument('--entry-id', type=str, required=True)
-    segm_cell_parser.add_argument('--source-db', type=str, required=True)
-    segm_cell_parser.add_argument('--time', required=True, type=int)
-    segm_cell_parser.add_argument('--channel-id', required=True, type=int)
-    segm_cell_parser.add_argument('--lattice-id', type=int, required=True)
-    # TODO: fix default
-    segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+    # # SEGMENTATION CELL
+    # segm_cell_parser = common_subparsers.add_parser('segmentation-cell')
+    # segm_cell_parser.add_argument('--entry-id', type=str, required=True)
+    # segm_cell_parser.add_argument('--source-db', type=str, required=True)
+    # segm_cell_parser.add_argument('--time', required=True, type=int)
+    # segm_cell_parser.add_argument('--channel-id', required=True, type=int)
+    # segm_cell_parser.add_argument('--lattice-id', type=int, required=True)
+    # # TODO: fix default
+    # segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
 
-    # METADATA
-    metadata_parser = common_subparsers.add_parser('metadata')
-    metadata_parser.add_argument('--entry-id', type=str, required=True)
-    metadata_parser.add_argument('--source-db', type=str, required=True)
+    # # METADATA
+    # metadata_parser = common_subparsers.add_parser('metadata')
+    # metadata_parser.add_argument('--entry-id', type=str, required=True)
+    # metadata_parser.add_argument('--source-db', type=str, required=True)
 
-    # VOLUME INFO
-    volume_info_parser = common_subparsers.add_parser('volume-info')
-    volume_info_parser.add_argument('--entry-id', type=str, required=True)
-    volume_info_parser.add_argument('--source-db', type=str, required=True)
+    # # VOLUME INFO
+    # volume_info_parser = common_subparsers.add_parser('volume-info')
+    # volume_info_parser.add_argument('--entry-id', type=str, required=True)
+    # volume_info_parser.add_argument('--source-db', type=str, required=True)
 
-    # ANNOTATIONS
-    annotations_parser = common_subparsers.add_parser('annotations')
-    annotations_parser.add_argument('--entry-id', type=str, required=True)
-    annotations_parser.add_argument('--source-db', type=str, required=True)
+    # # ANNOTATIONS
+    # annotations_parser = common_subparsers.add_parser('annotations')
+    # annotations_parser.add_argument('--entry-id', type=str, required=True)
+    # annotations_parser.add_argument('--source-db', type=str, required=True)
 
-    # MESHES
-    meshes_parser = common_subparsers.add_parser('mesh')
-    meshes_parser.add_argument('--entry-id', type=str, required=True)
-    meshes_parser.add_argument('--source-db', type=str, required=True)
-    meshes_parser.add_argument('--time', required=True, type=int)
-    meshes_parser.add_argument('--channel-id', required=True, type=int)
-    meshes_parser.add_argument('--segment-id', required=True, type=int)
-    meshes_parser.add_argument('--detail-lvl', required=True, type=int)
+    # # MESHES
+    # meshes_parser = common_subparsers.add_parser('mesh')
+    # meshes_parser.add_argument('--entry-id', type=str, required=True)
+    # meshes_parser.add_argument('--source-db', type=str, required=True)
+    # meshes_parser.add_argument('--time', required=True, type=int)
+    # meshes_parser.add_argument('--channel-id', required=True, type=int)
+    # meshes_parser.add_argument('--segment-id', required=True, type=int)
+    # meshes_parser.add_argument('--detail-lvl', required=True, type=int)
 
-    meshes_bcif_parser = common_subparsers.add_parser('mesh-bcif')
-    meshes_bcif_parser.add_argument('--entry-id', type=str, required=True)
-    meshes_bcif_parser.add_argument('--source-db', type=str, required=True)
-    meshes_bcif_parser.add_argument('--time', required=True, type=int)
-    meshes_bcif_parser.add_argument('--channel-id', required=True, type=int)
-    meshes_bcif_parser.add_argument('--segment-id', required=True, type=int)
-    meshes_bcif_parser.add_argument('--detail-lvl', required=True, type=int)
+    # meshes_bcif_parser = common_subparsers.add_parser('mesh-bcif')
+    # meshes_bcif_parser.add_argument('--entry-id', type=str, required=True)
+    # meshes_bcif_parser.add_argument('--source-db', type=str, required=True)
+    # meshes_bcif_parser.add_argument('--time', required=True, type=int)
+    # meshes_bcif_parser.add_argument('--channel-id', required=True, type=int)
+    # meshes_bcif_parser.add_argument('--segment-id', required=True, type=int)
+    # meshes_bcif_parser.add_argument('--detail-lvl', required=True, type=int)
     
-    list_entries_parser = common_subparsers.add_parser('list-entries')
-    list_entries_parser.add_argument('--limit', type=int, default=100, required=True)
+    # list_entries_parser = common_subparsers.add_parser('list-entries')
+    # list_entries_parser.add_argument('--limit', type=int, default=100, required=True)
 
-    list_entries_keyword_parser = common_subparsers.add_parser('list-entries-keyword')
-    list_entries_keyword_parser.add_argument('--limit', type=int, default=100, required=True)
-    list_entries_keyword_parser.add_argument('--keyword', type=str, required=True)
+    # list_entries_keyword_parser = common_subparsers.add_parser('list-entries-keyword')
+    # list_entries_keyword_parser.add_argument('--limit', type=int, default=100, required=True)
+    # list_entries_keyword_parser.add_argument('--keyword', type=str, required=True)
     
-    volume_and_segm_cell_parser = common_subparsers.add_parser('volume-and-segmentation-cell')
-    volume_and_segm_cell_parser.add_argument('--entry-id', type=str, required=True)
-    volume_and_segm_cell_parser.add_argument('--source-db', type=str, required=True)
-    volume_and_segm_cell_parser.add_argument('--time', required=True, type=int)
-    volume_and_segm_cell_parser.add_argument('--channel-id', required=True, type=int)
-    volume_and_segm_cell_parser.add_argument('--lattice-id', type=int, required=True)
-    # TODO: fix default
-    volume_and_segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+    # volume_and_segm_cell_parser = common_subparsers.add_parser('volume-and-segmentation-cell')
+    # volume_and_segm_cell_parser.add_argument('--entry-id', type=str, required=True)
+    # volume_and_segm_cell_parser.add_argument('--source-db', type=str, required=True)
+    # volume_and_segm_cell_parser.add_argument('--time', required=True, type=int)
+    # volume_and_segm_cell_parser.add_argument('--channel-id', required=True, type=int)
+    # volume_and_segm_cell_parser.add_argument('--lattice-id', type=int, required=True)
+    # # TODO: fix default
+    # volume_and_segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
     
 
     args = main_parser.parse_args()
