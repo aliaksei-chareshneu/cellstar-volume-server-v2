@@ -3,7 +3,7 @@ import asyncio
 from enum import Enum
 import json
 from pathlib import Path
-from typing import Literal, Optional, Protocol, Type, TypedDict, Union
+from typing import Any, Coroutine, Literal, Optional, Protocol, Type, TypedDict, Union
 from attr import dataclass
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
@@ -84,12 +84,15 @@ class QueryResponse:
 
 class QuerySpecificParams(TypedDict):
     data_type: Optional[Literal['volume', 'segmentation']]
+    mesh_query_type: Optional[Literal['mesh', 'mesh-bcif']]
+    entry_info_query_type: Optional[Literal['metadata', 'volume-info', 'annotations']]
+    global_info_query_type: Optional[Literal['list-entries', 'list-entries-keyword']]
 
 # typeddict query task params
 class QueryTaskParams(TypedDict):
     argaprse_args: argparse.Namespace
     volume_server: VolumeServerService
-    custom_params: QuerySpecificParams
+    custom_params: Optional[QuerySpecificParams]
 
 # TODO: file writing mode
 class QueryTaskBase(Protocol):  
@@ -154,7 +157,7 @@ class BoxDataQueryTask(VolumetricDataQueryTask):
                 id=self.entry_id,
                 time=self.time,
                 channel_id=self.channel_id,
-                lattice_id=self.lattice_id,
+                segmentation=self.lattice_id,
                 a1=a1,
                 a2=a2,
                 a3=a3,
@@ -187,13 +190,73 @@ class CellDataQueryTask(VolumetricDataQueryTask):
                 id=self.entry_id,
                 time=self.time,
                 channel_id=self.channel_id,
-                lattice_id=self.lattice_id,
+                segmentation=self.lattice_id,
                 max_points=self.max_points
             )
         
         return QueryResponse(response=response)
 
+class MeshDataQueryTask(DataQueryTask):
+    def __init__(self, params: QueryTaskParams):
+        args, volume_server, query_specific_params = params.values()
+        super().__init__(params)
+        self.mesh_query_type = query_specific_params['mesh_query_type']
+        self.segment_id = args.segment_id
+        self.detail_lvl = args.detail_lvl
+    async def execute(self):
+        if self.mesh_query_type == 'mesh':
+            response = await get_meshes_query(
+                volume_server=self.volume_server,
+                source=self.source_db,
+                id=self.entry_id,
+                time=self.time,
+                channel_id=self.channel_id,
+                segment_id=self.segment_id,
+                detail_lvl=self.detail_lvl
+            )
+        elif self.mesh_query_type == 'mesh-bcif':
+            response = await get_meshes_bcif_query(
+                volume_server=self.volume_server,
+                source=self.source_db,
+                id=self.entry_id,
+                time=self.time,
+                channel_id=self.channel_id,
+                segment_id=self.segment_id,
+                detail_lvl=self.detail_lvl
+            )
+        return QueryResponse(response=response)
 
+class EntryInfoQueryTask(EntryDataRequiredQueryTask):
+    def __init__(self, params: QueryTaskParams):
+        args, volume_server, query_specific_params = params.values()
+        super().__init__(params)
+        self.entry_info_query_type = query_specific_params['entry_info_query_type']
+    async def execute(self):
+        if self.entry_info_query_type == 'metadata':
+            response = await get_metadata_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
+        elif self.entry_info_query_type == 'volume-info':
+            response = await get_volume_info_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
+        elif self.entry_info_query_type == 'annotations':
+            metadata_response = await get_metadata_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
+            response = metadata_response['annotation']
+
+        return QueryResponse(response=response)
+
+class GlobalInfoQueryTask(QueryTask):
+    def __init__(self, params: QueryTaskParams):
+        args, volume_server, query_specific_params = params.values()
+        super().__init__(params)
+        self.global_info_query_type = query_specific_params['global_info_query_type']
+        self.limit = args.limit
+        if self.global_info_query_type == 'list-entries-keyword':
+            self.keyword = args.keyword
+    async def execute(self):
+        if self.global_info_query_type == 'list-entries':
+            response = await get_list_entries_query(volume_server=self.volume_server, limit=self.limit)
+        elif self.global_info_query_type == 'list-entries-keyword':
+            response = await get_list_entries_keywords_query(volume_server=self.volume_server, limit=self.limit, keyword=self.keyword)
+
+        return QueryResponse(response=response)
 
 def _create_parsers(common_subparsers, query_types: list[BaseQuery]):
     parsers = []
@@ -232,130 +295,90 @@ def _create_parsers(common_subparsers, query_types: list[BaseQuery]):
     # print(parsers)
     return parsers
 
-
+def _write_to_file(args: argparse.Namespace, response: QueryResponse):
+    r = response.response
+    if isinstance(r, bytes):
+        file_writing_mode = 'wb'
+    elif isinstance(r, str) or isinstance(r, list) or isinstance(r, dict):
+        file_writing_mode = 'w'
+    else:
+        raise Exception('response type is not supported')
+    
+    with open(str(Path(args.out).resolve()), file_writing_mode) as f:
+        if args.query_type in QUERY_TYPES_WITH_JSON_RESPONSE:
+            json.dump(r, f, indent=4)
+        elif args.query_type == 'mesh':
+            json_dump = json.dumps(r, 
+                       cls=_NumpyJsonEncoder)
+            json.dump(json_dump, f, indent=4)
+        elif args.query_type in COMPOSITE_QUERY_TYPES:
+            zip_data = create_in_memory_zip_from_bytes(r)
+            f.write(zip_data)
+        else: 
+            f.write(r)
 
 async def _query(args):
     db = FileSystemVolumeServerDB(folder=Path(args.db_path))
 
     # initialize server
-    VOLUME_SERVER = VolumeServerService(db)
+    volume_server = VolumeServerService(db)
 
-    # file_writing_mode = 'wb'
-
-    # d = QueryTask(QueryTaskParams(argaprse_args=args, volume_server, query_specific_params=VOLUME_SERVER))
-    d = BoxDataQueryTask(args, data_type='volume')
-    print(d)
-
-    # if args.query_type == 'volume-box':
-    #     print('volume box query')
-    #     # query
-    #     a1, a2, a3, b1, b2, b3 = args.box_coords
-    #     response = await get_volume_box_query(
-    #         volume_server=VOLUME_SERVER,
-    #         source=args.source_db,
-    #         id=args.entry_id,
-    #         time=args.time,
-    #         channel_id=args.channel_id,
-    #         a1=a1,
-    #         a2=a2,
-    #         a3=a3,
-    #         b1=b1,
-    #         b2=b2,
-    #         b3=b3,
-    #         max_points=args.max_points
-    #     )
-
-    # elif args.query_type == 'segmentation-box':
-    #     print('segmentation box query')
-    #     # query
-    #     a1, a2, a3, b1, b2, b3 = args.box_coords
-    #     response = await get_segmentation_box_query(
-    #         volume_server=VOLUME_SERVER,
-    #         segmentation=args.lattice_id,
-    #         source=args.source_db,
-    #         id=args.entry_id,
-    #         time=args.time,
-    #         channel_id=args.channel_id,
-    #         a1=a1,
-    #         a2=a2,
-    #         a3=a3,
-    #         b1=b1,
-    #         b2=b2,
-    #         b3=b3,
-    #         max_points=args.max_points
-    #     )
+    # TODO: _parse query_type function?
+    # that returns QueryType dataclass?
+    # with properties 
+    # then depending on 
+    task = None
+    query_params = QueryTaskParams(argaprse_args=args, volume_server=volume_server)
+    if args.query_type == 'volume-box':
+        print('volume box query')
+        query_params['custom_params'] = {
+            'data_type': 'volume'
+        }
+        task = BoxDataQueryTask(params=query_params)
+        
+    elif args.query_type == 'segmentation-box':
+        print('segmentation box query')
+        # query
+        query_params['custom_params'] = {
+            'data_type': 'segmentation'
+        }
+        task = BoxDataQueryTask(params=query_params)
     
-    # elif args.query_type == 'segmentation-cell':
-    #     print('segmentation cell query')
-    #     response = await get_segmentation_cell_query(
-    #         volume_server=VOLUME_SERVER,
-    #         segmentation=args.lattice_id,
-    #         source=args.source_db,
-    #         id=args.entry_id,
-    #         time=args.time,
-    #         channel_id=args.channel_id,
-    #         max_points=args.max_points
-    #     )
-    # elif args.query_type == 'volume-cell':
-    #     print('volume cell query')
-    #     response = await get_volume_cell_query(
-    #         volume_server=VOLUME_SERVER,
-    #         source=args.source_db,
-    #         id=args.entry_id,
-    #         time=args.time,
-    #         channel_id=args.channel_id,
-    #         max_points=args.max_points
-    #     )
+    elif args.query_type == 'segmentation-cell':
+        print('segmentation cell query')
+        query_params['custom_params'] = {
+            'data_type': 'segmentation'
+        }
+        task = CellDataQueryTask(params=query_params)
 
-    # elif args.query_type == 'mesh':
-    #     print('mesh query')
-    #     file_writing_mode = 'w'
-    #     response = await get_meshes_query(
-    #         volume_server=VOLUME_SERVER,
-    #         source=args.source_db,
-    #         id=args.entry_id,
-    #         time=args.time,
-    #         channel_id=args.channel_id,
-    #         segment_id=args.segment_id,
-    #         detail_lvl=args.detail_lvl
-    #     )
+    elif args.query_type == 'volume-cell':
+        print('volume cell query')
+        query_params['custom_params'] = {
+            'data_type': 'volume'
+        }
+        task = CellDataQueryTask(params=query_params)
 
-    # elif args.query_type == 'mesh-bcif':
-    #     print('mesh-bcif query')
-    #     response = await get_meshes_bcif_query(
-    #         volume_server=VOLUME_SERVER,
-    #         source=args.source_db,
-    #         id=args.entry_id,
-    #         time=args.time,
-    #         channel_id=args.channel_id,
-    #         segment_id=args.segment_id,
-    #         detail_lvl=args.detail_lvl
-    #     )
+    elif args.query_type in ['mesh', 'mesh-bcif']:
+        print(f'{args.query_type}')
+        query_params['custom_params'] = {
+            'mesh_query_type': args.query_type
+        }
+        task = MeshDataQueryTask(params=query_params)
 
-    # elif args.query_type == 'metadata':
-    #     print('metadata query')
-    #     file_writing_mode = 'w'
-    #     response = await get_metadata_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
-    
-    # elif args.query_type == 'volume-info':
-    #     print('volume info query')
-    #     response = await get_volume_info_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
+    # TODO: query types as classes or list?
+    elif args.query_type in ['metadata', 'volume-info', 'annotations']:
+        print(f'{args.query_type} query')
+        query_params['custom_params'] = {
+            'entry_info_query_type': args.query_type
+        }
+        task = EntryInfoQueryTask(params=query_params)
 
-    # elif args.query_type == 'annotations':
-    #     print('annotations query')
-    #     file_writing_mode = 'w'
-    #     metadata_response = await get_metadata_query(volume_server=VOLUME_SERVER, source=args.source_db, id=args.entry_id)
-    #     response = metadata_response['annotation']
-
-    # elif args.query_type == 'list-entries':
-    #     print('list_entries query')
-    #     file_writing_mode = 'w'
-    #     response = await get_list_entries_query(volume_server=VOLUME_SERVER, limit=args.limit)
-    
-    # elif args.query_type == 'list-entries-keyword':
-    #     print('list_entries query')
-    #     file_writing_mode = 'w'
-    #     response = await get_list_entries_keywords_query(volume_server=VOLUME_SERVER, limit=args.limit, keyword=args.keyword)
+    elif args.query_type in ['list-entries', 'list-entries-keyword']:
+        print(f'{args.query_type} query')
+        query_params['custom_params'] = {
+            'global_info_query_type': args.query_type
+        }
+        task = GlobalInfoQueryTask(params=query_params)
     
     # elif args.query_type == 'volume-and-segmentation-cell':
     #     print('volume-and-segmentation-cell')
@@ -396,21 +419,9 @@ async def _query(args):
         
 
     # write to file
-
+    response = await task.execute()
+    _write_to_file(args=args, response=response)
     
-    # with open(str((Path(args.out)).resolve()), file_writing_mode) as f:
-    #     if args.query_type in QUERY_TYPES_WITH_JSON_RESPONSE:
-    #         json.dump(response, f, indent=4)
-    #     elif args.query_type == 'mesh':
-    #         json_dump = json.dumps(response, 
-    #                    cls=_NumpyJsonEncoder)
-    #         json.dump(json_dump, f, indent=4)
-    #     elif args.query_type in COMPOSITE_QUERY_TYPES:
-    #         zip_data = create_in_memory_zip_from_bytes(response)
-    #         f.write(zip_data)
-    #     else: 
-    #         f.write(response)
-
 async def main():
     # initialize dependencies
     # PARSING
@@ -423,84 +434,6 @@ async def main():
 
     _create_parsers(common_subparsers=common_subparsers, query_types=QUERY_TYPES)
 
-    # box_parser = common_subparsers.add_parser('volume-box')
-    # box_parser.add_argument('--entry-id', type=str, required=True)
-    # box_parser.add_argument('--source-db', type=str, required=True)
-    # box_parser.add_argument('--time', required=True, type=int)
-    # box_parser.add_argument('--channel-id', required=True, type=int)
-    # box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
-    # # TODO: fix default
-    # box_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
-
-    # # SEGMENTATION BOX
-    # segm_box_parser = common_subparsers.add_parser('segmentation-box')
-    # segm_box_parser.add_argument('--entry-id', type=str, required=True)
-    # segm_box_parser.add_argument('--source-db', type=str, required=True)
-    # segm_box_parser.add_argument('--time', required=True, type=int)
-    # segm_box_parser.add_argument('--channel-id', required=True, type=int)
-    # segm_box_parser.add_argument('--lattice-id', type=int, required=True)
-    # segm_box_parser.add_argument('--box-coords', nargs=6, required=True, type=float)
-    # # TODO: fix default
-    # segm_box_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
-    
-    # # VOLUME CELL
-    # volume_cell_parser = common_subparsers.add_parser('volume-cell')
-    # volume_cell_parser.add_argument('--entry-id', type=str, required=True)
-    # volume_cell_parser.add_argument('--source-db', type=str, required=True)
-    # volume_cell_parser.add_argument('--time', required=True, type=int)
-    # volume_cell_parser.add_argument('--channel-id', required=True, type=int)
-    # # TODO: fix default
-    # volume_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
-
-    # # SEGMENTATION CELL
-    # segm_cell_parser = common_subparsers.add_parser('segmentation-cell')
-    # segm_cell_parser.add_argument('--entry-id', type=str, required=True)
-    # segm_cell_parser.add_argument('--source-db', type=str, required=True)
-    # segm_cell_parser.add_argument('--time', required=True, type=int)
-    # segm_cell_parser.add_argument('--channel-id', required=True, type=int)
-    # segm_cell_parser.add_argument('--lattice-id', type=int, required=True)
-    # # TODO: fix default
-    # segm_cell_parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
-
-    # # METADATA
-    # metadata_parser = common_subparsers.add_parser('metadata')
-    # metadata_parser.add_argument('--entry-id', type=str, required=True)
-    # metadata_parser.add_argument('--source-db', type=str, required=True)
-
-    # # VOLUME INFO
-    # volume_info_parser = common_subparsers.add_parser('volume-info')
-    # volume_info_parser.add_argument('--entry-id', type=str, required=True)
-    # volume_info_parser.add_argument('--source-db', type=str, required=True)
-
-    # # ANNOTATIONS
-    # annotations_parser = common_subparsers.add_parser('annotations')
-    # annotations_parser.add_argument('--entry-id', type=str, required=True)
-    # annotations_parser.add_argument('--source-db', type=str, required=True)
-
-    # # MESHES
-    # meshes_parser = common_subparsers.add_parser('mesh')
-    # meshes_parser.add_argument('--entry-id', type=str, required=True)
-    # meshes_parser.add_argument('--source-db', type=str, required=True)
-    # meshes_parser.add_argument('--time', required=True, type=int)
-    # meshes_parser.add_argument('--channel-id', required=True, type=int)
-    # meshes_parser.add_argument('--segment-id', required=True, type=int)
-    # meshes_parser.add_argument('--detail-lvl', required=True, type=int)
-
-    # meshes_bcif_parser = common_subparsers.add_parser('mesh-bcif')
-    # meshes_bcif_parser.add_argument('--entry-id', type=str, required=True)
-    # meshes_bcif_parser.add_argument('--source-db', type=str, required=True)
-    # meshes_bcif_parser.add_argument('--time', required=True, type=int)
-    # meshes_bcif_parser.add_argument('--channel-id', required=True, type=int)
-    # meshes_bcif_parser.add_argument('--segment-id', required=True, type=int)
-    # meshes_bcif_parser.add_argument('--detail-lvl', required=True, type=int)
-    
-    # list_entries_parser = common_subparsers.add_parser('list-entries')
-    # list_entries_parser.add_argument('--limit', type=int, default=100, required=True)
-
-    # list_entries_keyword_parser = common_subparsers.add_parser('list-entries-keyword')
-    # list_entries_keyword_parser.add_argument('--limit', type=int, default=100, required=True)
-    # list_entries_keyword_parser.add_argument('--keyword', type=str, required=True)
-    
     # volume_and_segm_cell_parser = common_subparsers.add_parser('volume-and-segmentation-cell')
     # volume_and_segm_cell_parser.add_argument('--entry-id', type=str, required=True)
     # volume_and_segm_cell_parser.add_argument('--source-db', type=str, required=True)
