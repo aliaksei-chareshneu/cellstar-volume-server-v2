@@ -280,9 +280,10 @@ class GlobalInfoQueryTask(QueryTask):
         return QueryResponse(response=response, type=self.query_type)
 
 class CompositeQueryTask(QueryTask):
-    def __init__(self, subtasks: list[QueryTask]):
+    def __init__(self, subtasks: list[QueryTask], json_with_query_params: JsonQueryParams):
         # super().__init__(params)
         self.subtasks = subtasks
+        self.json_with_query_params = json_with_query_params
     async def execute(self):
         composite_response = []
         for subtask in self.subtasks:
@@ -296,6 +297,10 @@ class CompositeQueryTask(QueryTask):
             composite_response.append(
                 (f'{response.type}{extension}', response.response)
             )
+
+        composite_response.append(
+            ('query.json', self.json_with_query_params)
+        )
 
         return CompositeQueryTaskResponse(response=composite_response)
 
@@ -429,25 +434,25 @@ def _parse_json_with_query_params(json_path: Path):
     argparse_args_dict = vars(args)
     with open(json_path.resolve(), "r", encoding="utf-8") as f:
         # TODO: validate?
-        d: JsonQueryParams = json.load(f)
-        print(d)
+        raw_json: JsonQueryParams = json.load(f)
+        # print(d)
 
         # create argparse args
-        for arg, arg_value in d['args'].items():
+        for arg, arg_value in raw_json['args'].items():
             argparse_args_dict[f'{arg}'] = arg_value
 
         # print('args namespace')
         # print(args)
 
-        subquery_types = d['subquery_types']
+        subquery_types = raw_json['subquery_types']
 
-    return args, subquery_types
+    return raw_json, args, subquery_types
 
 async def _query(args):
     if args.query_type not in COMPOSITE_QUERY_TYPES:
         task = _create_task(args)
     else:
-        argparse_args, subquery_types = _parse_json_with_query_params(Path(args.json_params_path))
+        raw_json, argparse_args, subquery_types = _parse_json_with_query_params(Path(args.json_params_path))
         subtasks = []
         # TODO: create args separately for each subquery type?
         for subquery_type in subquery_types:
@@ -456,7 +461,7 @@ async def _query(args):
             subtasks.append(subtask)
         
 
-        task = CompositeQueryTask(subtasks=subtasks)
+        task = CompositeQueryTask(subtasks=subtasks, json_with_query_params=raw_json)
         
     response = await task.execute()
     _write_to_file(args=args, response=response)
