@@ -9,7 +9,7 @@ from attr import dataclass
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from cellstar_preprocessor.flows import segmentation
-from cellstar_query.helper_methods.create_in_memory_zip_from_bytes import create_in_memory_zip_from_bytes
+from cellstar_query.helper_methods.create_in_memory_zip import create_in_memory_zip
 from cellstar_query.json_numpy_response import _NumpyJsonEncoder, JSONNumpyResponse
 # from fastapi import Query
 from cellstar_query.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
@@ -359,7 +359,7 @@ def _write_to_file(args: argparse.Namespace, response: Union[QueryResponse, Comp
                        cls=_NumpyJsonEncoder)
             json.dump(json_dump, f, indent=4)
         elif args.query_type in COMPOSITE_QUERY_TYPES:
-            zip_data = create_in_memory_zip_from_bytes(r)
+            zip_data = create_in_memory_zip(r)
             f.write(zip_data)
         else: 
             f.write(r)
@@ -436,8 +436,8 @@ def _parse_json_with_query_params(json_path: Path):
         for arg, arg_value in d['args'].items():
             argparse_args_dict[f'{arg}'] = arg_value
 
-        print('args namespace')
-        print(args)
+        # print('args namespace')
+        # print(args)
 
         subquery_types = d['subquery_types']
 

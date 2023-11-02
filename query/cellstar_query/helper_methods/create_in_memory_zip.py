@@ -1,9 +1,11 @@
 import io
+import json
+from typing import Union
 from zipfile import ZIP_DEFLATED, ZipFile
 
 
 # zip with bytes in memory
-def create_in_memory_zip_from_bytes(files_data: list[tuple[str, bytes]]) -> bytes:
+def create_in_memory_zip(files_data: list[tuple[str, Union[bytes, dict]]]) -> bytes:
 
     file = io.BytesIO()
     with ZipFile(file, 'w', ZIP_DEFLATED) as zip_file:
@@ -11,7 +13,12 @@ def create_in_memory_zip_from_bytes(files_data: list[tuple[str, bytes]]) -> byte
         #     ('file.dat', b'data'), ('another_file.dat', b'more data')
         # ]:
         for name, content in files_data:
-            zip_file.writestr(name, content)
+            if isinstance(content, bytes):
+                zip_file.writestr(name, content)
+                # TODO: change extension (not here)
+            elif isinstance(content, dict):
+                dumped_JSON: str = json.dumps(content, ensure_ascii=False, indent=4)
+                zip_file.writestr(name, data=dumped_JSON)
 
     zip_data = file.getvalue()
     # print(zip_data)
