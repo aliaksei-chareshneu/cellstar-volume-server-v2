@@ -111,7 +111,6 @@ class QueryTaskParams(TypedDict):
     volume_server: VolumeServerService
     custom_params: Optional[QuerySpecificParams]
 
-# TODO: file writing mode
 class QueryTaskBase(Protocol):  
     async def execute(self) -> QueryResponse:
         ...
@@ -304,44 +303,45 @@ class CompositeQueryTask(QueryTask):
 
         return CompositeQueryTaskResponse(response=composite_response)
 
-def _create_simple_parsers(parser, query: BaseQuery):
+def _add_arguments(parser, query: BaseQuery):
     if isinstance(query, EntryDataRequiredQuery):
-        parser.add_argument('--entry-id', type=str, required=True)
-        parser.add_argument('--source-db', type=str, required=True)
+        parser.add_argument('--entry-id', type=str, required=True, help='Entry ID in the database (e.g. "emd-1832")')
+        parser.add_argument('--source-db', type=str, required=True, help='Source database (e.g. "emdb")')
 
     if isinstance(query, DataQuery):
-        parser.add_argument('--time', required=True, type=int)
-        parser.add_argument('--channel-id', required=True, type=int)
+        parser.add_argument('--time', required=True, type=int, help='Timeframe (e.g. 0)')
+        parser.add_argument('--channel-id', required=True, type=int, help='Channel ID (e.g 0)')
     
     if isinstance(query, VolumetricDataQuery):
-        parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS)
+        parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS, help='Maximum number of points')
 
         if query.isSegmentation:
-            parser.add_argument('--lattice-id', type=int, required=True)
+            parser.add_argument('--lattice-id', type=int, required=True, help='Lattice ID (e.g. 0)')
 
         if query.isBox:
-            parser.add_argument('--box-coords', nargs=6, required=True, type=float)
+            parser.add_argument('--box-coords', nargs=6, required=True, type=float, help='XYZ coordinates of bottom left and top right of query box in Angstroms')
 
 
     if isinstance(query, MeshDataQuery):
-        parser.add_argument('--segment-id', required=True, type=int)
-        parser.add_argument('--detail-lvl', required=True, type=int)
+        parser.add_argument('--segment-id', required=True, type=int, help='Segment ID of mesh (e.g 1)')
+        parser.add_argument('--detail-lvl', required=True, type=int, help='Required detail level (1 is highest resolution)')
     
     if isinstance(query, ListEntriesQuery):
-        parser.add_argument('--limit', type=int, default=100, required=True)
+        parser.add_argument('--limit', type=int, default=100, required=True, help='Maximum number of entries')
 
         if query.keywords:
-            parser.add_argument('--keyword', type=str, required=True)
+            parser.add_argument('--keyword', type=str, required=True, help='Keyword')
     
     if isinstance(query, CompositeQuery):
-        parser.add_argument('--json-params-path', required=True, type=str)
+        parser.add_argument('--json-params-path', required=True, type=str, help='Path to .json file with parameters for composite query')
 
 
 def _create_parsers(common_subparsers, query_types: list[BaseQuery]):
     parsers = []
     for query in query_types:
-        parser = common_subparsers.add_parser(query.name)
-        _create_simple_parsers(parser=parser, query=query)
+        help_message = (' '.join(query.name.split('-'))).capitalize() + ' query'
+        parser = common_subparsers.add_parser(query.name, help=help_message)
+        _add_arguments(parser=parser, query=query)
         # TODO: do we need them at all?
         parsers.append(parser)
     # print(parsers)
@@ -469,12 +469,18 @@ async def _query(args):
 async def main():
     # initialize dependencies
     # PARSING
-    main_parser = argparse.ArgumentParser(add_help=False)
-    
-    common_subparsers = main_parser.add_subparsers(dest='query_type', help='query type')
+    # NOTE: python local_api_query.py volume-box --help - will produce help message for subcommands
+    main_parser = argparse.ArgumentParser(add_help=True)
+    # TODO: Example of usage help
+    # https://stackoverflow.com/a/10930713/13136429
+
+    # help for subparsers
+    # https://stackoverflow.com/a/56516183/13136429
+    common_subparsers = main_parser.add_subparsers(title='Query type', dest='query_type', help='Select one of: ')
     # COMMON ARGUMENTS
-    main_parser.add_argument('--db_path', type=str, required=True)
-    main_parser.add_argument('--out', type=str, required=True)
+    required_named = main_parser.add_argument_group('Required named arguments')
+    required_named.add_argument('--db_path', type=str, required=True, help='Path to db')
+    required_named.add_argument('--out', type=str, required=True, help='Path to output file including extension')
 
     _create_parsers(common_subparsers=common_subparsers, query_types=QUERY_TYPES)
 
