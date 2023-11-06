@@ -111,7 +111,7 @@ QUERY_TYPES_WITH_JSON_RESPONSE = [QueryTypes.annotations, QueryTypes.metadata, Q
 class CompositeQueryTaskResponse:
     # e.g. [('volume.bcif', volume_bcif_bytes),
     #         ('segmentation.bcif', segmentation_bcif_bytes)]
-    response: list[tuple[str, bytes]]
+    response: list[tuple[str, Union[bytes, dict]]]
 
 @dataclass
 class QueryResponse:
@@ -323,36 +323,38 @@ class CompositeQueryTask(QueryTask):
         return CompositeQueryTaskResponse(response=composite_response)
 
 def _add_arguments(parser, query: BaseQuery):
+    required_query_args = parser.add_argument_group('Required query named arguments')
+    optional_query_args = parser.add_argument_group('Optional query named arguments')
     if isinstance(query, EntryDataRequiredQuery):
-        parser.add_argument('--entry-id', type=str, required=True, help='Entry ID in the database (e.g. "emd-1832")')
-        parser.add_argument('--source-db', type=str, required=True, help='Source database (e.g. "emdb")')
+        required_query_args.add_argument('--entry-id', type=str, required=True, help='Entry ID in the database (e.g. "emd-1832")')
+        required_query_args.add_argument('--source-db', type=str, required=True, help='Source database (e.g. "emdb")')
 
     if isinstance(query, DataQuery):
-        parser.add_argument('--time', required=True, type=int, help='Timeframe (e.g. 0)', default=0)
-        parser.add_argument('--channel-id', required=True, type=int, help='Channel ID (e.g 0)', default=0)
+        required_query_args.add_argument('--time', required=True, type=int, help='Timeframe (e.g. 0)', default=0)
+        required_query_args.add_argument('--channel-id', required=True, type=int, help='Channel ID (e.g 0)', default=0)
     
     if isinstance(query, VolumetricDataQuery):
-        parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS, help='Maximum number of points')
+        optional_query_args.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS, help='Maximum number of points')
 
         if query.isSegmentation:
-            parser.add_argument('--lattice-id', type=int, required=True, help='Lattice ID (e.g. 0)', default=0)
+            required_query_args.add_argument('--lattice-id', type=int, required=True, help='Lattice ID (e.g. 0)', default=0)
 
         if query.isBox:
-            parser.add_argument('--box-coords', nargs=6, required=True, type=float, help='XYZ coordinates of bottom left and top right of query box in Angstroms')
+            required_query_args.add_argument('--box-coords', nargs=6, required=True, type=float, help='XYZ coordinates of bottom left and top right of query box in Angstroms')
 
 
     if isinstance(query, MeshDataQuery):
-        parser.add_argument('--segment-id', required=True, type=int, help='Segment ID of mesh (e.g 1)')
-        parser.add_argument('--detail-lvl', required=True, type=int, help='Required detail level (1 is highest resolution)')
+        required_query_args.add_argument('--segment-id', required=True, type=int, help='Segment ID of mesh (e.g 1)')
+        required_query_args.add_argument('--detail-lvl', required=True, type=int, help='Required detail level (1 is highest resolution)', default=1)
     
     if isinstance(query, ListEntriesQuery):
-        parser.add_argument('--limit', type=int, default=100, required=True, help='Maximum number of entries')
+        required_query_args.add_argument('--limit', type=int, default=100, required=True, help='Maximum number of entries')
 
         if query.keywords:
-            parser.add_argument('--keyword', type=str, required=True, help='Keyword')
+            required_query_args.add_argument('--keyword', type=str, required=True, help='Keyword')
     
     if isinstance(query, CompositeQuery):
-        parser.add_argument('--json-params-path', required=True, type=str, help='Path to .json file with parameters for composite query')
+        required_query_args.add_argument('--json-params-path', required=True, type=str, help='Path to .json file with parameters for composite query')
 
 
 def _create_parsers(common_subparsers, query_types: list[BaseQuery]):

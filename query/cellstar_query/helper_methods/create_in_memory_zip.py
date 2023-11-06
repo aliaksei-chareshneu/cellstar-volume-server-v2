@@ -15,7 +15,6 @@ def create_in_memory_zip(files_data: list[tuple[str, Union[bytes, dict]]]) -> by
         for name, content in files_data:
             if isinstance(content, bytes):
                 zip_file.writestr(name, content)
-                # TODO: change extension (not here)
             elif isinstance(content, dict):
                 dumped_JSON: str = json.dumps(content, ensure_ascii=False, indent=4)
                 zip_file.writestr(name, data=dumped_JSON)
