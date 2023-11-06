@@ -19,7 +19,26 @@ from cellstar_query.query import get_list_entries_keywords_query, get_list_entri
 
 # VOLUME SERVER AND DB
 
-DEFAULT_MAX_POINTS = 100000000
+DEFAULT_MAX_POINTS = 1000000000000
+
+class QueryTypes(str, Enum):
+    volume_box = "volume-box"
+    segmentation_box = "segmentation-box"
+    volume_cell = "volume-cell"
+    segmentation_cell = "segmentation-cell"
+    mesh = "mesh"
+    mesh_bcif = "mesh-bcif"
+    metadata = "metadata"
+    annotations = "annotations"
+    volume_info = "volume-info"
+    list_entries = "list-entries"
+    list_entries_keyword = "list-entries-keyword"
+    composite = "composite"
+
+    @staticmethod
+    def values():
+        # provide a meaningful named getter
+        return QueryTypes._value2member_map_
 
 class JsonQueryParams(TypedDict):
     subquery_types: list[str]
@@ -27,7 +46,7 @@ class JsonQueryParams(TypedDict):
 
 @dataclass
 class BaseQuery:
-    name: str # can be Enum
+    name: QueryTypes # can be Enum
 
 @dataclass
 class EntryDataRequiredQuery(BaseQuery):
@@ -69,23 +88,23 @@ class CompositeQuery(BaseQuery):
     pass
 
 QUERY_TYPES = [
-    VolumetricDataQuery(name='volume-box', isSegmentation=False, isBox=True),
-    VolumetricDataQuery(name='segmentation-box', isSegmentation=True, isBox=True),
-    VolumetricDataQuery(name='volume-cell', isSegmentation=False, isBox=False),
-    VolumetricDataQuery(name='segmentation-cell', isSegmentation=True, isBox=False),
-    MeshDataQuery(name='mesh'),
-    MeshDataQuery(name='mesh-bcif'),
-    EntryInfoQuery(name='metadata'),
-    EntryInfoQuery(name='annotations'),
-    EntryInfoQuery(name='volume-info'),
-    ListEntriesQuery(name='list-entries'),
-    ListEntriesQuery(name='list-entries-keyword', keywords=True),
-    CompositeQuery(name='composite')
+    VolumetricDataQuery(name=QueryTypes.volume_box.value, isSegmentation=False, isBox=True),
+    VolumetricDataQuery(name=QueryTypes.segmentation_box.value, isSegmentation=True, isBox=True),
+    VolumetricDataQuery(name=QueryTypes.volume_cell.value, isSegmentation=False, isBox=False),
+    VolumetricDataQuery(name=QueryTypes.segmentation_cell.value, isSegmentation=True, isBox=False),
+    MeshDataQuery(name=QueryTypes.mesh.value),
+    MeshDataQuery(name=QueryTypes.mesh_bcif.value),
+    EntryInfoQuery(name=QueryTypes.metadata.value),
+    EntryInfoQuery(name=QueryTypes.annotations.value),
+    EntryInfoQuery(name=QueryTypes.volume_info.value),
+    ListEntriesQuery(name=QueryTypes.list_entries.value),
+    ListEntriesQuery(name=QueryTypes.list_entries_keyword.value, keywords=True),
+    CompositeQuery(name=QueryTypes.composite.value)
 ]
 
 # TODO: add others
-COMPOSITE_QUERY_TYPES = ['composite']
-QUERY_TYPES_WITH_JSON_RESPONSE = ['annotations', 'metadata', 'list-entries', 'list-entries-keyword']
+COMPOSITE_QUERY_TYPES = [QueryTypes.composite]
+QUERY_TYPES_WITH_JSON_RESPONSE = [QueryTypes.annotations, QueryTypes.metadata, QueryTypes.list_entries, QueryTypes.list_entries_keyword]
 
 @dataclass
 # NOTE: for now just for volume + segmentation response
@@ -101,9 +120,9 @@ class QueryResponse:
 
 class QuerySpecificParams(TypedDict):
     data_type: Optional[Literal['volume', 'segmentation']]
-    mesh_query_type: Optional[Literal['mesh', 'mesh-bcif']]
-    entry_info_query_type: Optional[Literal['metadata', 'volume-info', 'annotations']]
-    global_info_query_type: Optional[Literal['list-entries', 'list-entries-keyword']]
+    mesh_query_type: Optional[Literal[QueryTypes.mesh, QueryTypes.mesh_bcif]]
+    entry_info_query_type: Optional[Literal[QueryTypes.metadata, QueryTypes.volume_info, QueryTypes.annotations]]
+    global_info_query_type: Optional[Literal[QueryTypes.list_entries, QueryTypes.list_entries_keyword]]
 
 # typeddict query task params
 class QueryTaskParams(TypedDict):
@@ -224,7 +243,7 @@ class MeshDataQueryTask(DataQueryTask):
         self.segment_id = args.segment_id
         self.detail_lvl = args.detail_lvl
     async def execute(self):
-        if self.mesh_query_type == 'mesh':
+        if self.mesh_query_type == QueryTypes.mesh:
             response = await get_meshes_query(
                 volume_server=self.volume_server,
                 source=self.source_db,
@@ -234,7 +253,7 @@ class MeshDataQueryTask(DataQueryTask):
                 segment_id=self.segment_id,
                 detail_lvl=self.detail_lvl
             )
-        elif self.mesh_query_type == 'mesh-bcif':
+        elif self.mesh_query_type == QueryTypes.mesh_bcif:
             response = await get_meshes_bcif_query(
                 volume_server=self.volume_server,
                 source=self.source_db,
@@ -252,11 +271,11 @@ class EntryInfoQueryTask(EntryDataRequiredQueryTask):
         super().__init__(params)
         self.entry_info_query_type = query_specific_params['entry_info_query_type']
     async def execute(self):
-        if self.entry_info_query_type == 'metadata':
+        if self.entry_info_query_type == QueryTypes.metadata:
             response = await get_metadata_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
-        elif self.entry_info_query_type == 'volume-info':
+        elif self.entry_info_query_type == QueryTypes.volume_info:
             response = await get_volume_info_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
-        elif self.entry_info_query_type == 'annotations':
+        elif self.entry_info_query_type == QueryTypes.annotations:
             metadata_response = await get_metadata_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
             response = metadata_response['annotation']
 
@@ -268,12 +287,12 @@ class GlobalInfoQueryTask(QueryTask):
         super().__init__(params)
         self.global_info_query_type = query_specific_params['global_info_query_type']
         self.limit = args.limit
-        if self.global_info_query_type == 'list-entries-keyword':
+        if self.global_info_query_type == QueryTypes.list_entries_keyword:
             self.keyword = args.keyword
     async def execute(self):
-        if self.global_info_query_type == 'list-entries':
+        if self.global_info_query_type == QueryTypes.list_entries:
             response = await get_list_entries_query(volume_server=self.volume_server, limit=self.limit)
-        elif self.global_info_query_type == 'list-entries-keyword':
+        elif self.global_info_query_type == QueryTypes.list_entries_keyword:
             response = await get_list_entries_keywords_query(volume_server=self.volume_server, limit=self.limit, keyword=self.keyword)
 
         return QueryResponse(response=response, type=self.query_type)
@@ -309,14 +328,14 @@ def _add_arguments(parser, query: BaseQuery):
         parser.add_argument('--source-db', type=str, required=True, help='Source database (e.g. "emdb")')
 
     if isinstance(query, DataQuery):
-        parser.add_argument('--time', required=True, type=int, help='Timeframe (e.g. 0)')
-        parser.add_argument('--channel-id', required=True, type=int, help='Channel ID (e.g 0)')
+        parser.add_argument('--time', required=True, type=int, help='Timeframe (e.g. 0)', default=0)
+        parser.add_argument('--channel-id', required=True, type=int, help='Channel ID (e.g 0)', default=0)
     
     if isinstance(query, VolumetricDataQuery):
         parser.add_argument('--max-points', type=int, default=DEFAULT_MAX_POINTS, help='Maximum number of points')
 
         if query.isSegmentation:
-            parser.add_argument('--lattice-id', type=int, required=True, help='Lattice ID (e.g. 0)')
+            parser.add_argument('--lattice-id', type=int, required=True, help='Lattice ID (e.g. 0)', default=0)
 
         if query.isBox:
             parser.add_argument('--box-coords', nargs=6, required=True, type=float, help='XYZ coordinates of bottom left and top right of query box in Angstroms')
@@ -359,7 +378,7 @@ def _write_to_file(args: argparse.Namespace, response: Union[QueryResponse, Comp
     with open(str(Path(args.out).resolve()), file_writing_mode) as f:
         if args.query_type in QUERY_TYPES_WITH_JSON_RESPONSE:
             json.dump(r, f, indent=4)
-        elif args.query_type == 'mesh':
+        elif args.query_type == QueryTypes.mesh:
             json_dump = json.dumps(r, 
                        cls=_NumpyJsonEncoder)
             json.dump(json_dump, f, indent=4)
@@ -377,14 +396,14 @@ def _create_task(args):
  
     task = None
     query_params = QueryTaskParams(argaprse_args=args, volume_server=volume_server)
-    if args.query_type == 'volume-box':
+    if args.query_type == QueryTypes.volume_box:
         print('volume box query')
         query_params['custom_params'] = {
             'data_type': 'volume'
         }
         task = BoxDataQueryTask(params=query_params)
         
-    elif args.query_type == 'segmentation-box':
+    elif args.query_type == QueryTypes.segmentation_box:
         print('segmentation box query')
         # query
         query_params['custom_params'] = {
@@ -392,35 +411,35 @@ def _create_task(args):
         }
         task = BoxDataQueryTask(params=query_params)
     
-    elif args.query_type == 'segmentation-cell':
+    elif args.query_type == QueryTypes.segmentation_cell:
         print('segmentation cell query')
         query_params['custom_params'] = {
             'data_type': 'segmentation'
         }
         task = CellDataQueryTask(params=query_params)
 
-    elif args.query_type == 'volume-cell':
+    elif args.query_type == QueryTypes.volume_cell:
         print('volume cell query')
         query_params['custom_params'] = {
             'data_type': 'volume'
         }
         task = CellDataQueryTask(params=query_params)
 
-    elif args.query_type in ['mesh', 'mesh-bcif']:
+    elif args.query_type in [QueryTypes.mesh, QueryTypes.mesh_bcif]:
         print(f'{args.query_type}')
         query_params['custom_params'] = {
             'mesh_query_type': args.query_type
         }
         task = MeshDataQueryTask(params=query_params)
 
-    elif args.query_type in ['metadata', 'volume-info', 'annotations']:
+    elif args.query_type in [QueryTypes.metadata, QueryTypes.volume_info, QueryTypes.annotations]:
         print(f'{args.query_type} query')
         query_params['custom_params'] = {
             'entry_info_query_type': args.query_type
         }
         task = EntryInfoQueryTask(params=query_params)
 
-    elif args.query_type in ['list-entries', 'list-entries-keyword']:
+    elif args.query_type in [QueryTypes.list_entries, QueryTypes.list_entries_keyword]:
         print(f'{args.query_type} query')
         query_params['custom_params'] = {
             'global_info_query_type': args.query_type
@@ -433,7 +452,6 @@ def _parse_json_with_query_params(json_path: Path):
     args = argparse.Namespace()
     argparse_args_dict = vars(args)
     with open(json_path.resolve(), "r", encoding="utf-8") as f:
-        # TODO: validate?
         raw_json: JsonQueryParams = json.load(f)
         # print(d)
 
@@ -445,6 +463,14 @@ def _parse_json_with_query_params(json_path: Path):
         # print(args)
 
         subquery_types = raw_json['subquery_types']
+
+        # validate
+        for subquery_type in subquery_types:
+            assert subquery_type in QueryTypes.values(), f'Subquery type {subquery_type} is not supported'
+
+        # TODO: validate args namespace
+        # for each subquery type assert that args namespace contains all args from the list
+        # of required args for that query type
 
     return raw_json, args, subquery_types
 
