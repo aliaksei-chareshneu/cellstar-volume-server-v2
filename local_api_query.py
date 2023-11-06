@@ -4,6 +4,7 @@ from enum import Enum
 from importlib.metadata import requires
 import json
 from pathlib import Path
+from re import L
 from typing import Any, Coroutine, Literal, Optional, Protocol, Type, TypedDict, Union
 from attr import dataclass
 
@@ -20,6 +21,10 @@ from cellstar_query.query import get_list_entries_keywords_query, get_list_entri
 # VOLUME SERVER AND DB
 
 DEFAULT_MAX_POINTS = 1000000000000
+
+class Arguments(TypedDict):
+    required: list[str]
+    optional: list[str]
 
 class QueryTypes(str, Enum):
     volume_box = "volume-box"
@@ -47,8 +52,9 @@ class JsonQueryParams(TypedDict):
 @dataclass
 class BaseQuery:
     name: QueryTypes # can be Enum
+    arguments: Optional[Arguments] = None
 
-@dataclass
+@dataclass(kw_only=True)
 class EntryDataRequiredQuery(BaseQuery):
     pass
 
@@ -73,7 +79,7 @@ class EntryInfoQuery(EntryDataRequiredQuery):
     # for metadata, annotations, volume info
     pass
 
-@dataclass
+@dataclass(kw_only=True)
 class GlobalInfoQuery(BaseQuery):
     pass
 
@@ -82,12 +88,12 @@ class ListEntriesQuery(GlobalInfoQuery):
     keywords: bool = False
 
 # need composite query with subqueries
-@dataclass
+@dataclass(kw_only=True)
 class CompositeQuery(BaseQuery):
     # subqueries: list[BaseQuery]
     pass
 
-QUERY_TYPES = [
+QUERY_TYPES: list[BaseQuery] = [
     VolumetricDataQuery(name=QueryTypes.volume_box.value, isSegmentation=False, isBox=True),
     VolumetricDataQuery(name=QueryTypes.segmentation_box.value, isSegmentation=True, isBox=True),
     VolumetricDataQuery(name=QueryTypes.volume_cell.value, isSegmentation=False, isBox=False),
@@ -102,7 +108,6 @@ QUERY_TYPES = [
     CompositeQuery(name=QueryTypes.composite.value)
 ]
 
-# TODO: add others
 COMPOSITE_QUERY_TYPES = [QueryTypes.composite]
 QUERY_TYPES_WITH_JSON_RESPONSE = [QueryTypes.annotations, QueryTypes.metadata, QueryTypes.list_entries, QueryTypes.list_entries_keyword]
 
@@ -322,6 +327,17 @@ class CompositeQueryTask(QueryTask):
 
         return CompositeQueryTaskResponse(response=composite_response)
 
+def _get_arguments_as_list(argparse_args_group) -> list[str]:
+    arg_names = []
+    d = vars(argparse_args_group)
+    group_actions = d['_group_actions']
+    for action in group_actions:
+        arg_name = action.dest
+        arg_names.append(arg_name)
+    
+    return arg_names
+
+
 def _add_arguments(parser, query: BaseQuery):
     required_query_args = parser.add_argument_group('Required query named arguments')
     optional_query_args = parser.add_argument_group('Optional query named arguments')
@@ -356,6 +372,14 @@ def _add_arguments(parser, query: BaseQuery):
     if isinstance(query, CompositeQuery):
         required_query_args.add_argument('--json-params-path', required=True, type=str, help='Path to .json file with parameters for composite query')
 
+
+    required_args = _get_arguments_as_list(argparse_args_group=required_query_args)
+    optional_args = _get_arguments_as_list(argparse_args_group=optional_query_args)
+    arguments = Arguments(
+        required=required_args,
+        optional=optional_args
+    )
+    query.arguments = arguments
 
 def _create_parsers(common_subparsers, query_types: list[BaseQuery]):
     parsers = []
@@ -471,8 +495,13 @@ def _parse_json_with_query_params(json_path: Path):
             assert subquery_type in QueryTypes.values(), f'Subquery type {subquery_type} is not supported'
 
         # TODO: validate args namespace
-        # for each subquery type assert that args namespace contains all args from the list
-        # of required args for that query type
+        # PLAN:
+        # find that subquery instance in QUERY_TYPES (filter by name)
+            query_objects = list(filter(lambda query_type: query_type.name == subquery_type, QUERY_TYPES))
+            assert len(query_objects) == 1
+            query_object: BaseQuery = query_objects[0]
+            for arg in query_object.arguments['required']:
+                assert (arg in args), f'Argument {arg} is missing from JSON, but is required for {subquery_type} subquery'
 
     return raw_json, args, subquery_types
 
