@@ -5,7 +5,7 @@ CLI tool
 # Usage
 To run the CLI tool and produce the static files suitable for visualization at the frontend:
 1. Build the database using preprocessor **(TODO LINK TO README FOR PREPROCESSOR)**
-2. From repository root (cellstar-volume-server-v2 by default) run:
+2. From repository root (`cellstar-volume-server-v2` by default) run:
     ```
     python --db_path PATH_TO_DB --out OUTPUT_FILE QUERY_TYPE QUERY_SPECIFIC_ARGUMENTS
     ```
