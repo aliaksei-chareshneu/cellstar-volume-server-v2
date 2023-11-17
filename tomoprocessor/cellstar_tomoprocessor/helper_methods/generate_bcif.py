@@ -2,7 +2,6 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 from cellstar_preprocessor.model.input import PreprocessorInput
-from fastapi import Query, Response
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
 import numpy as np
 from new_server_for_tomoprocessor.app.api.requests import GeometricSegmentationRequest, MetadataRequest, VolumeRequestDataKind, VolumeRequestInfo

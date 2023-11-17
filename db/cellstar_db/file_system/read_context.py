@@ -6,7 +6,7 @@ from typing import Tuple, Union
 
 import dask.array as da
 import numpy as np
-import tensorstore as ts
+# import tensorstore as ts
 import zarr
 
 from cellstar_db.file_system.constants import (
@@ -279,10 +279,10 @@ class FileSystemDBReadContext(DBReadContext):
             arr_slice = self.__get_slice_from_zarr_three_d_arr_dask_from_zarr(
                 arr=arr, box=box
             )
-        elif mode == "tensorstore":
-            arr_slice = self.__get_slice_from_zarr_three_d_arr_tensorstore(
-                arr=arr, box=box
-            )
+        # elif mode == "tensorstore":
+        #     arr_slice = self.__get_slice_from_zarr_three_d_arr_tensorstore(
+        #         arr=arr, box=box
+        #     )
         else:
             raise Exception("Slicing mode is not supported: {mode}")
 
@@ -347,37 +347,37 @@ class FileSystemDBReadContext(DBReadContext):
         ]
         return sliced.compute()
 
-    def __get_slice_from_zarr_three_d_arr_tensorstore(
-        self,
-        arr: zarr.core.Array,
-        box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
-    ):
-        # TODO: check if slice is correct and equal to : notation slice
-        # TODO: await? # store - future object, result - ONE of the ways how to get it sync (can be async)
-        # store.read() - returns everything as future object. again result() or other methods
-        # can be store[1:10].read() ...
-        print("This method is MAY not work properly for ZIP store. Needs to be checked")
-        path = self.__get_path_to_zarr_object(arr)
-        store = ts.open(
-            {
-                "driver": "zarr",
-                "kvstore": {
-                    "driver": "file",
-                    "path": str(path.resolve()),
-                },
-            },
-            read=True,
-        ).result()
-        sliced = (
-            store[
-                box[0][0] : box[1][0] + 1,
-                box[0][1] : box[1][1] + 1,
-                box[0][2] : box[1][2] + 1,
-            ]
-            .read()
-            .result()
-        )
-        return sliced
+    # def __get_slice_from_zarr_three_d_arr_tensorstore(
+    #     self,
+    #     arr: zarr.core.Array,
+    #     box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
+    # ):
+    #     # TODO: check if slice is correct and equal to : notation slice
+    #     # TODO: await? # store - future object, result - ONE of the ways how to get it sync (can be async)
+    #     # store.read() - returns everything as future object. again result() or other methods
+    #     # can be store[1:10].read() ...
+    #     print("This method is MAY not work properly for ZIP store. Needs to be checked")
+    #     path = self.__get_path_to_zarr_object(arr)
+    #     store = ts.open(
+    #         {
+    #             "driver": "zarr",
+    #             "kvstore": {
+    #                 "driver": "file",
+    #                 "path": str(path.resolve()),
+    #             },
+    #         },
+    #         read=True,
+    #     ).result()
+    #     sliced = (
+    #         store[
+    #             box[0][0] : box[1][0] + 1,
+    #             box[0][1] : box[1][1] + 1,
+    #             box[0][2] : box[1][2] + 1,
+    #         ]
+    #         .read()
+    #         .result()
+    #     )
+    #     return sliced
 
     def __get_path_to_zarr_object(
         self, zarr_obj: Union[zarr.hierarchy.Group, zarr.core.Array]

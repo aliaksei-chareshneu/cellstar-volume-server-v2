@@ -1,0 +1,53 @@
+name: tomoprocessor
+channels:
+  - https://conda.anaconda.org/conda-forge
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+  - https://repo.anaconda.com/pkgs/msys2
+dependencies:
+  - python >=3.9.0,<3.10.0a
+  - pip
+  # - asgiref
+  - dask
+  - fastapi==0.73.0
+  # - gemmi
+  # - h5py
+  # - matplotlib
+  - mrcfile
+  # - numcodecs
+  - numpy
+  # - pytest==7.1.2
+  # - pytest-asyncio==0.18.3
+  # - pytest-benchmark==3.4.1
+  - scikit-image
+  - scipy
+  # - starlette
+  # - uvicorn==0.17.6
+  # - vedo
+  # there were issues with version of this package
+  # uncomment if without it it would not work
+  # - vtk==9.0.3
+  - zarr
+  - dask-image
+  - pydantic
+
+  - pip:
+    # - -r requirements.txt
+    - git+https://github.com/molstar/ciftools-python.git@b074526a8b418bc68d83ae5556a627d2d6ceabdb#egg=ciftools
+    # - sfftk==0.5.5.dev1
+    # - sfftk-rw==0.7.1
+    - SimpleParse @ git+https://github.com/mcfletch/simpleparse.git@57c8d734bdc165581fbacfeecabe25a66c3452a4
+    # - tensorstore # ==0.1.18
+    # - killport
+    # - Pillow
+    - typer==0.7.0
+    - starfile
+    # - autoflake
+    # - isort
+    # - black
+    # - pyometiff
+    # - nibabel
+    - -e ./preprocessor
+    - -e ./db
+    - -e ./new_server_for_tomoprocessor
+    - -e ./tomoprocessor

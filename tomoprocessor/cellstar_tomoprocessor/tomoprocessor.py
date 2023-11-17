@@ -36,39 +36,39 @@ from cellstar_preprocessor.flows.constants import (
     SEGMENTATION_DATA_GROUPNAME,
     ZIP_STORE_DATA_ZIP_NAME,
 )
-from cellstar_preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import (
-    extract_annotations_from_sff_segmentation,
-)
-from cellstar_preprocessor.flows.segmentation.extract_metadata_from_sff_segmentation import (
-    extract_metadata_from_sff_segmentation,
-)
-from cellstar_preprocessor.flows.segmentation.helper_methods import (
-    check_if_omezarr_has_labels,
-)
-from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import (
-    ome_zarr_labels_preprocessing,
-)
-from cellstar_preprocessor.flows.segmentation.segmentation_downsampling import (
-    sff_segmentation_downsampling,
-)
-from cellstar_preprocessor.flows.segmentation.sff_preprocessing import (
-    sff_preprocessing,
-)
+# from cellstar_preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import (
+#     extract_annotations_from_sff_segmentation,
+# )
+# from cellstar_preprocessor.flows.segmentation.extract_metadata_from_sff_segmentation import (
+#     extract_metadata_from_sff_segmentation,
+# )
+# from cellstar_preprocessor.flows.segmentation.helper_methods import (
+#     check_if_omezarr_has_labels,
+# )
+# from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import (
+#     ome_zarr_labels_preprocessing,
+# )
+# from cellstar_preprocessor.flows.segmentation.segmentation_downsampling import (
+#     sff_segmentation_downsampling,
+# )
+# from cellstar_preprocessor.flows.segmentation.sff_preprocessing import (
+#     sff_preprocessing,
+# )
 from cellstar_preprocessor.flows.volume.extract_metadata_from_map import (
     extract_metadata_from_map,
 )
-from cellstar_preprocessor.flows.volume.extract_omezarr_annotations import (
-    extract_omezarr_annotations,
-)
-from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import (
-    extract_ome_zarr_metadata,
-)
+# from cellstar_preprocessor.flows.volume.extract_omezarr_annotations import (
+#     extract_omezarr_annotations,
+# )
+# from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import (
+#     extract_ome_zarr_metadata,
+# )
 from cellstar_preprocessor.flows.volume.map_preprocessing import (
     map_preprocessing,
 )
-from cellstar_preprocessor.flows.volume.ome_zarr_image_preprocessing import (
-    ome_zarr_image_preprocessing,
-)
+# from cellstar_preprocessor.flows.volume.ome_zarr_image_preprocessing import (
+#     ome_zarr_image_preprocessing,
+# )
 from cellstar_preprocessor.flows.volume.quantize_internal_volume import (
     quantize_internal_volume,
 )
@@ -82,7 +82,7 @@ from cellstar_preprocessor.model.input import (
     InputKind,
     Inputs,
     PreprocessorInput,
-    QuantizationDtype,
+    # QuantizationDtype,
     StoringParams,
     VolumeParams,
 )
@@ -225,57 +225,57 @@ class MAPMetadataCollectionTask(TaskBase):
         metadata_dict = extract_metadata_from_map(internal_volume=volume)
 
 
-class OMEZARRAnnotationsCollectionTask(TaskBase):
-    def __init__(self, internal_volume: InternalVolume):
-        self.internal_volume = internal_volume
+# class OMEZARRAnnotationsCollectionTask(TaskBase):
+#     def __init__(self, internal_volume: InternalVolume):
+#         self.internal_volume = internal_volume
 
-    def execute(self) -> None:
-        annotations_dict = extract_omezarr_annotations(
-            internal_volume=self.internal_volume
-        )
-
-
-class OMEZARRMetadataCollectionTask(TaskBase):
-    def __init__(self, internal_volume: InternalVolume):
-        self.internal_volume = internal_volume
-
-    def execute(self) -> None:
-        metadata_dict = extract_ome_zarr_metadata(internal_volume=self.internal_volume)
+#     def execute(self) -> None:
+#         annotations_dict = extract_omezarr_annotations(
+#             internal_volume=self.internal_volume
+#         )
 
 
-class OMEZARRImageProcessTask(TaskBase):
-    def __init__(self, internal_volume: InternalVolume):
-        self.internal_volume = internal_volume
+# class OMEZARRMetadataCollectionTask(TaskBase):
+#     def __init__(self, internal_volume: InternalVolume):
+#         self.internal_volume = internal_volume
 
-    def execute(self) -> None:
-        ome_zarr_image_preprocessing(self.internal_volume)
-
-
-class OMEZARRLabelsProcessTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
-
-    def execute(self) -> None:
-        ome_zarr_labels_preprocessing(internal_segmentation=self.internal_segmentation)
+#     def execute(self) -> None:
+#         metadata_dict = extract_ome_zarr_metadata(internal_volume=self.internal_volume)
 
 
-class SFFMetadataCollectionTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
+# class OMEZARRImageProcessTask(TaskBase):
+#     def __init__(self, internal_volume: InternalVolume):
+#         self.internal_volume = internal_volume
 
-    def execute(self) -> None:
-        metadata_dict = extract_metadata_from_sff_segmentation(
-            internal_segmentation=self.internal_segmentation
-        )
+#     def execute(self) -> None:
+#         ome_zarr_image_preprocessing(self.internal_volume)
 
-class MaskMetadataCollectionTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
 
-    def execute(self) -> None:
-        metadata_dict = extract_metadata_from_sff_segmentation(
-            internal_segmentation=self.internal_segmentation
-        )
+# class OMEZARRLabelsProcessTask(TaskBase):
+#     def __init__(self, internal_segmentation: InternalSegmentation):
+#         self.internal_segmentation = internal_segmentation
+
+#     def execute(self) -> None:
+#         ome_zarr_labels_preprocessing(internal_segmentation=self.internal_segmentation)
+
+
+# class SFFMetadataCollectionTask(TaskBase):
+#     def __init__(self, internal_segmentation: InternalSegmentation):
+#         self.internal_segmentation = internal_segmentation
+
+#     def execute(self) -> None:
+#         metadata_dict = extract_metadata_from_sff_segmentation(
+#             internal_segmentation=self.internal_segmentation
+#         )
+
+# class MaskMetadataCollectionTask(TaskBase):
+#     def __init__(self, internal_segmentation: InternalSegmentation):
+#         self.internal_segmentation = internal_segmentation
+
+#     def execute(self) -> None:
+#         metadata_dict = extract_metadata_from_sff_segmentation(
+#             internal_segmentation=self.internal_segmentation
+#         )
 
 class GeometricSegmentationMetadataCollectionTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
@@ -328,16 +328,16 @@ class MAPProcessVolumeTask(TaskBase):
 
 #         nii_segmentation_downsampling(internal_segmentation=segmentation)
 
-class SFFProcessSegmentationTask(TaskBase):
-    def __init__(self, internal_segmentation: InternalSegmentation):
-        self.internal_segmentation = internal_segmentation
+# class SFFProcessSegmentationTask(TaskBase):
+#     def __init__(self, internal_segmentation: InternalSegmentation):
+#         self.internal_segmentation = internal_segmentation
 
-    def execute(self) -> None:
-        segmentation = self.internal_segmentation
+#     def execute(self) -> None:
+#         segmentation = self.internal_segmentation
 
-        sff_preprocessing(segmentation)
+#         sff_preprocessing(segmentation)
 
-        sff_segmentation_downsampling(segmentation)
+#         sff_segmentation_downsampling(segmentation)
 
 # class MaskProcessSegmentationTask(TaskBase):
 #     def __init__(self, internal_segmentation: InternalSegmentation):
