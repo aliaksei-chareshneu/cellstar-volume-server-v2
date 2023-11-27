@@ -13,7 +13,8 @@ class InternalSegmentation:
         downsampling_parameters: DownsamplingParams,
         entry_data: EntryData,
         sphere_radius: Optional[float],
-        color: Optional[float]
+        color: Optional[float],
+        pixel_size: Optional[float]
     ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.segmentation_input_path = segmentation_input_path
@@ -26,3 +27,4 @@ class InternalSegmentation:
         self.raw_sff_annotations = {}
         self.sphere_radius = sphere_radius
         self.color = color
+        self.pixel_size = pixel_size

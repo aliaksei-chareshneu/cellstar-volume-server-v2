@@ -20,7 +20,7 @@ def map_preprocessing(internal_volume: InternalVolume):
         internal_volume.intermediate_zarr_structure_path
     )
 
-    with mrcfile.mmap(str(internal_volume.volume_input_path.resolve())) as mrc_original:
+    with mrcfile.mmap(str(internal_volume.volume_input_path.resolve()), 'r+') as mrc_original:
         data: np.memmap = mrc_original.data
         if internal_volume.volume_force_dtype is not None:
             data = data.astype(internal_volume.volume_force_dtype)
@@ -29,7 +29,7 @@ def map_preprocessing(internal_volume: InternalVolume):
 
         # temp hack to process rec files with cella 0 0 0
         if mrc_original.header.cella.x == 0 and mrc_original.header.cella.y == 0 and mrc_original.header.cella.z == 0:
-            mrc_original.voxel_size = 4 * internal_volume.pixel_size
+            mrc_original.voxel_size = 1 * internal_volume.pixel_size
 
         header = mrc_original.header
 

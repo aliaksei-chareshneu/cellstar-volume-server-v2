@@ -107,7 +107,7 @@ def custom_process_geometric_segmentation(internal_segmentation: InternalSegment
     # parse input json to shape primitives data model
     input_path = internal_segmentation.segmentation_input_path
 
-    list_of_sphere_objects = parse_single_star_file(input_path, sphere_radius=internal_segmentation.sphere_radius, sphere_color=internal_segmentation.color)
+    list_of_sphere_objects = parse_single_star_file(input_path, sphere_radius=internal_segmentation.sphere_radius, sphere_color=internal_segmentation.color, pixel_size=internal_segmentation.pixel_size)
 
     segm_data_gr.attrs["geometric_segmentation"] = list_of_sphere_objects
     # if input_path.suffix == '.json':
@@ -415,7 +415,8 @@ class Preprocessor:
                         downsampling_parameters=self.preprocessor_input.downsampling,
                         entry_data=self.preprocessor_input.entry_data,
                         sphere_radius=self.preprocessor_input.custom_data['sphere_radius'],
-                        color=self.preprocessor_input.custom_data['sphere_color']
+                        color=self.preprocessor_input.custom_data['sphere_color'],
+                        pixel_size=self.preprocessor_input.custom_data['pixel_size']
                     )
                 )
                 tasks.append(

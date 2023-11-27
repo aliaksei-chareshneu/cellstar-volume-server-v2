@@ -19,7 +19,7 @@ JSON_PATH = Path('preprocessor/temp/shape_primitives/shape_primitives_9rec_input
 RATIO = 4
 # RATIO = 400 * 5
 
-def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: int) -> list[Sphere]:
+def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: int, pixel_size: float) -> list[Sphere]:
     lst = []
     df = starfile.read(str(path.resolve()))
     for index, row in df.iterrows():
@@ -38,7 +38,7 @@ def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: int) 
         lst.append(
             Sphere(
                 id=index,
-                center=(row['rlnCoordinateX']/RATIO, row['rlnCoordinateY']/RATIO, row['rlnCoordinateZ']/RATIO),
+                center=(row['rlnCoordinateX']/RATIO * pixel_size, row['rlnCoordinateY']/RATIO * pixel_size, row['rlnCoordinateZ']/RATIO * pixel_size),
                 color=color,
                 radius=radius,
                 label=label
