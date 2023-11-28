@@ -29,7 +29,8 @@ mamba env create -f environment-local.yaml
 ```
 
 > **Note**
-If `environment-local.yaml` would not work, try to use `environment-mac-test.yaml` instead
+> 
+> If `environment-local.yaml` would not work, try to use `environment-mac-test.yaml` instead
 
 # Running tomoprocessor
 Activate created conda environment, e.g.
