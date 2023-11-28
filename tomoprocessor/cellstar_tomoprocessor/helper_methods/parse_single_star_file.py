@@ -16,10 +16,10 @@ from cellstar_tomoprocessor.helper_methods.models import Sphere
 STAR_FILE_PATH = Path('preprocessor/temp/pdbe_dataset_scripts/80S_bin1_cryoDRGN-ET_clean_tomo_9.star')
 JSON_PATH = Path('preprocessor/temp/shape_primitives/shape_primitives_9rec_input.json')
 
-RATIO = 4
+# RATIO = 4
 # RATIO = 400 * 5
 
-def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: int, pixel_size: float) -> list[Sphere]:
+def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: int, pixel_size: float, star_file_coordinate_divisor: int) -> list[Sphere]:
     lst = []
     df = starfile.read(str(path.resolve()))
     for index, row in df.iterrows():
@@ -38,7 +38,11 @@ def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: int, 
         lst.append(
             Sphere(
                 id=index,
-                center=(row['rlnCoordinateX']/RATIO * pixel_size, row['rlnCoordinateY']/RATIO * pixel_size, row['rlnCoordinateZ']/RATIO * pixel_size),
+                center=(
+                    row['rlnCoordinateX']/star_file_coordinate_divisor * pixel_size,
+                    row['rlnCoordinateY']/star_file_coordinate_divisor * pixel_size,
+                    row['rlnCoordinateZ']/star_file_coordinate_divisor * pixel_size
+                    ),
                 color=color,
                 radius=radius,
                 label=label

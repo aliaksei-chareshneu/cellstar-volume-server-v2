@@ -107,7 +107,7 @@ def custom_process_geometric_segmentation(internal_segmentation: InternalSegment
     # parse input json to shape primitives data model
     input_path = internal_segmentation.segmentation_input_path
 
-    list_of_sphere_objects = parse_single_star_file(input_path, sphere_radius=internal_segmentation.sphere_radius, sphere_color=internal_segmentation.color, pixel_size=internal_segmentation.pixel_size)
+    list_of_sphere_objects = parse_single_star_file(input_path, sphere_radius=internal_segmentation.sphere_radius, sphere_color=internal_segmentation.color, pixel_size=internal_segmentation.pixel_size, star_file_coordinate_divisor=internal_segmentation.star_file_coordinate_divisor)
 
     segm_data_gr.attrs["geometric_segmentation"] = list_of_sphere_objects
     # if input_path.suffix == '.json':
@@ -416,7 +416,8 @@ class Preprocessor:
                         entry_data=self.preprocessor_input.entry_data,
                         sphere_radius=self.preprocessor_input.custom_data['sphere_radius'],
                         color=self.preprocessor_input.custom_data['sphere_color'],
-                        pixel_size=self.preprocessor_input.custom_data['pixel_size']
+                        pixel_size=self.preprocessor_input.custom_data['pixel_size'],
+                        star_file_coordinate_divisor=self.preprocessor_input.custom_data['star_file_coordinate_divisor']
                     )
                 )
                 tasks.append(
@@ -615,7 +616,8 @@ async def main_preprocessor(
     sphere_radius,
     sphere_color,
     entry_id,
-    source_db
+    source_db,
+    star_file_coordinate_divisor
 ):
     db_path: Path = Path(working_folder) / 'tomoprocessor_db'
     preprocessor_input = PreprocessorInput(
@@ -645,7 +647,8 @@ async def main_preprocessor(
             'sphere_radius': sphere_radius,
             'sphere_color': sphere_color,
             'pixel_size': pixel_size,
-            'default_isovalue_sigma': default_isovalue_sigma
+            'default_isovalue_sigma': default_isovalue_sigma,
+            'star_file_coordinate_divisor': star_file_coordinate_divisor
             # 'out': Path(out)
         }
     )
@@ -685,7 +688,8 @@ def main(
     sphere_radius: float = typer.Option(default=...),
     sphere_color: int = typer.Option(default=...),
     entry_id: str = typer.Option(default=...),
-    source_db: str = typer.Option(default=...)
+    source_db: str = typer.Option(default=...),
+    star_file_coordinate_divisor: int = typer.Option(default=1)
 ):
     asyncio.run(
         main_preprocessor(
@@ -700,7 +704,8 @@ def main(
         sphere_color=sphere_color,
         sphere_radius=sphere_radius,
         entry_id=entry_id,
-        source_db=source_db
+        source_db=source_db,
+        star_file_coordinate_divisor=star_file_coordinate_divisor
         )
     )
 

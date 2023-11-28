@@ -43,7 +43,7 @@ From root project directory (cellstar-volume-server-v2 by default) run e.g.:
 python tomoprocessor\cellstar_tomoprocessor\tomoprocessor.py
                 --map MAP_FILE_PATH.map
                 --particles-star-file PARTICLES_STAR_FILE_PATH.star
-                --pixel-size 1.96
+                --pixel-size 7.84
                 --max-volume-size-mb 100
                 --default-isovalue-sigma 2
                 --working-folder TEMP_WORKING_FOLDER
@@ -52,7 +52,7 @@ python tomoprocessor\cellstar_tomoprocessor\tomoprocessor.py
                 --sphere-color 16776960
                 --entry-id ENTRY-123
                 --source-db pdbe
-
+                --star-file-coordinate-divisor 4
 ```
 
 Arguments description:
@@ -70,6 +70,7 @@ Arguments description:
  - `--sphere-color` - color of spheres as integer
  - `--entry-id` - entry id
  - `--source-db` - source db
+ - `--star-file-coordinate-divisor` - number by which coordinates in star file will be divided (e.g. for bin4 reconstructions it should be "4")
 
 
 # Visualization at [frontend](https://aliaksei-chareshneu.github.io/tomo-project/index.html)
