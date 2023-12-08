@@ -10,6 +10,7 @@ class ShapePrimitiveKind(str, Enum):
     box = "box"
     ellipsoid = "ellipsoid"
     pyramid = "pyramid"
+    cone = "cone"
 
 class ShapePrimitiveBase(TypedDict):
     # NOTE: to be able to refer to it in annotations
@@ -46,6 +47,12 @@ class Ellipsoid(ShapePrimitiveBase):
     dir_minor: tuple[float, float, float]
     center: tuple[float, float, float]
     radius_scale: tuple[float, float, float]
+
+class Cone(ShapePrimitiveBase):
+    # with respect to origin 0, 0, 0
+    translation: tuple[float, float, float]
+    # default size 2, 2, 2 in mol* units
+    scaling: tuple[float, float, float]
 
 class Pyramid(ShapePrimitiveBase):
     # with respect to origin 0, 0, 0
