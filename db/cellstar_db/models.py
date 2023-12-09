@@ -19,7 +19,7 @@ class ShapePrimitiveBase(TypedDict):
     color: str
 
 class Sphere(ShapePrimitiveBase):
-    # XYZ
+    # in angstroms
     center: tuple[float, float, float]
     # in grid pofloats
     radius: float
@@ -57,7 +57,7 @@ class Cone(ShapePrimitiveBase):
 class Pyramid(ShapePrimitiveBase):
     # with respect to origin 0, 0, 0
     translation: tuple[float, float, float]
-    # default size 2, 2, 2 in mol* units
+    # default size 2, 2, 2 in mol* units for pdbe-1.rec
     scaling: tuple[float, float, float]
 
 class Cuboid(ShapePrimitiveBase):
