@@ -11,6 +11,11 @@ git clone https://github.com/aliaksei-chareshneu/cellstar-volume-server-v2
 cd cellstar-volume-server-v2
 ```
 
+Change branch to `tomoprocessor-branch`:
+```
+git checkout tomoprocessor-branch
+```
+
 # Setting up the environment
 
 Create conda environment from `environment-local.yaml`, e.g.:
