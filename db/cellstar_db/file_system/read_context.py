@@ -1,3 +1,4 @@
+import json
 from fastapi import HTTPException
 import logging
 from pathlib import Path
@@ -10,11 +11,13 @@ import tensorstore as ts
 import zarr
 
 from cellstar_db.file_system.constants import (
+    GEOMETRIC_SEGMENTATION_FILENAME,
+    MESH_SEGMENTATION_DATA_GROUPNAME,
     QUANTIZATION_DATA_DICT_ATTR_NAME,
-    SEGMENTATION_DATA_GROUPNAME,
+    LATTICE_SEGMENTATION_DATA_GROUPNAME,
     VOLUME_DATA_GROUPNAME,
 )
-from cellstar_db.models import VolumeSliceData, MeshesData
+from cellstar_db.models import ShapePrimitiveData, VolumeSliceData, MeshesData
 from cellstar_db.protocol import DBReadContext, VolumeServerDB
 from cellstar_db.utils.box import normalize_box
 from cellstar_db.utils.quantization import decode_quantized_data
@@ -29,7 +32,7 @@ class FileSystemDBReadContext(DBReadContext):
         time: int,
         mode: str = "dask",
         timer_printout=False,
-        lattice_id: int = 0,
+        lattice_id: str = '0',
     ) -> VolumeSliceData:
         """
         Reads a slice from a specific (down)sampling of segmentation and volume data
@@ -45,14 +48,14 @@ class FileSystemDBReadContext(DBReadContext):
 
             segm_arr = None
             segm_dict = None
-            if SEGMENTATION_DATA_GROUPNAME in root and (lattice_id is not None):
-                segm_arr = root[SEGMENTATION_DATA_GROUPNAME][lattice_id][
+            if LATTICE_SEGMENTATION_DATA_GROUPNAME in root and (lattice_id is not None):
+                segm_arr = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
                 ][time][channel_id].grid
                 assert (
                     np.array(box[1]) <= np.array(segm_arr.shape)
                 ).all(), f"requested box {box} does not correspond to arr dimensions"
-                segm_dict = root[SEGMENTATION_DATA_GROUPNAME][lattice_id][
+                segm_dict = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
                 ][time][channel_id].set_table[0]
             else:
@@ -129,7 +132,7 @@ class FileSystemDBReadContext(DBReadContext):
         try:
             mesh_list = []
             root: zarr.hierarchy.group = zarr.group(self.store)
-            mesh_list_group = root[SEGMENTATION_DATA_GROUPNAME][segment_id][detail_lvl][time][channel_id]
+            mesh_list_group = root[MESH_SEGMENTATION_DATA_GROUPNAME][segment_id][detail_lvl][time][channel_id]
             for mesh_name, mesh in mesh_list_group.groups():
                 mesh_data = {"mesh_id": int(mesh_name)}
                 for mesh_component_name, mesh_component_arr in mesh.arrays():
@@ -145,8 +148,16 @@ class FileSystemDBReadContext(DBReadContext):
 
     async def read_geometric_segmentation(self) -> list[object]:
         try:
-            root: zarr.hierarchy.group = zarr.group(self.store)
-            shape_primitive_list = root[SEGMENTATION_DATA_GROUPNAME].attrs['geometric_segmentation']['shape_primitive_list']
+            # root: zarr.hierarchy.group = zarr.group(self.store)
+            # TODO: read and parse JSON
+            # path: Path = (
+            #     self._path_to_object(namespace=namespace, key=key) / GRID_METADATA_FILENAME
+            # )
+            path: Path = Path(self.store.path).parent / GEOMETRIC_SEGMENTATION_FILENAME
+            with open(path.resolve(), "r", encoding="utf-8") as f:
+                # reads into dict
+                read_json: ShapePrimitiveData = json.load(f)
+                shape_primitive_list = read_json["shape_primitive_list"]
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
             raise e
@@ -226,14 +237,14 @@ class FileSystemDBReadContext(DBReadContext):
 
             segm_arr = None
             segm_dict = None
-            if SEGMENTATION_DATA_GROUPNAME in root and (lattice_id is not None):
-                segm_arr = root[SEGMENTATION_DATA_GROUPNAME][lattice_id][
+            if LATTICE_SEGMENTATION_DATA_GROUPNAME in root and (lattice_id is not None):
+                segm_arr = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
                 ][time][channel_id].grid
                 assert (
                     np.array(box[1]) <= np.array(segm_arr.shape)
                 ).all(), f"requested box {box} does not correspond to arr dimensions"
-                segm_dict = root[SEGMENTATION_DATA_GROUPNAME][lattice_id][
+                segm_dict = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
                 ][time][channel_id].set_table[0]
             else:

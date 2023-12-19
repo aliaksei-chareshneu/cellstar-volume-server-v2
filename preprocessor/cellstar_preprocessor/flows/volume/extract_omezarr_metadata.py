@@ -8,7 +8,7 @@ from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
 )
 from cellstar_preprocessor.flows.constants import (
-    SEGMENTATION_DATA_GROUPNAME,
+    LATTICE_SEGMENTATION_DATA_GROUPNAME,
     SPACE_UNITS_CONVERSION_DICT,
 )
 from cellstar_preprocessor.model.volume import InternalVolume
@@ -384,8 +384,8 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
     # lattice_dict = {}
     lattice_ids = []
 
-    if SEGMENTATION_DATA_GROUPNAME in root:
-        for label_gr_name, label_gr in root[SEGMENTATION_DATA_GROUPNAME].groups():
+    if LATTICE_SEGMENTATION_DATA_GROUPNAME in root:
+        for label_gr_name, label_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
             new_segm_attrs_dict = _add_defaults_to_ome_zarr_attrs(
                 ome_zarr_root=ome_zarr_root.labels[label_gr_name]
             )

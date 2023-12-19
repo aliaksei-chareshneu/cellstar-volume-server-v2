@@ -1,5 +1,7 @@
 QUANTIZATION_DATA_DICT_ATTR_NAME = "quantization_data_dict"
-SEGMENTATION_DATA_GROUPNAME = "_segmentation_data"
+LATTICE_SEGMENTATION_DATA_GROUPNAME = "_lattice_segmentation_data"
+MESH_SEGMENTATION_DATA_GROUPNAME = "_mesh_segmentation_data"
+
 VOLUME_DATA_GROUPNAME = "_volume_data"
 VOLUME_DATA_GROUPNAME_COPY = "_volume_data_copy"
 
@@ -11,6 +13,7 @@ ZIP_STORE_DATA_ZIP_NAME = "data.zip"
 # TODO: update VolumeServerDB to store the data directly??
 ANNOTATION_METADATA_FILENAME = "annotations.json"
 GRID_METADATA_FILENAME = "metadata.json"
+GEOMETRIC_SEGMENTATION_FILENAME = "geometric_segmentation.json"
 
 MIN_GRID_SIZE = 100**3
 DOWNSAMPLING_KERNEL = (1, 4, 6, 4, 1)

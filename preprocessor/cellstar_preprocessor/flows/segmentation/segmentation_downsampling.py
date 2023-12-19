@@ -9,9 +9,10 @@ from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
 )
 from cellstar_preprocessor.flows.constants import (
+    MESH_SEGMENTATION_DATA_GROUPNAME,
     MESH_VERTEX_DENSITY_THRESHOLD,
     MIN_GRID_SIZE,
-    SEGMENTATION_DATA_GROUPNAME,
+    LATTICE_SEGMENTATION_DATA_GROUPNAME,
 )
 from cellstar_preprocessor.flows.segmentation.category_set_downsampling_methods import (
     downsample_categorical_data,
@@ -44,7 +45,7 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
         == SegmentationPrimaryDescriptor.three_d_volume
     ):
         for lattice_gr_name, lattice_gr in zarr_structure[
-            SEGMENTATION_DATA_GROUPNAME
+            LATTICE_SEGMENTATION_DATA_GROUPNAME
         ].groups():
             original_data_arr = lattice_gr["1"]["0"]["0"].grid
             lattice_id = int(lattice_gr_name)
@@ -90,7 +91,7 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
         density_threshold = MESH_VERTEX_DENSITY_THRESHOLD[calc_mode]
         # segment_ids, detail_lvls, time, channel, mesh_ids
 
-        segm_data_gr = zarr_structure[SEGMENTATION_DATA_GROUPNAME]
+        segm_data_gr = zarr_structure[MESH_SEGMENTATION_DATA_GROUPNAME]
 
         for segment_name_id, segment in segm_data_gr.groups():
             original_detail_lvl_mesh_list_group = segment["1"]["0"]["0"]

@@ -4,7 +4,6 @@ from cellstar_preprocessor.flows.common import (
     get_downsamplings,
     open_zarr_structure_from_path,
 )
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 

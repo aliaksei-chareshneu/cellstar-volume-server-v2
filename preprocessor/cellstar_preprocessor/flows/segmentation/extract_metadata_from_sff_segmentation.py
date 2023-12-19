@@ -1,10 +1,10 @@
-from cellstar_db.models import MeshComponentNumbers
+from cellstar_db.models import MeshComponentNumbers, Metadata
 
 from cellstar_preprocessor.flows.common import (
     get_downsamplings,
     open_zarr_structure_from_path,
 )
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 
@@ -43,7 +43,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
     root = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
-    metadata_dict = root.attrs["metadata_dict"]
+    metadata_dict: Metadata = root.attrs["metadata_dict"]
 
     if (
         internal_segmentation.primary_descriptor
@@ -59,12 +59,12 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
         # TODO: check - some units are defined (spatial?)
         source_axes_units = {}
 
-        for lattice_id, lattice_gr in root[SEGMENTATION_DATA_GROUPNAME].groups():
+        for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
             downsamplings = get_downsamplings(data_group=lattice_gr)
             lattice_ids.append(lattice_id)
 
             metadata_dict["segmentation_lattices"]["segmentation_sampling_info"][
-                str(lattice_id)
+                lattice_id
             ] = {
                 # Info about "downsampling dimension"
                 "spatial_downsampling_levels": downsamplings,
@@ -82,10 +82,6 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
                     "volume_sampling_info"
                 ],
             )
-
-            metadata_dict["segmentation_lattices"]["channel_ids"][
-                lattice_id
-            ] = channel_ids
 
             metadata_dict["segmentation_lattices"]["time_info"][lattice_id] = {
                 "kind": "range",
@@ -109,7 +105,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
 
         # NOTE: mesh has no time and channel (both equal zero)
         # order: segment_ids, detail_lvls, time, channel, mesh_ids
-        for segment_id, segment in root[SEGMENTATION_DATA_GROUPNAME].groups():
+        for segment_id, segment in root[MESH_SEGMENTATION_DATA_GROUPNAME].groups():
             mesh_comp_num["segment_ids"][segment_id] = {"detail_lvls": {}}
             for detail_lvl, detail_lvl_gr in segment.groups():
                 mesh_comp_num["segment_ids"][segment_id]["detail_lvls"][detail_lvl] = {

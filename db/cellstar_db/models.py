@@ -21,7 +21,6 @@ class ShapePrimitiveBase(TypedDict):
 class Sphere(ShapePrimitiveBase):
     # in angstroms
     center: tuple[float, float, float]
-    # in grid pofloats
     radius: float
 
 class Box(ShapePrimitiveBase):
@@ -37,10 +36,10 @@ class Cylinder(ShapePrimitiveBase):
 
 
 # TODO: fix tube (take params from mol*)
-class Tube(ShapePrimitiveBase):
-    inner_diameter: float
-    outer_diameter: float
-    height: float
+# class Tube(ShapePrimitiveBase):
+#     inner_diameter: float
+#     outer_diameter: float
+#     height: float
 
 class Ellipsoid(ShapePrimitiveBase):
     dir_major: tuple[float, float, float]
@@ -60,9 +59,9 @@ class Pyramid(ShapePrimitiveBase):
     # default size 2, 2, 2 in mol* units for pdbe-1.rec
     scaling: tuple[float, float, float]
 
-class Cuboid(ShapePrimitiveBase):
-    # XYZ
-    extent: tuple[float, float, float]
+# class Cuboid(ShapePrimitiveBase):
+#     # XYZ
+#     extent: tuple[float, float, float]
 
 class ShapePrimitiveData(TypedDict):
     shape_primitive_list: list[ShapePrimitiveBase]
@@ -88,8 +87,10 @@ class Segment(TypedDict):
     # label-value in NGFF
     id: int
     color: Optional[tuple[float, float, float, float]]
-    biological_annotation: Optional[BiologicalAnnotation]
+    biological_annotations: Optional[list[BiologicalAnnotation]]
     extra_annotations: Optional[list[BiologicalAnnotation]]
+    # markdown
+    description: str
 
 class ChannelAnnotation(TypedDict):
     channel_id: str
@@ -105,21 +106,28 @@ class ChannelAnnotation(TypedDict):
 #     # channel_id -> channel label; from omero - channels (e.g. "DAPI")
 #     labels: Optional[dict[str, str]]
 
-# NOTE: currently it is rather SegmentationInfo, since it is used for both mesh and lattice
-# to display list of segments with their annotations
 class SegmentationLatticeInfo(TypedDict):
     lattice_id: str
     segment_list: list[Segment]
-    
+
+class SegmentationMeshInfo(TypedDict):
+    set_id: int
+    segment_list: list[Segment]
+
+class GeometricSegmentationInfo(TypedDict):
+    set_id: int
+    segment_list: list[Segment]
 
 class AnnotationsMetadata(TypedDict):
     name: Optional[str]
     entry_id: EntryId
     segmentation_lattices: list[SegmentationLatticeInfo]
+    segmentation_meshes: list[SegmentationMeshInfo]
+    geometric_segmentations: list[SegmentationLatticeInfo]
     # Only in SFF
     details: Optional[str]
     volume_channels_annotations: list[ChannelAnnotation]
-    non_segment_annotation: Optional[BiologicalAnnotation]
+    non_segment_annotations: Optional[list[BiologicalAnnotation]]
 
 class TimeTransformation(TypedDict):
     # to which downsampling level it is applied: can be to specific level, can be to all lvls
@@ -166,9 +174,7 @@ class VolumesMetadata(TypedDict):
 class SegmentationLatticesMetadata(TypedDict):
     # N of label groups (Cell, Chromosomes)
     segmentation_lattice_ids: list[str]
-    
     segmentation_sampling_info: dict[str, SamplingInfo]
-    channel_ids: dict[str, list[int]]
     time_info: dict[str, TimeInfo]
 
 
@@ -215,18 +221,32 @@ class VolumeSliceData(TypedDict):
     time: int
 
 class MeshesMetadata(TypedDict):
+    segmentation_mesh_set_id: int
     mesh_component_numbers: MeshComponentNumbers
     detail_lvl_to_fraction: dict
 
+class MeshSegmentationSetsMetadata(TypedDict):
+    sets_ids: list[int]
+    sets: list[MeshesMetadata]
+    # maps set ids to time info
+    time_info: dict[int, TimeInfo]
+
 class GeometricSegmentationMetadata(TypedDict):
-    exists: bool
+    geometric_segmentation_set_id: int
+    shape_primitives_data: ShapePrimitiveData
+
+class GeometricSegmentationSetsMetadata(TypedDict):
+    sets_ids: list[int]
+    sets: list[GeometricSegmentationMetadata]
+    # maps set ids to channel ids
+    time_info: dict[int, TimeInfo]
 
 class Metadata(TypedDict):
     entry_id: EntryId
     volumes: VolumesMetadata
-    segmentation_lattices: SegmentationLatticesMetadata
-    segmentation_meshes: MeshesMetadata
-    geometric_segmentation: Optional[GeometricSegmentationMetadata]
+    segmentation_lattices: Optional[SegmentationLatticesMetadata]
+    segmentation_meshes: Optional[MeshSegmentationSetsMetadata]
+    geometric_segmentation: Optional[GeometricSegmentationSetsMetadata]
 
 class VolumeMetadata(Protocol):
     def json_metadata(self) -> str:

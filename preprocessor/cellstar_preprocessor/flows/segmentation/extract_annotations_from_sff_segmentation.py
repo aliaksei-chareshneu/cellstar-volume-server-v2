@@ -1,7 +1,7 @@
 from cellstar_db.models import EntryId
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 
@@ -31,7 +31,7 @@ def extract_annotations_from_sff_segmentation(
     # and not all segments from segment list may be present in the given lattice
     
     if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
-        for lattice_id, lattice_gr in root[SEGMENTATION_DATA_GROUPNAME].groups():
+        for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
             segmentation_lattice_info = {"lattice_id": lattice_id, "segment_list": []}
 
             for segment in internal_segmentation.raw_sff_annotations["segment_list"]:

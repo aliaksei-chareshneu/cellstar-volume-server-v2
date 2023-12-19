@@ -1,6 +1,6 @@
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import ome_zarr_labels_preprocessing
 from cellstar_preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
@@ -24,8 +24,8 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
 
     ome_zarr_root = zarr.open_group(internal_segmentation.segmentation_input_path)
 
-    assert SEGMENTATION_DATA_GROUPNAME in zarr_structure
-    segmentation_gr = zarr_structure[SEGMENTATION_DATA_GROUPNAME]
+    assert LATTICE_SEGMENTATION_DATA_GROUPNAME in zarr_structure
+    segmentation_gr = zarr_structure[LATTICE_SEGMENTATION_DATA_GROUPNAME]
     assert isinstance(segmentation_gr, zarr.hierarchy.Group)
     # check if number of label groups is the same as number of groups in ome zarr
     assert len(segmentation_gr) == len(list(ome_zarr_root.labels.group_keys()))

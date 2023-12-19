@@ -11,7 +11,7 @@ from cellstar_preprocessor.flows.common import (
 from cellstar_preprocessor.flows.constants import (
     MESH_VERTEX_DENSITY_THRESHOLD,
     MIN_GRID_SIZE,
-    SEGMENTATION_DATA_GROUPNAME,
+    LATTICE_SEGMENTATION_DATA_GROUPNAME,
 )
 from cellstar_preprocessor.flows.segmentation.category_set_downsampling_methods import (
     downsample_categorical_data,
@@ -40,7 +40,7 @@ def nii_segmentation_downsampling(internal_segmentation: InternalSegmentation):
         internal_segmentation.intermediate_zarr_structure_path
     )
     for lattice_gr_name, lattice_gr in zarr_structure[
-        SEGMENTATION_DATA_GROUPNAME
+        LATTICE_SEGMENTATION_DATA_GROUPNAME
     ].groups():
         original_data_arr = lattice_gr["1"]["0"]["0"].grid
         lattice_id = int(lattice_gr_name)

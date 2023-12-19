@@ -34,11 +34,11 @@ def get_downsamplings(data_group) -> list[int]:
     return downsamplings
 
 
-def temp_save_metadata(
-    metadata: dict, metadata_filename: Path, temp_dir_path: Path
+def temp_save_dict(
+    d: dict, filename: Path, temp_dir_path: Path
 ) -> None:
-    with (temp_dir_path / metadata_filename).open("w") as fp:
-        json.dump(metadata, fp, indent=4)
+    with (temp_dir_path / filename).open("w") as fp:
+        json.dump(d, fp, indent=4)
 
 
 def compute_downsamplings_to_be_stored(

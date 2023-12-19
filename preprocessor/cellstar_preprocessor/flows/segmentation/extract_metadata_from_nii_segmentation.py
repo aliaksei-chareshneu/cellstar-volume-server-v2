@@ -2,7 +2,7 @@ from cellstar_preprocessor.flows.common import (
     get_downsamplings,
     open_zarr_structure_from_path,
 )
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 
@@ -52,7 +52,7 @@ def extract_metadata_from_nii_segmentation(internal_segmentation: InternalSegmen
     # TODO: check - some units are defined (spatial?)
     source_axes_units = {}
 
-    for lattice_id, lattice_gr in root[SEGMENTATION_DATA_GROUPNAME].groups():
+    for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
         downsamplings = get_downsamplings(data_group=lattice_gr)
         lattice_ids.append(lattice_id)
 

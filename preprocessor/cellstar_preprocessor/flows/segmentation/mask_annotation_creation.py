@@ -1,6 +1,6 @@
 from cellstar_db.models import EntryId
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import seaborn as sns
 
@@ -23,7 +23,7 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
     d["name"] = f"Segmentation of {internal_segmentation.entry_data.source_db_id} based on EMDB mask(s)"
 
     
-    for lattice_id, lattice_gr in root[SEGMENTATION_DATA_GROUPNAME].groups():
+    for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
         segmentation_lattice_info = {"lattice_id": lattice_id, "segment_list": []}
 
         # int to int dict

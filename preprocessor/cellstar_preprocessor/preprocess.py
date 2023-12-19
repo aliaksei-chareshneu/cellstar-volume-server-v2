@@ -27,7 +27,7 @@ from cellstar_db.models import AnnotationsMetadata
 
 from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
-    temp_save_metadata,
+    temp_save_dict,
     update_dict,
 )
 from cellstar_preprocessor.flows.constants import (
@@ -151,7 +151,7 @@ class SaveAnnotationsTask(TaskBase):
 
     def execute(self) -> None:
         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        temp_save_metadata(
+        temp_save_dict(
             root.attrs["annotations_dict"],
             ANNOTATION_METADATA_FILENAME,
             self.intermediate_zarr_structure_path,
@@ -164,7 +164,7 @@ class SaveMetadataTask(TaskBase):
 
     def execute(self) -> None:
         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        temp_save_metadata(
+        temp_save_dict(
             root.attrs["metadata_dict"],
             GRID_METADATA_FILENAME,
             self.intermediate_zarr_structure_path,

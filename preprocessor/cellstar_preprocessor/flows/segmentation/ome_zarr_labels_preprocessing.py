@@ -8,7 +8,7 @@ import numpy as np
 import zarr
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 
 
@@ -19,7 +19,7 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
         internal_segmentation.intermediate_zarr_structure_path
     )
 
-    segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
+    segmentation_data_gr = our_zarr_structure.create_group(LATTICE_SEGMENTATION_DATA_GROUPNAME)
 
     # root_zattrs = ome_zarr_root.attrs
     # multiscales = root_zattrs["multiscales"]

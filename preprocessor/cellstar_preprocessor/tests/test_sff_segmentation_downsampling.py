@@ -1,5 +1,5 @@
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.flows.segmentation.segmentation_downsampling import sff_segmentation_downsampling
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.tests.helper_methods import initialize_intermediate_zarr_structure_for_tests
@@ -23,12 +23,12 @@ def test_sff_segmentation_downsampling():
     segment_ids_data = np.arange(64).reshape(4, 4, 4)
     # create arr
     grid_arr = zarr_structure.create_dataset(
-        f'{SEGMENTATION_DATA_GROUPNAME}/0/1/0/0/grid',
+        f'{LATTICE_SEGMENTATION_DATA_GROUPNAME}/0/1/0/0/grid',
         data=segment_ids_data
     )
 
     set_table = zarr_structure.create_dataset(
-        name=f'{SEGMENTATION_DATA_GROUPNAME}/0/1/0/0/set_table',
+        name=f'{LATTICE_SEGMENTATION_DATA_GROUPNAME}/0/1/0/0/set_table',
         dtype=object,
         object_codec=numcodecs.JSON(),
         shape=1,
@@ -49,7 +49,7 @@ def test_sff_segmentation_downsampling():
     sff_segmentation_downsampling(internal_segmentation=internal_segmentation)
 
     # compare grid arrays
-    assert (zarr_structure[f'{SEGMENTATION_DATA_GROUPNAME}/0/2/0/0'].grid[...] == np.array(
+    assert (zarr_structure[f'{LATTICE_SEGMENTATION_DATA_GROUPNAME}/0/2/0/0'].grid[...] == np.array(
         [[[64, 65],
         [66, 67]],
 
@@ -62,7 +62,7 @@ def test_sff_segmentation_downsampling():
     new_ids = {
         '64': [0, 1, 4, 5, 16, 17, 20, 21], '65': [2, 18, 6, 22], '66': [8, 9, 24, 25], '67': [10, 26], '68': [32, 33, 36, 37], '69': [34, 38], '70': [40, 41]
     }
-    updated_dict = zarr_structure[f'{SEGMENTATION_DATA_GROUPNAME}/0/1/0/0'].set_table[...][0] | new_ids
-    assert (zarr_structure[f'{SEGMENTATION_DATA_GROUPNAME}/0/2/0/0'].set_table[...][0] == updated_dict)
+    updated_dict = zarr_structure[f'{LATTICE_SEGMENTATION_DATA_GROUPNAME}/0/1/0/0'].set_table[...][0] | new_ids
+    assert (zarr_structure[f'{LATTICE_SEGMENTATION_DATA_GROUPNAME}/0/2/0/0'].set_table[...][0] == updated_dict)
 
     

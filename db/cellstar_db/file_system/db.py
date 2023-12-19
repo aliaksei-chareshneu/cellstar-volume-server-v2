@@ -11,8 +11,8 @@ import zarr
 from cellstar_db.file_system.constants import (
     ANNOTATION_METADATA_FILENAME,
     DB_NAMESPACES,
+    GEOMETRIC_SEGMENTATION_FILENAME,
     GRID_METADATA_FILENAME,
-    SEGMENTATION_DATA_GROUPNAME,
     VOLUME_DATA_GROUPNAME,
     ZIP_STORE_DATA_ZIP_NAME,
 )
@@ -56,6 +56,11 @@ class FileSystemVolumeServerDB(VolumeServerDB):
             folder.mkdir(parents=True, exist_ok=True)
 
         self.folder = folder
+        self.filenames_to_be_stored = [
+            GRID_METADATA_FILENAME,
+            ANNOTATION_METADATA_FILENAME,
+            GEOMETRIC_SEGMENTATION_FILENAME
+        ]
 
         if not store_type in ["directory", "zip"]:
             raise ArgumentError(f"store type is not supported: {store_type}")
@@ -138,6 +143,16 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         # TODO: check if copied and store closed properly
         return True
 
+    def _store_entry_file(self, temp_store_path: Path, filename: str, namespace: str, key: str):
+        if (temp_store_path / filename).exists():
+            shutil.copy2(
+                temp_store_path / filename,
+                self._path_to_object(namespace, key) / filename,
+            )
+        else:
+            print(f"no {filename} file found, continuing without copying it")
+
+
     async def add_segmentation_to_entry(self, namespace: str, key: str, temp_store_path: Path) -> bool:
         """
         Takes path to temp zarr structure returned by preprocessor as argument
@@ -198,19 +213,14 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         print("A: " + str(temp_store_path))
         print("B: " + GRID_METADATA_FILENAME)
 
-        if (temp_store_path / GRID_METADATA_FILENAME).exists():
-            shutil.copy2(
-                temp_store_path / GRID_METADATA_FILENAME,
-                self._path_to_object(namespace, key) / GRID_METADATA_FILENAME,
-            )
-        if (temp_store_path / ANNOTATION_METADATA_FILENAME).exists():
-            shutil.copy2(
-                temp_store_path / ANNOTATION_METADATA_FILENAME,
-                self._path_to_object(namespace, key) / ANNOTATION_METADATA_FILENAME,
-            )
-        else:
-            print("no annotation metadata file found, continuing without copying it")
-
+        for filename in self.filenames_to_be_stored:
+            self._store_entry_file(
+            temp_store_path=temp_store_path,
+            filename=filename,
+            namespace=namespace,
+            key=key
+        )
+        
         if self.store_type == "zip":
             perm_store.close()
 
@@ -256,18 +266,13 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         print("A: " + str(temp_store_path))
         print("B: " + GRID_METADATA_FILENAME)
 
-        if (temp_store_path / GRID_METADATA_FILENAME).exists():
-            shutil.copy2(
-                temp_store_path / GRID_METADATA_FILENAME,
-                self._path_to_object(namespace, key) / GRID_METADATA_FILENAME,
-            )
-        if (temp_store_path / ANNOTATION_METADATA_FILENAME).exists():
-            shutil.copy2(
-                temp_store_path / ANNOTATION_METADATA_FILENAME,
-                self._path_to_object(namespace, key) / ANNOTATION_METADATA_FILENAME,
-            )
-        else:
-            print("no annotation metadata file found, continuing without copying it")
+        for filename in self.filenames_to_be_stored:
+            self._store_entry_file(
+            temp_store_path=temp_store_path,
+            filename=filename,
+            namespace=namespace,
+            key=key
+        )
 
         if self.store_type == "zip":
             perm_store.close()

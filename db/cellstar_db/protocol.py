@@ -29,7 +29,7 @@ class DBReadContext(Protocol):
         """
         ...
 
-    async def read_geometric_segmentation() -> list[object]:
+    async def read_geometric_segmentation(self) -> list[object]:
         """
         Returns list of shape primitives for geometric segmentation
         """

@@ -1,5 +1,5 @@
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.flows.segmentation.helper_methods import store_segmentation_data_in_zarr_structure
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
@@ -32,7 +32,7 @@ def mask_segmentation_preprocessing(internal_segmentation: InternalSegmentation)
             SegmentationPrimaryDescriptor.three_d_volume
         )
 
-    segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
+    segmentation_data_gr = our_zarr_structure.create_group(LATTICE_SEGMENTATION_DATA_GROUPNAME)
 
     global_data = None
     for index, mask in enumerate(internal_segmentation.segmentation_input_path):

@@ -3,9 +3,10 @@ from vedo import Mesh
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import (
+    LATTICE_SEGMENTATION_DATA_GROUPNAME,
+    MESH_SEGMENTATION_DATA_GROUPNAME,
     MESH_SIMPLIFICATION_LEVELS_PER_ORDER,
     MESH_SIMPLIFICATION_N_LEVELS,
-    SEGMENTATION_DATA_GROUPNAME,
 )
 from cellstar_preprocessor.flows.segmentation.helper_methods import (
     extract_raw_annotations_from_sff,
@@ -26,9 +27,6 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
     zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
-    segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(
-        SEGMENTATION_DATA_GROUPNAME
-    )
 
     internal_segmentation.raw_sff_annotations = extract_raw_annotations_from_sff(
         segm_file_path=internal_segmentation.segmentation_input_path
@@ -38,6 +36,9 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
     # 1. Convert hff to intermediate zarr structure
     # 2. Process it with one of 2 methods (3d volume segmentation, mesh segmentation)
     if zarr_structure.primary_descriptor[0] == b"three_d_volume":
+        segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(
+        LATTICE_SEGMENTATION_DATA_GROUPNAME
+    )
         internal_segmentation.primary_descriptor = (
             SegmentationPrimaryDescriptor.three_d_volume
         )
@@ -48,6 +49,9 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
             segm_data_gr, zarr_structure, internal_segmentation=internal_segmentation
         )
     elif zarr_structure.primary_descriptor[0] == b"mesh_list":
+        segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(
+        MESH_SEGMENTATION_DATA_GROUPNAME
+    )
         internal_segmentation.primary_descriptor = (
             SegmentationPrimaryDescriptor.mesh_list
         )

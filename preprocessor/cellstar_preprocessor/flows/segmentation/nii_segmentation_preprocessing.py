@@ -1,5 +1,5 @@
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.flows.segmentation.helper_methods import store_segmentation_data_in_zarr_structure
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import nibabel as nib
@@ -10,7 +10,7 @@ def nii_segmentation_preprocessing(internal_segmentation: InternalSegmentation):
         internal_segmentation.intermediate_zarr_structure_path
     )
 
-    segmentation_data_gr = our_zarr_structure.create_group(SEGMENTATION_DATA_GROUPNAME)
+    segmentation_data_gr = our_zarr_structure.create_group(LATTICE_SEGMENTATION_DATA_GROUPNAME)
     internal_segmentation.value_to_segment_id_dict = {}
 
     # index = 'lattice_id'
