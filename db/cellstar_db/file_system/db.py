@@ -143,6 +143,15 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         # TODO: check if copied and store closed properly
         return True
 
+    def store_entry_files(self, temp_store_path: Path, namespace: str, key: str):
+        for filename in self.filenames_to_be_stored:
+            self._store_entry_file(
+            temp_store_path=temp_store_path,
+            filename=filename,
+            namespace=namespace,
+            key=key
+        )
+
     def _store_entry_file(self, temp_store_path: Path, filename: str, namespace: str, key: str):
         if (temp_store_path / filename).exists():
             shutil.copy2(
@@ -213,10 +222,8 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         print("A: " + str(temp_store_path))
         print("B: " + GRID_METADATA_FILENAME)
 
-        for filename in self.filenames_to_be_stored:
-            self._store_entry_file(
+        self.store_entry_files(
             temp_store_path=temp_store_path,
-            filename=filename,
             namespace=namespace,
             key=key
         )
@@ -266,10 +273,8 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         print("A: " + str(temp_store_path))
         print("B: " + GRID_METADATA_FILENAME)
 
-        for filename in self.filenames_to_be_stored:
-            self._store_entry_file(
+        self.store_entry_files(
             temp_store_path=temp_store_path,
-            filename=filename,
             namespace=namespace,
             key=key
         )
