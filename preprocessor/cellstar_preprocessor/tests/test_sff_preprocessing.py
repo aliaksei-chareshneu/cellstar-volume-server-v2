@@ -1,6 +1,6 @@
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.flows.segmentation.helper_methods import open_hdf5_as_segmentation_object
 from cellstar_preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
@@ -33,13 +33,14 @@ def test_sff_preprocessing(internal_segmentation: InternalSegmentation):
 
     zarr_structure = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
 
-    assert LATTICE_SEGMENTATION_DATA_GROUPNAME in zarr_structure
-    segmentation_gr = zarr_structure[LATTICE_SEGMENTATION_DATA_GROUPNAME]
-    assert isinstance(segmentation_gr, zarr.hierarchy.Group)
+    
 
     # n of segments
     
     if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
+        assert LATTICE_SEGMENTATION_DATA_GROUPNAME in zarr_structure
+        segmentation_gr = zarr_structure[LATTICE_SEGMENTATION_DATA_GROUPNAME]
+        assert isinstance(segmentation_gr, zarr.hierarchy.Group)
         assert len(segmentation_gr) == len(sff_segm_obj.lattice_list)
 
         for lattice_id, lattice_gr in segmentation_gr.groups():
@@ -74,6 +75,9 @@ def test_sff_preprocessing(internal_segmentation: InternalSegmentation):
     
     # empiar-10070
     elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
+        assert MESH_SEGMENTATION_DATA_GROUPNAME in zarr_structure
+        segmentation_gr = zarr_structure[MESH_SEGMENTATION_DATA_GROUPNAME]
+        assert isinstance(segmentation_gr, zarr.hierarchy.Group)
         assert len(segmentation_gr) == len(sff_segm_obj.segment_list)
         for segment_name, segment in segmentation_gr.groups():
             # single detail lvl group
