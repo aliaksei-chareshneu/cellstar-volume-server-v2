@@ -18,7 +18,7 @@ from cellstar_db.file_system.constants import (
 )
 from cellstar_db.file_system.models import FileSystemVolumeMedatada
 from cellstar_db.file_system.read_context import FileSystemDBReadContext
-from cellstar_db.models import VolumeMetadata
+from cellstar_db.models import AnnotationsMetadata, VolumeMetadata
 from cellstar_db.protocol import DBReadContext, VolumeServerDB
 
 
@@ -195,7 +195,7 @@ class FileSystemVolumeServerDB(VolumeServerDB):
                 mode='r'
             )
             # Re-create zarr hierarchy from opened store
-            existing_root: zarr.hierarchy.group = zarr.group(store=existing_store)
+            existing_root: zarr.Group = zarr.group(store=existing_store)
 
             # copy data from existing to temp store
             zarr.copy_store(source=existing_store, dest=temp_store, source_path=VOLUME_DATA_GROUPNAME, dest_path=VOLUME_DATA_GROUPNAME)
@@ -298,12 +298,12 @@ class FileSystemVolumeServerDB(VolumeServerDB):
             read_json_of_metadata: Dict = json.load(f)
         return FileSystemVolumeMedatada(read_json_of_metadata)
 
-    async def read_annotations(self, namespace: str, key: str) -> Dict:
+    async def read_annotations(self, namespace: str, key: str) -> AnnotationsMetadata:
         path: Path = (
             self._path_to_object(namespace=namespace, key=key)
             / ANNOTATION_METADATA_FILENAME
         )
         with open(path.resolve(), "r", encoding="utf-8") as f:
             # reads into dict
-            read_json_of_metadata: Dict = json.load(f)
+            read_json_of_metadata: AnnotationsMetadata = json.load(f)
         return read_json_of_metadata

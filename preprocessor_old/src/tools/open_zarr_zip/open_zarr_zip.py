@@ -9,5 +9,5 @@ def open_zarr_zip(path: Path) -> zarr.hierarchy.Group:
         mode='r'
     )
     # Re-create zarr hierarchy from opened store
-    root: zarr.hierarchy.group = zarr.group(store=store)
+    root: zarr.Group = zarr.group(store=store)
     return root

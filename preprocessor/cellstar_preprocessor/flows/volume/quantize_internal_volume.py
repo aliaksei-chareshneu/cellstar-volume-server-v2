@@ -48,7 +48,7 @@ def quantize_internal_volume(internal_volume: InternalVolume):
     else:
         quantize_dtype_str = internal_volume.quantize_dtype_str
 
-    zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(
+    zarr_structure: zarr.Group = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
     )
 

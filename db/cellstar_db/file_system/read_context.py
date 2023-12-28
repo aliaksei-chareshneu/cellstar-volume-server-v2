@@ -44,7 +44,7 @@ class FileSystemDBReadContext(DBReadContext):
 
             box = normalize_box(box)
 
-            root: zarr.hierarchy.group = zarr.group(self.store)
+            root: zarr.Group = zarr.group(self.store)
 
             segm_arr = None
             segm_dict = None
@@ -131,7 +131,7 @@ class FileSystemDBReadContext(DBReadContext):
         """
         try:
             mesh_list = []
-            root: zarr.hierarchy.group = zarr.group(self.store)
+            root: zarr.Group = zarr.group(self.store)
             mesh_list_group = root[MESH_SEGMENTATION_DATA_GROUPNAME][segment_id][detail_lvl][time][channel_id]
             for mesh_name, mesh in mesh_list_group.groups():
                 mesh_data = {"mesh_id": int(mesh_name)}
@@ -148,7 +148,7 @@ class FileSystemDBReadContext(DBReadContext):
 
     async def read_geometric_segmentation(self) -> list[object]:
         try:
-            # root: zarr.hierarchy.group = zarr.group(self.store)
+            # root: zarr.Group = zarr.group(self.store)
             # TODO: read and parse JSON
             # path: Path = (
             #     self._path_to_object(namespace=namespace, key=key) / GRID_METADATA_FILENAME
@@ -176,7 +176,7 @@ class FileSystemDBReadContext(DBReadContext):
         try:
             box = normalize_box(box)
 
-            root: zarr.hierarchy.group = zarr.group(self.store)
+            root: zarr.Group = zarr.group(self.store)
 
             if VOLUME_DATA_GROUPNAME in root and (down_sampling_ratio is not None):
                 volume_arr: zarr.core.Array = root[VOLUME_DATA_GROUPNAME][
@@ -233,7 +233,7 @@ class FileSystemDBReadContext(DBReadContext):
 
             box = normalize_box(box)
 
-            root: zarr.hierarchy.group = zarr.group(self.store)
+            root: zarr.Group = zarr.group(self.store)
 
             segm_arr = None
             segm_dict = None

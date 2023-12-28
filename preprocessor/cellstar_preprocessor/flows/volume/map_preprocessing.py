@@ -16,7 +16,7 @@ def map_preprocessing(internal_volume: InternalVolume):
     """1. normalize axis order
     2. add volume data to intermediate zarr structure
     """
-    zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(
+    zarr_structure: zarr.Group = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
     )
 
@@ -41,7 +41,7 @@ def map_preprocessing(internal_volume: InternalVolume):
     dask_arr = normalize_axis_order_mrcfile(dask_arr=dask_arr, mrc_header=header)
 
     # create volume data group
-    volume_data_group: zarr.hierarchy.group = zarr_structure.create_group(
+    volume_data_group: zarr.Group = zarr_structure.create_group(
         VOLUME_DATA_GROUPNAME
     )
 

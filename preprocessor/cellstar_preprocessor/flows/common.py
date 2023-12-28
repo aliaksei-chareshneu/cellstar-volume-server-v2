@@ -34,10 +34,10 @@ def get_downsamplings(data_group) -> list[int]:
     return downsamplings
 
 
-def temp_save_dict(
-    d: dict, filename: Path, temp_dir_path: Path
+def save_dict_to_json(
+    d: dict, filename: Path, path: Path
 ) -> None:
-    with (temp_dir_path / filename).open("w") as fp:
+    with (path / filename).open("w") as fp:
         json.dump(d, fp, indent=4)
 
 
@@ -129,12 +129,12 @@ def _compute_chunk_size_based_on_data(arr: np.ndarray) -> tuple[int, int, int]:
 def open_zarr_structure_from_path(path: Path) -> zarr.hierarchy.Group:
     store: zarr.storage.DirectoryStore = zarr.DirectoryStore(str(path))
     # Re-create zarr hierarchy from opened store
-    root: zarr.hierarchy.group = zarr.group(store=store)
+    root: zarr.Group = zarr.group(store=store)
     return root
 
 
 def create_dataset_wrapper(
-    zarr_group: zarr.hierarchy.group,
+    zarr_group: zarr.Group,
     data,
     name,
     shape,

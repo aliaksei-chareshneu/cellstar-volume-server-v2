@@ -49,23 +49,20 @@ class MeshMetadata(TypedDict):
     num_normals: Optional[int]
 
 class MeshListMetadata(TypedDict):
-    mesh_ids: dict[str, MeshMetadata]
+    mesh_ids: dict[int, MeshMetadata]
 
 class DetailLvlsMetadata(TypedDict):
     detail_lvls: dict[int, MeshListMetadata]
 
 class MeshComponentNumbers(TypedDict):
-    segment_ids: dict[str, DetailLvlsMetadata]
-
-class MeshesTimeframeMetadata(TypedDict):
-    mesh_component_numbers: MeshComponentNumbers
+    segment_ids: dict[int, DetailLvlsMetadata]
 
 class MeshesMetadata(TypedDict):
     segmentation_mesh_set_id: str
-    # maps timeframe index to MeshesTimeframeMetadata with mesh comp num
-    mesh_timeframes: dict[int, MeshesTimeframeMetadata]
+    # maps timeframe index to MeshComponentNumbers
+    mesh_timeframes: dict[int, MeshComponentNumbers]
     detail_lvl_to_fraction: dict
-
+    
 class MeshSegmentationSetsMetadata(TypedDict):
     sets_ids: list[str]
     sets: list[MeshesMetadata]
@@ -115,13 +112,15 @@ class SegmentAnnotationData(TypedDict):
     # uuid
     segment_kind: Literal["lattice", "mesh", "primitive"]
     segment_id: int
+    lattice_id: Optional[str]
+    set_id: Optional[str]
     color: Optional[tuple[float, float, float, float]]
     time: Optional[int]
     # other props added later if needed
 
 class ExternalReference(TypedDict):
     # uuid
-    id: str
+    id: Optional[str]
     resource: Optional[str]
     accession: Optional[str]
     label: Optional[str]
@@ -132,10 +131,12 @@ class DescriptionData(TypedDict):
     id: Optional[str]
     target_kind: Optional[Literal["lattice", "mesh", "primitive", "entry"]]
     target_segment_id: Optional[Union[int, None]]
+    target_lattice_id: Optional[str]
+    target_set_id: Optional[str]
     name: Optional[str]
     external_references: Optional[list[ExternalReference]]
     is_hidden: Optional[bool]
-
+    time: Optional[int]
     description_format: Optional[Literal["text", "markdown"]]
     description: Optional[str]
 
@@ -145,11 +146,13 @@ class DescriptionData(TypedDict):
 class AnnotationsMetadata(TypedDict):
     name: Optional[str]
     entry_id: EntryId
+    # id => DescriptionData
     descriptions: dict[str, DescriptionData]
-    segment_annotations: dict[Literal["lattice", "mesh", "primitive"], dict[int, SegmentAnnotationData]]
+    # kind => lattice_id => segment_id
+    segment_annotations: dict[Literal["lattice", "mesh", "primitive"], dict[str, dict[int, SegmentAnnotationData]]]
     # Only in SFF
     details: Optional[str]
-    volume_channels_annotations: list[ChannelAnnotation]
+    volume_channels_annotations: Optional[list[ChannelAnnotation]]
 
 # END ANNOTATIONS DATA MODEL
 
@@ -186,7 +189,7 @@ class ShapePrimitiveKind(str, Enum):
 
 class ShapePrimitiveBase(TypedDict):
     # NOTE: to be able to refer to it in annotations
-    id: str
+    id: int
     kind: ShapePrimitiveKind
     # NOTE: color in annotations
 

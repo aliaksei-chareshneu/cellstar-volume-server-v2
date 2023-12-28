@@ -288,7 +288,7 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
                 )
 
 
-def _get_source_axes_units(ome_zarr_root_attrs: zarr.hierarchy.group):
+def _get_source_axes_units(ome_zarr_root_attrs: zarr.Group):
     d = {}
     multiscales = ome_zarr_root_attrs["multiscales"]
     # NOTE: can be multiple multiscales, here picking just 1st
@@ -302,7 +302,7 @@ def _get_source_axes_units(ome_zarr_root_attrs: zarr.hierarchy.group):
     return d
 
 
-def _add_defaults_to_ome_zarr_attrs(ome_zarr_root: zarr.hierarchy.group):
+def _add_defaults_to_ome_zarr_attrs(ome_zarr_root: zarr.Group):
     # TODO: try put/update
     # 1. add units to axes
     # NOTE: can be multiple multiscales, here picking just 1st

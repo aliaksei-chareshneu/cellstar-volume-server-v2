@@ -97,10 +97,10 @@ from cellstar_tomoprocessor.helper_methods.parse_single_star_file import parse_s
 # from custom_preprocessor.custom_process_geometric_segmentation import custom_process_geometric_segmentation
 
 def custom_process_geometric_segmentation(internal_segmentation: InternalSegmentation):
-    zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(
+    zarr_structure: zarr.Group = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
-    segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(
+    segm_data_gr: zarr.Group = zarr_structure.create_group(
         SEGMENTATION_DATA_GROUPNAME
     )
     # PLAN

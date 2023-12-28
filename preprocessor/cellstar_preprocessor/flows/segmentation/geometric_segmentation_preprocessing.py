@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
-from cellstar_db.models import Box, Cone, Cylinder, Ellipsoid, Pyramid, ShapePrimitiveData, ShapePrimitiveKind, Sphere
-from cellstar_preprocessor.flows.common import open_zarr_structure_from_path, temp_save_dict
+from cellstar_db.models import Box, Cylinder, Ellipsoid, Pyramid, ShapePrimitiveData, ShapePrimitiveKind, Sphere
+from cellstar_preprocessor.flows.common import open_zarr_structure_from_path, save_dict_to_json
 from cellstar_preprocessor.flows.constants import GEOMETRIC_SEGMENTATION_FILENAME, LATTICE_SEGMENTATION_DATA_GROUPNAME
 import zarr
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
@@ -100,11 +100,11 @@ def _process_geometric_segmentation_data(data: dict, zarr_structure_path: Path):
     d = ShapePrimitiveData(shape_primitive_list=shape_primitives_processed)
     # NOTE: from save annotations
     # segm_data_gr.attrs["geometric_segmentation"] = d
-    temp_save_dict(d, GEOMETRIC_SEGMENTATION_FILENAME, zarr_structure_path)
+    save_dict_to_json(d, GEOMETRIC_SEGMENTATION_FILENAME, zarr_structure_path)
 
 
 def geometric_segmentation_preprocessing(internal_segmentation: InternalSegmentation):
-    zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(
+    zarr_structure: zarr.Group = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
     # PLAN
