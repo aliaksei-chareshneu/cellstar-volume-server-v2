@@ -24,13 +24,6 @@ def test_sff_preprocessing(internal_segmentation: InternalSegmentation):
     sff_preprocessing(internal_segmentation=internal_segmentation)
 
     # check if zarr structure has right format
-    # 1. open zarr structure, check if there is _segmentation_data group
-    # 2. check if 0th level zarr group (lattice_id) is group and if there is just one group (0)
-    # 3. check if 1st level zarr group (resolution) is group and if there is just one group (1)
-    # 4. check if 2nd level zarr group (time) is group and if there is just one group (0)
-    # 5. check if 3rd level in zarr (channel) is group and if there is just one group (0)
-    # 6. check if 4th level in zarr contains two arrays 'grid' and 'set_table'
-
     zarr_structure = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
 
     
@@ -40,60 +33,64 @@ def test_sff_preprocessing(internal_segmentation: InternalSegmentation):
     if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
         assert LATTICE_SEGMENTATION_DATA_GROUPNAME in zarr_structure
         segmentation_gr = zarr_structure[LATTICE_SEGMENTATION_DATA_GROUPNAME]
-        assert isinstance(segmentation_gr, zarr.hierarchy.Group)
+        assert isinstance(segmentation_gr, zarr.Group)
         assert len(segmentation_gr) == len(sff_segm_obj.lattice_list)
 
         for lattice_id, lattice_gr in segmentation_gr.groups():
             # single resolution group
             assert len(lattice_gr) == 1
-            assert '1' in lattice_gr
-            assert isinstance(lattice_gr['1'], zarr.hierarchy.Group)
+            assert 1 in lattice_gr
+            resolution_gr = lattice_gr[1]
+            assert isinstance(resolution_gr, zarr.Group)
 
             # single time group
-            assert len(lattice_gr['1']) == 1
-            assert '0' in lattice_gr['1']
-            assert isinstance(lattice_gr['1']['0'], zarr.hierarchy.Group)
+            assert len(resolution_gr) == 1
+            assert 0 in resolution_gr
+            timeframe_gr = resolution_gr[0]
+            assert isinstance(timeframe_gr, zarr.Group)
 
-            # single channel group
-            assert len(lattice_gr['1']['0']) == 1
-            assert '0' in lattice_gr['1']['0']
-            assert isinstance(lattice_gr['1']['0']['0'], zarr.hierarchy.Group)
-            
             # grid and set table
-            assert len(lattice_gr['1']['0']['0']) == 2
-            assert 'grid' in lattice_gr['1']['0']['0']
+            assert len(timeframe_gr) == 2
+            assert 'grid' in timeframe_gr
             lattice_from_sff = list(filter(lambda lat: str(lat.id) == lattice_id, sff_segm_obj.lattice_list))[0]
             grid_shape = (
                 lattice_from_sff.size.rows,
                 lattice_from_sff.size.cols,
                 lattice_from_sff.size.sections
                 )
-            assert lattice_gr['1']['0']['0'].grid.shape == grid_shape
+            assert timeframe_gr.grid.shape == grid_shape
 
-            assert 'set_table' in lattice_gr['1']['0']['0']
-            assert lattice_gr['1']['0']['0'].set_table.shape == (1,)
+            assert 'set_table' in timeframe_gr
+            assert timeframe_gr.set_table.shape == (1,)
     
     # empiar-10070
     elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
         assert MESH_SEGMENTATION_DATA_GROUPNAME in zarr_structure
         segmentation_gr = zarr_structure[MESH_SEGMENTATION_DATA_GROUPNAME]
-        assert isinstance(segmentation_gr, zarr.hierarchy.Group)
-        assert len(segmentation_gr) == len(sff_segm_obj.segment_list)
-        for segment_name, segment in segmentation_gr.groups():
-            # single detail lvl group
-            assert len(segment) == 1
-            assert '1' in segment
-            # time
-            assert '0' in segment['1']
-            # channel
-            assert '0' in segment['1']['0']
-            # mesh
-            for mesh_id, mesh_gr in segment['1']['0']['0'].groups():
-                # assert '0' in segment['1']['0']['0']
-                # attributes
+        assert isinstance(segmentation_gr, zarr.Group)
+
+        # order
+        # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
+        
+        # single set
+        assert len(segmentation_gr) == 1
+        set_gr = segmentation_gr[0] 
+        # single timeframe
+        assert len(set_gr) == 1
+        timeframe_gr = set_gr[0]
+        
+        # number of segments
+        assert len(timeframe_gr) == len(sff_segm_obj.segment_list)
+        for segment_id, segment_gr in timeframe_gr.groups():
+            # single detail lvl group - original
+            assert len(segment_gr) == 1
+            assert 1 in segment_gr
+            detail_lvl_gr = segment_gr[1]
+            for mesh_id, mesh_gr in detail_lvl_gr.groups():
                 assert 'triangles' in mesh_gr
                 assert 'vertices' in mesh_gr
-
+                # if there are no more groups
+                assert len(sorted(mesh_gr.group_keys())) == 0
 
 
     
