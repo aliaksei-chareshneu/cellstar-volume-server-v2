@@ -1,7 +1,8 @@
-from cellstar_db.models import EntryId
+from uuid import uuid4
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 
@@ -12,7 +13,7 @@ def extract_annotations_from_sff_segmentation(
     root = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
-    d = root.attrs["annotations_dict"]
+    d: AnnotationsMetadata = root.attrs["annotations_dict"]
 
     d["entry_id"] = EntryId(
         source_db_id=internal_segmentation.entry_data.source_db_id,
@@ -26,48 +27,65 @@ def extract_annotations_from_sff_segmentation(
         internal_segmentation.intermediate_zarr_structure_path
     )
 
-    # NOTE: not all segments from segment list may be present in the given lattice
-    # TODO: if number of lattices is > 1, print warning that segment list is global for all lattices
-    # and not all segments from segment list may be present in the given lattice
-    
+    time = 0
     if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
         for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
-            segmentation_lattice_info = {"lattice_id": lattice_id, "segment_list": []}
-
+            d['segment_annotations']['lattice'][lattice_id] = {}
             for segment in internal_segmentation.raw_sff_annotations["segment_list"]:
                 if str(segment["three_d_volume"]["lattice_id"]) == str(lattice_id):
-                    segmentation_lattice_info["segment_list"].append(
-                        {
-                            "id": segment["id"],
-                            "biological_annotation": {
-                                "name": segment["biological_annotation"]["name"],
-                                "external_references": segment["biological_annotation"][
-                                    "external_references"
-                                ],
-                            },
-                            "color": segment["colour"],
-                        }
-                    )
+                    # create description
+                    description_id = str(uuid4())
+                    description: DescriptionData = {
+                        'id': description_id,
+                        'target_kind': "lattice",
+                        'description': None,
+                        'description_format': None,
+                        'is_hidden': None,
+                        'metadata': None,
+                        'time': time,
+                        'name': segment["biological_annotation"]["name"],
+                        'external_references': segment["biological_annotation"]["external_references"],
+                        'target_lattice_id': str(lattice_id),
+                        'target_segment_id': segment["id"],
+                    }
+                    # create segment annotation
+                    segment_annotation: SegmentAnnotationData = {
+                        'color': segment["colour"],
+                        'lattice_id': str(lattice_id),
+                        'segment_id': segment["id"],
+                        'segment_kind': 'lattice',
+                        'time': time
+                    }
+                    d['descriptions'][description_id] = description
+                    d['segment_annotations']['lattice'][lattice_id][segment["id"]] = segment_annotation
 
-            d["segmentation_lattices"].append(segmentation_lattice_info)
     elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
-        segmentation_lattice_info = {"lattice_id": "0", "segment_list": []}
-
-        for segment in internal_segmentation.raw_sff_annotations["segment_list"]:
-            segmentation_lattice_info["segment_list"].append(
-                {
-                    "id": segment["id"],
-                    "biological_annotation": {
-                        "name": segment["biological_annotation"]["name"],
-                        "external_references": segment["biological_annotation"][
-                            "external_references"
-                        ],
-                    },
-                    "color": segment["colour"],
+        for set_id, set_gr in root[MESH_SEGMENTATION_DATA_GROUPNAME].groups():
+            d['segment_annotations']['mesh'][set_id] = {}
+            for segment in internal_segmentation.raw_sff_annotations["segment_list"]:
+                description_id = str(uuid4())
+                description: DescriptionData = {
+                    'id': description_id,
+                    'target_kind': "mesh",
+                    'description': None,
+                    'description_format': None,
+                    'is_hidden': None,
+                    'metadata': None,
+                    'time': time,
+                    'name': segment["biological_annotation"]["name"],
+                    'external_references': segment["biological_annotation"]["external_references"],
+                    'target_set_id': str(set_id),
+                    'target_segment_id': segment["id"],
                 }
-            )
-
-        d["segmentation_lattices"].append(segmentation_lattice_info)
+                segment_annotation: SegmentAnnotationData = {
+                    'color': segment["colour"],
+                    'set_id': str(set_id),
+                    'segment_id': segment["id"],
+                    'segment_kind': 'mesh',
+                    'time': time
+                }
+                d['descriptions'][description_id] = description
+                d['segment_annotations']['mesh'][set_id][segment["id"]] = segment_annotation
 
     root.attrs["annotations_dict"] = d
     print("Annotations extracted")

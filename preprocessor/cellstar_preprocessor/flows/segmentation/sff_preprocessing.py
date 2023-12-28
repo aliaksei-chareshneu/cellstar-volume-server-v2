@@ -24,7 +24,7 @@ from cellstar_preprocessor.model.segmentation import InternalSegmentation
 def sff_preprocessing(internal_segmentation: InternalSegmentation):
     hdf5_to_zarr(internal_segmentation=internal_segmentation)
 
-    zarr_structure: zarr.hierarchy.group = open_zarr_structure_from_path(
+    zarr_structure: zarr.Group = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
 
@@ -36,7 +36,7 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
     # 1. Convert hff to intermediate zarr structure
     # 2. Process it with one of 2 methods (3d volume segmentation, mesh segmentation)
     if zarr_structure.primary_descriptor[0] == b"three_d_volume":
-        segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(
+        segm_data_gr: zarr.Group = zarr_structure.create_group(
         LATTICE_SEGMENTATION_DATA_GROUPNAME
     )
         internal_segmentation.primary_descriptor = (
@@ -49,7 +49,7 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
             segm_data_gr, zarr_structure, internal_segmentation=internal_segmentation
         )
     elif zarr_structure.primary_descriptor[0] == b"mesh_list":
-        segm_data_gr: zarr.hierarchy.group = zarr_structure.create_group(
+        segm_data_gr: zarr.Group = zarr_structure.create_group(
         MESH_SEGMENTATION_DATA_GROUPNAME
     )
         internal_segmentation.primary_descriptor = (
@@ -58,16 +58,21 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
         internal_segmentation.simplification_curve = make_simplification_curve(
             MESH_SIMPLIFICATION_N_LEVELS, MESH_SIMPLIFICATION_LEVELS_PER_ORDER
         )
+
+        # NOTE: single mesh set group and timeframe group
+        mesh_set_gr = segm_data_gr.create_group('0')
+        timeframe_gr = mesh_set_gr.create_group(0)
+
         _process_mesh_segmentation_data(
-            segm_data_gr, zarr_structure, internal_segmentation=internal_segmentation
+            timeframe_gr, zarr_structure, internal_segmentation=internal_segmentation
         )
 
     print("Segmentation processed")
 
 
 def _process_three_d_volume_segmentation_data(
-    segm_data_gr: zarr.hierarchy.group,
-    zarr_structure: zarr.hierarchy.group,
+    segm_data_gr: zarr.Group,
+    zarr_structure: zarr.Group,
     internal_segmentation: InternalSegmentation,
 ):
     for gr_name, gr in zarr_structure.lattice_list.groups():
@@ -95,23 +100,20 @@ def _process_three_d_volume_segmentation_data(
 
 
 def _process_mesh_segmentation_data(
-    segm_data_gr: zarr.hierarchy.group,
-    zarr_structure: zarr.hierarchy.group,
+    timeframe_gr: zarr.Group,
+    zarr_structure: zarr.Group,
     internal_segmentation: InternalSegmentation,
-):
-
+):  
     params_for_storing = internal_segmentation.params_for_storing
 
     for segment_name, segment in zarr_structure.segment_list.groups():
-        segment_id = str(int(segment.id[...]))
-        single_segment_group = segm_data_gr.create_group(segment_id)
-        single_detail_lvl_group = single_segment_group.create_group("1")
+        segment_id = int(segment.id[...])
+        single_segment_group = timeframe_gr.create_group(segment_id)
+        single_detail_lvl_group = single_segment_group.create_group(1)
         if "mesh_list" in segment:
             for mesh_name, mesh in segment.mesh_list.groups():
-                mesh_id = str(int(mesh.id[...]))
-                time_group = single_detail_lvl_group.create_group("0")
-                channel_group = time_group.create_group("0")
-                single_mesh_group = channel_group.create_group(mesh_id)
+                mesh_id = int(mesh.id[...])
+                single_mesh_group = single_detail_lvl_group.create_group(mesh_id)
 
                 for mesh_component_name, mesh_component in mesh.groups():
                     if mesh_component_name != "id":

@@ -1,4 +1,4 @@
-from cellstar_db.models import MeshComponentNumbers, Metadata
+from cellstar_db.models import DetailLvlsMetadata, MeshComponentNumbers, MeshListMetadata, MeshMetadata, MeshSegmentationSetsMetadata, MeshesMetadata, Metadata, SamplingInfo, SegmentationLatticesMetadata, TimeInfo
 
 from cellstar_preprocessor.flows.common import (
     get_downsamplings,
@@ -22,17 +22,7 @@ def _get_segmentation_sampling_info(
         }
 
         for time_gr_name, time_gr in res_gr.groups():
-            first_group_key = sorted(time_gr.group_keys())[0]
-
-            sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"] = time_gr[
-                first_group_key
-            ].grid.shape
-
-            for channel_gr_name, channel_gr in time_gr.groups():
-                assert (
-                    sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"]
-                    == channel_gr.grid.shape
-                )
+            sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"] = time_gr.grid.shape
 
 
 def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmentation):
@@ -49,87 +39,117 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
         internal_segmentation.primary_descriptor
         == SegmentationPrimaryDescriptor.three_d_volume
     ):
-        # sff has one channel
-        channel_ids = [0]
-        start_time = 0
-        end_time = 0
-        time_units = "millisecond"
+        time_info_for_all_lattices: TimeInfo = {
+            'end': 0,
+            'kind': 'range',
+            'start': 0,
+            'units': 'mullisecond'
+        }
+        
         lattice_ids = []
-
-        # TODO: check - some units are defined (spatial?)
         source_axes_units = {}
+
+        segmentation_lattices_metadata: SegmentationLatticesMetadata = {
+            'segmentation_lattice_ids': None,
+            'segmentation_sampling_info': {},
+            'time_info': {}
+        }
 
         for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
             downsamplings = get_downsamplings(data_group=lattice_gr)
             lattice_ids.append(lattice_id)
-
-            metadata_dict["segmentation_lattices"]["segmentation_sampling_info"][
-                lattice_id
-            ] = {
-                # Info about "downsampling dimension"
-                "spatial_downsampling_levels": downsamplings,
-                # the only thing with changes with SPATIAL downsampling is box!
-                "boxes": {},
-                "time_transformations": [],
-                "source_axes_units": source_axes_units,
+            
+            sampling_info: SamplingInfo = {
+                'spatial_downsampling_levels': downsamplings,
+                'boxes': {},
+                'time_transformations': [],
+                'source_axes_units': source_axes_units,
+                # TODO: original axes order?
+                'original_axis_order': [0, 1, 2]
             }
+            segmentation_lattices_metadata["segmentation_sampling_info"][str(lattice_id)] = sampling_info
+            segmentation_lattices_metadata["time_info"][str(lattice_id)] = time_info_for_all_lattices
+
             _get_segmentation_sampling_info(
                 root_data_group=lattice_gr,
-                sampling_info_dict=metadata_dict["segmentation_lattices"][
-                    "segmentation_sampling_info"
-                ][str(lattice_id)],
+                sampling_info_dict=segmentation_lattices_metadata["segmentation_sampling_info"][str(lattice_id)],
                 volume_sampling_info_dict=metadata_dict["volumes"][
                     "volume_sampling_info"
                 ],
             )
 
-            metadata_dict["segmentation_lattices"]["time_info"][lattice_id] = {
-                "kind": "range",
-                "start": start_time,
-                "end": end_time,
-                "units": time_units,
-            }
-
-        metadata_dict["segmentation_lattices"]["segmentation_lattice_ids"] = lattice_ids
+        segmentation_lattices_metadata["segmentation_lattice_ids"] = lattice_ids
+        metadata_dict["segmentation_lattices"] = segmentation_lattices_metadata
 
     elif (
         internal_segmentation.primary_descriptor
         == SegmentationPrimaryDescriptor.mesh_list
     ):
-        # from metadata_methods
-
-        mesh_comp_num: MeshComponentNumbers = {}
-        detail_lvl_to_fraction_dict = {}
-
-        mesh_comp_num["segment_ids"] = {}
+        
+        mesh_segmentation_sets_metadata: MeshSegmentationSetsMetadata = {
+            'sets': [],
+            'sets_ids': [],
+            'time_info': {}
+        }
 
         # NOTE: mesh has no time and channel (both equal zero)
         # order: segment_ids, detail_lvls, time, channel, mesh_ids
-        for segment_id, segment in root[MESH_SEGMENTATION_DATA_GROUPNAME].groups():
-            mesh_comp_num["segment_ids"][segment_id] = {"detail_lvls": {}}
-            for detail_lvl, detail_lvl_gr in segment.groups():
-                mesh_comp_num["segment_ids"][segment_id]["detail_lvls"][detail_lvl] = {
-                    "mesh_ids": {}
+        for set_id, set_gr in root[MESH_SEGMENTATION_DATA_GROUPNAME].groups():
+            mesh_segmentation_sets_metadata['sets_ids'].append(set_id)
+            mesh_set_metadata: MeshesMetadata = {
+                'detail_lvl_to_fraction': internal_segmentation.simplification_curve,
+                'mesh_timeframes': {},
+                'segmentation_mesh_set_id': set_id
+            }
+            for timeframe_index, timeframe_gr in set_gr.groups():
+                mesh_comp_num: MeshComponentNumbers = {
+                    'segment_ids': {}
                 }
-                # NOTE: mesh has no time and channel (both equal zero)
-                for mesh_id, mesh in detail_lvl_gr["0"]["0"].groups():
-                    mesh_comp_num["segment_ids"][segment_id]["detail_lvls"][detail_lvl][
-                        "mesh_ids"
-                    ][mesh_id] = {}
-                    for mesh_component_name, mesh_component in mesh.arrays():
-                        d_ref = mesh_comp_num["segment_ids"][segment_id]["detail_lvls"][
-                            detail_lvl
-                        ]["mesh_ids"][mesh_id]
-                        d_ref[f"num_{mesh_component_name}"] = mesh_component.attrs[
-                            f"num_{mesh_component_name}"
-                        ]
+                for segment_id, segment in timeframe_gr.groups():
+                    detail_lvls_metadata: DetailLvlsMetadata = {
+                        'detail_lvls' : {}
+                    }
+                    for detail_lvl, detail_lvl_gr in segment.groups():
+                        mesh_list_metadata: MeshListMetadata = {
+                            'mesh_ids': {}
+                        }
+                        for mesh_id, mesh in detail_lvl_gr.groups():
+                            mesh_metadata: MeshMetadata = {}
+                            for mesh_component_name, mesh_component in mesh.arrays():
+                                mesh_metadata[f"num_{mesh_component_name}"] = mesh_component.attrs[
+                                    f"num_{mesh_component_name}"
+                                ]
+                            mesh_list_metadata["mesh_ids"][int(mesh_id)] = mesh_metadata
+                        detail_lvls_metadata["detail_lvls"][int(detail_lvl)] = mesh_list_metadata
+                    mesh_comp_num["segment_ids"][int(segment_id)] = detail_lvls_metadata
+                mesh_set_metadata["mesh_timeframes"][int(timeframe_index)] = mesh_comp_num
+            mesh_segmentation_sets_metadata["sets"].append(mesh_set_metadata)
+        metadata_dict['segmentation_meshes'] = mesh_segmentation_sets_metadata
 
-        detail_lvl_to_fraction_dict = internal_segmentation.simplification_curve
+                #     mesh_comp_num["segment_ids"][segment_id] = {"detail_lvls": {}}
+                #     for detail_lvl, detail_lvl_gr in segment.groups():
+                #         mesh_comp_num["segment_ids"][segment_id]["detail_lvls"][detail_lvl] = {
+                #             "mesh_ids": {}
+                #         }
+                #         # NOTE: mesh has no time and channel (both equal zero)
+                #         for mesh_id, mesh in detail_lvl_gr["0"]["0"].groups():
+                #             mesh_comp_num["segment_ids"][segment_id]["detail_lvls"][detail_lvl][
+                #                 "mesh_ids"
+                #             ][mesh_id] = {}
+                #             for mesh_component_name, mesh_component in mesh.arrays():
+                #                 d_ref = mesh_comp_num["segment_ids"][segment_id]["detail_lvls"][
+                #                     detail_lvl
+                #                 ]["mesh_ids"][mesh_id]
+                #                 d_ref[f"num_{mesh_component_name}"] = mesh_component.attrs[
+                #                     f"num_{mesh_component_name}"
+                #                 ]
 
-        metadata_dict["segmentation_meshes"]["mesh_component_numbers"] = mesh_comp_num
-        metadata_dict["segmentation_meshes"][
-            "detail_lvl_to_fraction"
-        ] = detail_lvl_to_fraction_dict
+                # detail_lvl_to_fraction_dict = internal_segmentation.simplification_curve
 
+                # metadata_dict["segmentation_meshes"]["mesh_component_numbers"] = mesh_comp_num
+                # metadata_dict["segmentation_meshes"][
+                #     "detail_lvl_to_fraction"
+                # ] = detail_lvl_to_fraction_dict
+        
     root.attrs["metadata_dict"] = metadata_dict
     return metadata_dict

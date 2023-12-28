@@ -160,7 +160,7 @@ def map_value_to_segment_id(zarr_structure):
 
 def store_segmentation_data_in_zarr_structure(
     original_data: np.ndarray,
-    lattice_data_group: zarr.hierarchy.Group,
+    lattice_data_group: zarr.Group,
     value_to_segment_id_dict_for_specific_lattice_id: dict,
     params_for_storing: dict,
 ):
@@ -183,14 +183,13 @@ def store_segmentation_data_in_zarr_structure(
         levels,
         lattice_data_group,
         params_for_storing=params_for_storing,
-        time_frame="0",
-        channel="0",
+        time_frame="0"
     )
 
 
 def write_mesh_component_data_to_zarr_arr(
-    target_group: zarr.hierarchy.group,
-    mesh: zarr.hierarchy.group,
+    target_group: zarr.Group,
+    mesh: zarr.Group,
     mesh_component_name: str,
     params_for_storing: dict,
 ):
@@ -229,7 +228,7 @@ def _round_to_significant_digits(number: float, digits: int) -> float:
     return round(number, first_digit + digits - 1)
 
 
-def compute_vertex_density(mesh_list_group: zarr.hierarchy.group, mode="area"):
+def compute_vertex_density(mesh_list_group: zarr.Group, mode="area"):
     """Takes as input mesh list group with stored original lvl meshes.
     Returns estimate of vertex_density for mesh list"""
     mesh_list = []
@@ -278,21 +277,20 @@ def _get_mesh_data_from_vedo_obj(vedo_obj):
 
 def store_mesh_data_in_zarr(
     mesh_data_dict,
-    segment: zarr.hierarchy.group,
+    segment: zarr.Group,
     detail_level: int,
-    time_frame: str,
-    channel: str,
     params_for_storing: dict,
 ):
-    # zarr group for that detail lvl
-    resolution_gr = segment.create_group(str(detail_level))
-    time_gr = resolution_gr.create_group(time_frame)
-    channel_gr = time_gr.create_group(channel)
+    # order
+    # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
+
+    resolution_gr = segment.create_group(detail_level)
+    # time_gr = resolution_gr.create_group(time_frame)
+    # channel_gr = time_gr.create_group(channel)
 
     d = mesh_data_dict
     for mesh_id in d:
-        single_mesh_group = channel_gr.create_group(str(mesh_id))
-
+        single_mesh_group = resolution_gr.create_group(mesh_id)
         for array_name, array in d[mesh_id]["arrays"].items():
             dset = create_dataset_wrapper(
                 zarr_group=single_mesh_group,
@@ -308,11 +306,11 @@ def store_mesh_data_in_zarr(
         for attr_name, attr_val in d[mesh_id]["attrs"].items():
             single_mesh_group.attrs[attr_name] = attr_val
 
-    return channel_gr
+    return resolution_gr
 
 
 def simplify_meshes(
-    mesh_list_group: zarr.hierarchy.Group, ratio: float, segment_id: int
+    mesh_list_group: zarr.Group, ratio: float, segment_id: int
 ):
     """Returns dict with mesh data for each mesh in mesh list"""
     # for each mesh

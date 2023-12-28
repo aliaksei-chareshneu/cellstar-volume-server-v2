@@ -13,32 +13,24 @@ from cellstar_preprocessor.tools.magic_kernel_downsampling_3d.magic_kernel_downs
     MagicKernel3dDownsampler,
 )
 
-# from preprocessor.src.preprocessors.implementations.sff.downsampling_level_dict import DownsamplingLevelDict
-# from preprocessor.src.preprocessors.implementations.sff.segmentation_set_table import SegmentationSetTable
-# from preprocessor.src.tools.magic_kernel_downsampling_3d.magic_kernel_downsampling_3d import MagicKernel3dDownsampler
-# from preprocessor.src.preprocessors.implementations.sff.preprocessor._zarr_methods import create_dataset_wrapper
-
-
 def store_downsampling_levels_in_zarr(
     levels_list: list[DownsamplingLevelDict],
-    lattice_data_group: zarr.hierarchy.Group,
+    lattice_data_group: zarr.Group,
     params_for_storing: dict,
     time_frame: str,
-    channel: str,
 ):
     for level_dict in levels_list:
         grid = level_dict.get_grid()
         table = level_dict.get_set_table()
         ratio = level_dict.get_ratio()
 
-        new_level_group: zarr.hierarchy.Group = lattice_data_group.create_group(
+        new_level_group: zarr.Group = lattice_data_group.create_group(
             str(ratio)
         )
         time_frame_data_group = new_level_group.create_group(time_frame)
-        channel_data_group = time_frame_data_group.create_group(channel)
-
+        
         grid_arr = create_dataset_wrapper(
-            zarr_group=channel_data_group,
+            zarr_group=time_frame_data_group,
             data=grid,
             name="grid",
             shape=grid.shape,
@@ -46,7 +38,7 @@ def store_downsampling_levels_in_zarr(
             params_for_storing=params_for_storing,
         )
 
-        table_obj_arr = channel_data_group.create_dataset(
+        table_obj_arr = time_frame_data_group.create_dataset(
             # be careful here, encoding JSON, sets need to be converted to lists
             name="set_table",
             # MsgPack leads to bug/error: int is not allowed for map key when strict_map_key=True
