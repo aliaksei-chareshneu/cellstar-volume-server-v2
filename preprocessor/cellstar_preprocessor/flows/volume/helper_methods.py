@@ -76,7 +76,7 @@ def normalize_axis_order_mrcfile(dask_arr: da.Array, mrc_header: object) -> da.A
 
 def store_volume_data_in_zarr_stucture(
     data: da.Array,
-    volume_data_group: zarr.hierarchy.Group,
+    volume_data_group: zarr.Group,
     params_for_storing: dict,
     force_dtype: np.dtype,
     resolution: str,

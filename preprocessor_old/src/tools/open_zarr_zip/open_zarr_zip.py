@@ -1,7 +1,7 @@
 from pathlib import Path
 import zarr
 
-def open_zarr_zip(path: Path) -> zarr.hierarchy.Group:
+def open_zarr_zip(path: Path) -> zarr.Group:
     store = zarr.ZipStore(
         path=path,
         compression=0,

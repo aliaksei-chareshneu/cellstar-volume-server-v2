@@ -26,7 +26,7 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
 
     assert LATTICE_SEGMENTATION_DATA_GROUPNAME in zarr_structure
     segmentation_gr = zarr_structure[LATTICE_SEGMENTATION_DATA_GROUPNAME]
-    assert isinstance(segmentation_gr, zarr.hierarchy.Group)
+    assert isinstance(segmentation_gr, zarr.Group)
     # check if number of label groups is the same as number of groups in ome zarr
     assert len(segmentation_gr) == len(list(ome_zarr_root.labels.group_keys()))
 
@@ -45,7 +45,7 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
                 segm_3d_arr_dtype = arr.dtype
 
             assert str(arr_resolution) in segmentation_gr[label_gr_name]
-            assert isinstance(segmentation_gr[label_gr_name][arr_resolution], zarr.hierarchy.Group)
+            assert isinstance(segmentation_gr[label_gr_name][arr_resolution], zarr.Group)
             
             # check number of time groups
             if len(axes) == 5 and axes[0]["name"] == "t":
@@ -65,7 +65,7 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
 
                 # for each channel, check if shape is equal to shape of volume arr with swapaxes
                 for channel in range(n_of_channel_groups):
-                    assert isinstance(segmentation_gr[label_gr_name][arr_resolution][time][channel], zarr.hierarchy.Group)
+                    assert isinstance(segmentation_gr[label_gr_name][arr_resolution][time][channel], zarr.Group)
                     assert 'grid' in segmentation_gr[label_gr_name][arr_resolution][time][channel]
                     assert segmentation_gr[label_gr_name][arr_resolution][time][channel].grid.shape == segm_3d_arr_shape
                     assert segmentation_gr[label_gr_name][arr_resolution][time][channel].grid.dtype == segm_3d_arr_dtype

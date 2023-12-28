@@ -9,7 +9,7 @@ import zarr
 def test_volume_downsampling():
     initialize_intermediate_zarr_structure_for_tests()
     internal_volume = INTERNAL_VOLUME_FOR_TESTING
-    zarr_structure: zarr.hierarchy.Group = open_zarr_structure_from_path(internal_volume.intermediate_zarr_structure_path)
+    zarr_structure: zarr.Group = open_zarr_structure_from_path(internal_volume.intermediate_zarr_structure_path)
 
     # create synthetic array filled with ones
     arr = zarr_structure.create_dataset(

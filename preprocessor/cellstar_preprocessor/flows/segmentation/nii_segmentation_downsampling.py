@@ -84,7 +84,7 @@ def _create_category_set_downsamplings(
     original_data: np.ndarray,
     downsampling_steps: int,
     ratios_to_be_stored: list,
-    data_group: zarr.hierarchy.Group,
+    data_group: zarr.Group,
     value_to_segment_id_dict_for_specific_lattice_id: dict,
     params_for_storing: dict,
     time_frame: str,

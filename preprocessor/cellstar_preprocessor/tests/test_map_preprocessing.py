@@ -36,15 +36,15 @@ def test_map_preprocessing(internal_volume: InternalVolume):
     
     assert VOLUME_DATA_GROUPNAME in zarr_structure
     volume_gr = zarr_structure[VOLUME_DATA_GROUPNAME]
-    assert isinstance(volume_gr, zarr.hierarchy.Group)
+    assert isinstance(volume_gr, zarr.Group)
     assert len(volume_gr) == 1
     
     assert '1' in volume_gr
-    assert isinstance(volume_gr['1'], zarr.hierarchy.Group)
+    assert isinstance(volume_gr['1'], zarr.Group)
     assert len(volume_gr['1']) == 1
 
     assert '0' in volume_gr['1']
-    assert isinstance(volume_gr['1']['0'], zarr.hierarchy.Group)
+    assert isinstance(volume_gr['1']['0'], zarr.Group)
     assert len(volume_gr['1']['0']) == 1
     
     assert '0' in volume_gr['1']['0']

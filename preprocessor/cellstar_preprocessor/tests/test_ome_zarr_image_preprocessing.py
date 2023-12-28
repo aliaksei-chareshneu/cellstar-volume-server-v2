@@ -37,7 +37,7 @@ def test_ome_zarr_image_preprocessing(internal_volume: InternalVolume):
     
     assert VOLUME_DATA_GROUPNAME in zarr_structure
     volume_gr = zarr_structure[VOLUME_DATA_GROUPNAME]
-    assert isinstance(volume_gr, zarr.hierarchy.Group)
+    assert isinstance(volume_gr, zarr.Group)
     
     # check if number of resolution groups is the same as number of arrays in ome zarr
     assert len(volume_gr) == len(list(ome_zarr_root.array_keys()))
@@ -48,7 +48,7 @@ def test_ome_zarr_image_preprocessing(internal_volume: InternalVolume):
         volume_3d_arr_shape = volume_arr[...].swapaxes(-3, -1).shape[-3:] 
 
         assert str(volume_arr_resolution) in volume_gr
-        assert isinstance(volume_gr[volume_arr_resolution], zarr.hierarchy.Group)
+        assert isinstance(volume_gr[volume_arr_resolution], zarr.Group)
         
         # check number of time groups
         if len(axes) == 5 and axes[0]["name"] == "t":

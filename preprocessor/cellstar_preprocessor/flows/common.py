@@ -126,7 +126,7 @@ def _compute_chunk_size_based_on_data(arr: np.ndarray) -> tuple[int, int, int]:
     return chunks
 
 
-def open_zarr_structure_from_path(path: Path) -> zarr.hierarchy.Group:
+def open_zarr_structure_from_path(path: Path) -> zarr.Group:
     store: zarr.storage.DirectoryStore = zarr.DirectoryStore(str(path))
     # Re-create zarr hierarchy from opened store
     root: zarr.Group = zarr.group(store=store)

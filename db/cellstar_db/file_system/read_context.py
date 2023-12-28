@@ -391,7 +391,7 @@ class FileSystemDBReadContext(DBReadContext):
         return sliced
 
     def __get_path_to_zarr_object(
-        self, zarr_obj: Union[zarr.hierarchy.Group, zarr.core.Array]
+        self, zarr_obj: Union[zarr.Group, zarr.core.Array]
     ) -> Path:
         """
         Returns Path to zarr object (array or group)
