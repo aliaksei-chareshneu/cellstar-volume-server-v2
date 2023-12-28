@@ -1,9 +1,12 @@
-QUANTIZATION_DATA_DICT_ATTR_NAME = "quantization_data_dict"
-LATTICE_SEGMENTATION_DATA_GROUPNAME = "_lattice_segmentation_data"
-MESH_SEGMENTATION_DATA_GROUPNAME = "_mesh_segmentation_data"
+from cellstar_db.models import AnnotationsMetadata, Metadata
 
-VOLUME_DATA_GROUPNAME = "_volume_data"
-VOLUME_DATA_GROUPNAME_COPY = "_volume_data_copy"
+
+QUANTIZATION_DATA_DICT_ATTR_NAME = "quantization_data_dict"
+LATTICE_SEGMENTATION_DATA_GROUPNAME = "lattice_segmentation_data"
+MESH_SEGMENTATION_DATA_GROUPNAME = "mesh_segmentation_data"
+
+VOLUME_DATA_GROUPNAME = "volume_data"
+VOLUME_DATA_GROUPNAME_COPY = "volume_data_copy"
 
 # TODO: the namespaces should NOT be hardcoded
 DB_NAMESPACES = ("emdb", "empiar")
@@ -30,3 +33,61 @@ MESH_VERTEX_DENSITY_THRESHOLD = {
 }
 
 SPACE_UNITS_CONVERSION_DICT = {"micrometer": 10000, "angstrom": 1}
+
+INIT_ANNOTATIONS_DICT: AnnotationsMetadata = {
+    'descriptions': {},
+    'details': None,
+    'entry_id': {"source_db_name": None, "source_db_id": None},
+    'name': None,
+    'segment_annotations': {
+        'lattice': {},
+        'mesh': {},
+        'primitive': {}
+    },
+    'volume_channels_annotations': None
+}
+
+# TODO: fill more levels if needed
+INIT_METADATA_DICT: Metadata = {
+    'entry_id': {"source_db_name": None, "source_db_id": None},
+    'volumes': {},
+    'geometric_segmentation': {},
+    'segmentation_lattices': {},
+    'segmentation_meshes': {}
+}
+
+# {
+#                 "entry_id": {"source_db_name": None, "source_db_id": None},
+#                 "volumes": {
+#                     "channel_ids": [],
+#                     # Values of time dimension
+#                     "time_info": {
+#                         "kind": "range",
+#                         "start": None,
+#                         "end": None,
+#                         "units": None,
+#                     },
+#                     "volume_sampling_info": {
+#                         # Info about "downsampling dimension"
+#                         "spatial_downsampling_levels": [],
+#                         # the only thing with changes with SPATIAL downsampling is box!
+#                         "boxes": {},
+#                         # time -> channel_id
+#                         "descriptive_statistics": {},
+#                         "time_transformations": [],
+#                         "source_axes_units": None,
+#                     },
+#                     "original_axis_order": None,
+#                 },
+#                 "segmentation_lattices": {
+#                     "segmentation_lattice_ids": [],
+#                     "segmentation_sampling_info": {},
+#                     "channel_ids": {},
+#                     "time_info": {},
+#                 },
+#                 "segmentation_meshes": {
+#                     "mesh_component_numbers": {},
+#                     "detail_lvl_to_fraction": {},
+#                 },
+#             }
+
