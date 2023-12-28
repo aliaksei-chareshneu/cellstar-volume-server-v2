@@ -27,12 +27,14 @@ from cellstar_db.models import AnnotationsMetadata
 
 from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
-    temp_save_dict,
+    save_dict_to_json,
     update_dict,
 )
 from cellstar_preprocessor.flows.constants import (
     ANNOTATION_METADATA_FILENAME,
     GRID_METADATA_FILENAME,
+    INIT_ANNOTATIONS_DICT,
+    INIT_METADATA_DICT,
 )
 from cellstar_preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import (
     extract_annotations_from_sff_segmentation,
@@ -151,7 +153,7 @@ class SaveAnnotationsTask(TaskBase):
 
     def execute(self) -> None:
         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        temp_save_dict(
+        save_dict_to_json(
             root.attrs["annotations_dict"],
             ANNOTATION_METADATA_FILENAME,
             self.intermediate_zarr_structure_path,
@@ -164,7 +166,7 @@ class SaveMetadataTask(TaskBase):
 
     def execute(self) -> None:
         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        temp_save_dict(
+        save_dict_to_json(
             root.attrs["metadata_dict"],
             GRID_METADATA_FILENAME,
             self.intermediate_zarr_structure_path,
@@ -652,49 +654,9 @@ class Preprocessor:
             root = zarr.group(store=store)
 
             # first initialize metadata and annotations dicts as empty
-            root.attrs["metadata_dict"] = {
-                "entry_id": {"source_db_name": None, "source_db_id": None},
-                "volumes": {
-                    "channel_ids": [],
-                    # Values of time dimension
-                    "time_info": {
-                        "kind": "range",
-                        "start": None,
-                        "end": None,
-                        "units": None,
-                    },
-                    "volume_sampling_info": {
-                        # Info about "downsampling dimension"
-                        "spatial_downsampling_levels": [],
-                        # the only thing with changes with SPATIAL downsampling is box!
-                        "boxes": {},
-                        # time -> channel_id
-                        "descriptive_statistics": {},
-                        "time_transformations": [],
-                        "source_axes_units": None,
-                    },
-                    "original_axis_order": None,
-                },
-                "segmentation_lattices": {
-                    "segmentation_lattice_ids": [],
-                    "segmentation_sampling_info": {},
-                    "channel_ids": {},
-                    "time_info": {},
-                },
-                "segmentation_meshes": {
-                    "mesh_component_numbers": {},
-                    "detail_lvl_to_fraction": {},
-                },
-            }
+            root.attrs["metadata_dict"] = INIT_METADATA_DICT
 
-            root.attrs["annotations_dict"] = {
-                "entry_id": {"source_db_name": None, "source_db_id": None},
-                "segmentation_lattices": [],
-                "details": None,
-                "name": None,
-                "volume_channels_annotations": [],
-                "non_segment_annotation": {}
-            }
+            root.attrs["annotations_dict"] = INIT_ANNOTATIONS_DICT
 
             if self.preprocessor_input.add_segmentation_to_entry:
                 db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
