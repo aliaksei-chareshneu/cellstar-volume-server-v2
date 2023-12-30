@@ -12,3 +12,4 @@ ZIP_STORE_DATA_ZIP_NAME = "data.zip"
 ANNOTATION_METADATA_FILENAME = "annotations.json"
 GRID_METADATA_FILENAME = "metadata.json"
 GEOMETRIC_SEGMENTATION_FILENAME = "geometric_segmentation.json"
+GEOMETRIC_SEGMENTATIONS_ZATTRS = 'geometric_segmentations'

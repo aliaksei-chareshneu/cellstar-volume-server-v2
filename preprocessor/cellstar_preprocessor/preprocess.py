@@ -32,6 +32,8 @@ from cellstar_preprocessor.flows.common import (
 )
 from cellstar_preprocessor.flows.constants import (
     ANNOTATION_METADATA_FILENAME,
+    GEOMETRIC_SEGMENTATION_FILENAME,
+    GEOMETRIC_SEGMENTATIONS_ZATTRS,
     GRID_METADATA_FILENAME,
     INIT_ANNOTATIONS_DICT,
     INIT_METADATA_DICT,
@@ -172,6 +174,17 @@ class SaveMetadataTask(TaskBase):
             self.intermediate_zarr_structure_path,
         )
 
+class SaveGeometricSegmentationSets(TaskBase):
+    def __init__(self, intermediate_zarr_structure_path: Path):
+        self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
+
+    def execute(self) -> None:
+        root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
+        save_dict_to_json(
+            root.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS],
+            GEOMETRIC_SEGMENTATION_FILENAME,
+            self.intermediate_zarr_structure_path,
+        )
 
 class SFFAnnotationCollectionTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
@@ -604,6 +617,9 @@ class Preprocessor:
         tasks.append(SaveMetadataTask(self.intermediate_zarr_structure))
         tasks.append(SaveAnnotationsTask(self.intermediate_zarr_structure))
 
+        if any(isinstance(input, GeometricSegmentationInput) for input in inputs):
+            tasks.append(SaveGeometricSegmentationSets(self.intermediate_zarr_structure))
+
         return tasks
 
     def _execute_tasks(self, tasks: list[TaskBase]):
@@ -657,6 +673,9 @@ class Preprocessor:
             root.attrs["metadata_dict"] = INIT_METADATA_DICT
 
             root.attrs["annotations_dict"] = INIT_ANNOTATIONS_DICT
+
+            # init GeometricSegmentationData in zattrs
+            root.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS] = []
 
             if self.preprocessor_input.add_segmentation_to_entry:
                 db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
