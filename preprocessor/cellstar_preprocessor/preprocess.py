@@ -6,6 +6,7 @@ import typing
 from argparse import ArgumentError
 from pathlib import Path
 from cellstar_preprocessor.flows.segmentation.collect_custom_annotations import collect_custom_annotations
+from cellstar_preprocessor.flows.segmentation.extract_annotations_from_geometric_segmentation import extract_annotations_from_geometric_segmentation
 from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
 from cellstar_preprocessor.flows.segmentation.extract_metadata_geometric_segmentation import extract_metadata_geometric_segmentation
 from cellstar_preprocessor.flows.segmentation.geometric_segmentation_preprocessing import geometric_segmentation_preprocessing
@@ -37,6 +38,7 @@ from cellstar_preprocessor.flows.constants import (
     GRID_METADATA_FILENAME,
     INIT_ANNOTATIONS_DICT,
     INIT_METADATA_DICT,
+    RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS,
 )
 from cellstar_preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import (
     extract_annotations_from_sff_segmentation,
@@ -355,6 +357,15 @@ class ProcessGeometricSegmentationTask(TaskBase):
 
         geometric_segmentation_preprocessing(internal_segmentation=segmentation)
 
+class GeometricSegmentationAnnotationsCollectionTask(TaskBase):
+    def __init__(self, internal_segmentation: InternalSegmentation):
+        self.internal_segmentation = internal_segmentation
+
+    def execute(self) -> None:
+        segmentation = self.internal_segmentation
+
+        extract_annotations_from_geometric_segmentation(internal_segmentation=segmentation)
+
 class Preprocessor:
     def __init__(self, preprocessor_input: PreprocessorInput):
         if not preprocessor_input:
@@ -504,9 +515,6 @@ class Preprocessor:
                 tasks.append(
                     ProcessGeometricSegmentationTask(self.get_internal_segmentation())
                 )
-                tasks.append(
-                    GeometricSegmentationMetadataCollectionTask(self.get_internal_segmentation())
-                )
 
             elif isinstance(input, NIIVolumeInput):
                 self.store_internal_volume(
@@ -614,11 +622,17 @@ class Preprocessor:
                 MaskAnnotationCreationTask(internal_segmentation=self.get_internal_segmentation())
             )
 
-        tasks.append(SaveMetadataTask(self.intermediate_zarr_structure))
-        tasks.append(SaveAnnotationsTask(self.intermediate_zarr_structure))
-
         if any(isinstance(input, GeometricSegmentationInput) for input in inputs):
             tasks.append(SaveGeometricSegmentationSets(self.intermediate_zarr_structure))
+            tasks.append(
+                GeometricSegmentationAnnotationsCollectionTask(self.get_internal_segmentation())
+            )
+            tasks.append(
+                GeometricSegmentationMetadataCollectionTask(self.get_internal_segmentation())
+            )
+
+        tasks.append(SaveMetadataTask(self.intermediate_zarr_structure))
+        tasks.append(SaveAnnotationsTask(self.intermediate_zarr_structure))
 
         return tasks
 
@@ -676,6 +690,7 @@ class Preprocessor:
 
             # init GeometricSegmentationData in zattrs
             root.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS] = []
+            root.attrs[RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS] = {}
 
             if self.preprocessor_input.add_segmentation_to_entry:
                 db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
