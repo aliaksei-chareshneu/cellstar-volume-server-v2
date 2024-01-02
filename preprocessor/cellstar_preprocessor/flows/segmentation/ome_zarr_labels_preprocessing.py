@@ -43,49 +43,20 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                 # NOTE: hack to support NGFFs where image has time dimension > 1 and label has time dimension = 1
                 time_dimension = ome_zarr_root[first_available_resolution].shape[0]
                 for i in range(time_dimension):
-                    time_group = our_resolution_gr.create_group(str(i))
-                    for j in range(arr.shape[1]):
-                        corrected_arr_data = arr[...][arr.shape[0] - 1][j].swapaxes(0, 2)
-                        # i8 is not supported by CIFTools
-                        if corrected_arr_data.dtype == "i8":
-                            corrected_arr_data = corrected_arr_data.astype("i4")
-                        our_channel_group = time_group.create_group(str(j))
-                        our_arr = our_channel_group.create_dataset(
-                            name="grid",
-                            shape=corrected_arr_data.shape,
-                            data=corrected_arr_data,
-                        )
-
-                        our_set_table = our_channel_group.create_dataset(
-                            name="set_table",
-                            dtype=object,
-                            object_codec=numcodecs.JSON(),
-                            shape=1,
-                        )
-
-                        d = {}
-                        for value in np.unique(our_arr[...]):
-                            d[str(value)] = [int(value)]
-
-                        our_set_table[...] = [d]
-                        
-                        del corrected_arr_data
-                        gc.collect()
-
-            elif len(axes) == 4 and axes[0]["name"] == "c":
-                time_group = our_resolution_gr.create_group("0")
-                for j in range(arr.shape[0]):
-                    corrected_arr_data = arr[...][j].swapaxes(0, 2)
+                    time_group: zarr.Group = our_resolution_gr.create_group(str(i))
+                    channel_dimension = arr.shape[1]
+                    assert channel_dimension == 1, 'NGFFs with labels having more than one channel are not supported'
+                    corrected_arr_data = arr[...][arr.shape[0] - 1][channel_dimension - 1].swapaxes(0, 2)
+                    # i8 is not supported by CIFTools
                     if corrected_arr_data.dtype == "i8":
                         corrected_arr_data = corrected_arr_data.astype("i4")
-                    our_channel_group = time_group.create_group(str(j))
-                    our_arr = our_channel_group.create_dataset(
+                    our_arr = time_group.create_dataset(
                         name="grid",
                         shape=corrected_arr_data.shape,
                         data=corrected_arr_data,
                     )
 
-                    our_set_table = our_channel_group.create_dataset(
+                    our_set_table = time_group.create_dataset(
                         name="set_table",
                         dtype=object,
                         object_codec=numcodecs.JSON(),
@@ -97,9 +68,38 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                         d[str(value)] = [int(value)]
 
                     our_set_table[...] = [d]
-
+                    
                     del corrected_arr_data
                     gc.collect()
+
+            elif len(axes) == 4 and axes[0]["name"] == "c":
+                time_group: zarr.Group = our_resolution_gr.create_group("0")
+                channel_dimension = arr.shape[0]
+                assert channel_dimension == 1, 'NGFFs with labels having more than one channel are not supported'
+                corrected_arr_data = arr[...][channel_dimension - 1].swapaxes(0, 2)
+                if corrected_arr_data.dtype == "i8":
+                    corrected_arr_data = corrected_arr_data.astype("i4")
+                our_arr = time_group.create_dataset(
+                    name="grid",
+                    shape=corrected_arr_data.shape,
+                    data=corrected_arr_data,
+                )
+
+                our_set_table = time_group.create_dataset(
+                    name="set_table",
+                    dtype=object,
+                    object_codec=numcodecs.JSON(),
+                    shape=1,
+                )
+
+                d = {}
+                for value in np.unique(our_arr[...]):
+                    d[str(value)] = [int(value)]
+
+                our_set_table[...] = [d]
+
+                del corrected_arr_data
+                gc.collect()
 
             # elif len(axes) == 3:
             # # NOTE: assumes CYX order

@@ -1,4 +1,5 @@
-from cellstar_db.models import EntryId
+from uuid import uuid4
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData
 from PIL import ImageColor
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
@@ -11,14 +12,14 @@ def convert_hex_to_rgba_fractional(channel_color_hex):
     channel_color_rgba_fractional = tuple([i / 255 for i in channel_color_rgba])
     return channel_color_rgba_fractional
 
-
 def _get_channel_annotations(ome_zarr_attrs, volume_channel_annotations):
     for channel_id, channel in enumerate(ome_zarr_attrs["omero"]["channels"]):
+        label = None if not channel['label'] else channel['label']
         volume_channel_annotations.append(
             {
-                "channel_id": channel_id,
+                "channel_id": str(channel_id),
                 "color": convert_hex_to_rgba_fractional(channel["color"]),
-                "label": channel["label"],
+                "label": label,
             }
         )
 
@@ -31,7 +32,8 @@ def extract_omezarr_annotations(internal_volume: InternalVolume):
     root = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
     )
-    d = root.attrs["annotations_dict"]
+    d: AnnotationsMetadata = root.attrs["annotations_dict"]
+
     d["entry_id"] = EntryId(
         source_db_id=internal_volume.entry_data.source_db_id,
         source_db_name=internal_volume.entry_data.source_db_name,
@@ -42,30 +44,48 @@ def extract_omezarr_annotations(internal_volume: InternalVolume):
         volume_channel_annotations=d["volume_channels_annotations"],
     )
 
+    # omezarr annotations (image label) have no time dimension?
+    time = 0
     if "labels" in ome_zarr_root:
         for label_gr_name, label_gr in ome_zarr_root.labels.groups():
-            segmentation_lattice_info = {
-                "lattice_id": label_gr_name,
-                "segment_list": [],
-            }
             labels_metadata_list = label_gr.attrs["image-label"]["colors"]
+            # support multiple lattices
+
+            d['segment_annotations']['lattice'][label_gr_name] = {}
+            # for segment in intern.raw_sff_annotations["segment_list"]:
             for ind_label_meta in labels_metadata_list:
-                label_value = ind_label_meta["label-value"]
+                # int to put to grid
+                label_value = int(ind_label_meta["label-value"])
                 ind_label_color_rgba = ind_label_meta["rgba"]
+                # color
                 ind_label_color_fractional = [i / 255 for i in ind_label_color_rgba]
 
-                segmentation_lattice_info["segment_list"].append(
-                    {
-                        "id": int(label_value),
-                        "biological_annotation": {
-                            "name": f"segment {label_value}",
-                            "external_references": [],
-                        },
-                        "color": ind_label_color_fractional,
-                    }
-                )
-            # append
-            d["segmentation_lattices"].append(segmentation_lattice_info)
-
+                # need to create two things: description and segment annotation
+                # create description
+                description_id = str(uuid4())
+                description: DescriptionData = {
+                    'id': description_id,
+                    'target_kind': "lattice",
+                    'description': None,
+                    'description_format': None,
+                    'is_hidden': None,
+                    'metadata': None,
+                    'time': time,
+                    'name': f"segment {label_value}",
+                    'external_references': [],
+                    'target_lattice_id': str(label_gr_name),
+                    'target_segment_id': label_value,
+                }
+                
+                segment_annotation: SegmentAnnotationData = {
+                    'color': ind_label_color_fractional,
+                    'lattice_id': str(label_gr_name),
+                    'segment_id': label_value,
+                    'segment_kind': 'lattice',
+                    'time': time
+                }
+                d['descriptions'][description_id] = description
+                d['segment_annotations']['lattice'][str(label_gr_name)][label_value] = segment_annotation
+            
     root.attrs["annotations_dict"] = d
     return d
