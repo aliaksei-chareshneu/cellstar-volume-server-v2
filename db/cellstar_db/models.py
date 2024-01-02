@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any, List, Literal, Optional, Protocol, TypedDict, Union
 
 import numpy as np
+from pydantic import BaseModel, validator
 import zarr
 
 # METADATA DATA MODEL
@@ -62,7 +63,7 @@ class MeshesMetadata(TypedDict):
     # maps timeframe index to MeshComponentNumbers
     mesh_timeframes: dict[int, MeshComponentNumbers]
     detail_lvl_to_fraction: dict
-    
+
 class MeshSegmentationSetsMetadata(TypedDict):
     sets_ids: list[str]
     sets: list[MeshesMetadata]
@@ -185,7 +186,6 @@ class ShapePrimitiveKind(str, Enum):
     box = "box"
     ellipsoid = "ellipsoid"
     pyramid = "pyramid"
-    cone = "cone"
 
 class ShapePrimitiveBase(TypedDict):
     # NOTE: to be able to refer to it in annotations
@@ -269,6 +269,63 @@ class VolumeSliceData(TypedDict):
     time: int
 
 # END SERVER OUTPUT DATA MODEL
+
+# INPUT DATA MODEL
+    
+class ShapePrimitiveInputParams(BaseModel):
+    id: int
+    color: list[float, float, float, float]
+
+class SphereInputParams(ShapePrimitiveInputParams):
+    center: tuple[float, float, float]
+    radius: float
+    
+class BoxInputParams(ShapePrimitiveInputParams):
+    # with respect to origin 0, 0, 0
+    translation: tuple[float, float, float]
+    # default size 2, 2, 2 in angstroms for pdbe-1.rec
+    scaling: tuple[float, float, float]
+    rotation: tuple[float, float, float, float] # quaternion
+    
+class CylinderInputParams(ShapePrimitiveInputParams):
+    start: tuple[float, float, float]
+    end: tuple[float, float, float]
+    radius_bottom: float
+    radius_top: float  # =0 <=> cone
+
+class EllipsoidInputParams(ShapePrimitiveInputParams):
+    dir_major: tuple[float, float, float]
+    dir_minor: tuple[float, float, float]
+    center: tuple[float, float, float]
+    radius_scale: tuple[float, float, float]
+    
+class PyramidInputParams(ShapePrimitiveInputParams):
+    # with respect to origin 0, 0, 0
+    translation: tuple[float, float, float]
+    # default size 2, 2, 2 in angstroms for pdbe-1.rec
+    scaling: tuple[float, float, float]
+    rotation: tuple[float, float, float, float]
+
+
+class ShapePrimitiveInputData(BaseModel):
+    kind: ShapePrimitiveKind
+    parameters: Union[
+        SphereInputParams,
+        PyramidInputParams,
+        EllipsoidInputParams,
+        CylinderInputParams,
+        BoxInputParams,
+        SphereInputParams,
+        ShapePrimitiveInputParams
+    ]
+
+class GeometricSegmentationInputData(BaseModel):
+    # maps timeframe index to list of ShapePrimitiveInputData
+    shape_primitives_input: dict[int, list[ShapePrimitiveInputData]]
+    time_units: Optional[str]
+    
+# END INPUT DATA MODEL
+
 
 class VolumeMetadata(Protocol):
     def json_metadata(self) -> str:
