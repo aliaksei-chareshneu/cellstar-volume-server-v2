@@ -30,15 +30,17 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
     
     description_items = list(d['descriptions'].items())
     for segment in r["segment_list"]:
-        description_filter_results = list(filter(lambda d: d[1]['target_segment_id'] == segment['id'], description_items))
-        assert len(description_filter_results) == 1
-        description_item: DescriptionData = description_filter_results[0][1]
-
-        assert description_item['external_references'] == segment["biological_annotation"]["external_references"]
-        assert description_item['name'] == segment["biological_annotation"]["name"]
-        
         if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
             lattice_id: str = str(segment["three_d_volume"]["lattice_id"])
+            
+            description_filter_results = list(filter(lambda d: d[1]['target_segment_id'] == segment['id'] and \
+                d[1]['target_lattice_id'] == lattice_id, description_items))
+            assert len(description_filter_results) == 1
+            description_item: DescriptionData = description_filter_results[0][1]
+
+            assert description_item['external_references'] == segment["biological_annotation"]["external_references"]
+            assert description_item['name'] == segment["biological_annotation"]["name"]
+            
             assert description_item['target_lattice_id'] == lattice_id
             assert description_item['target_kind'] == 'lattice'
 
@@ -60,6 +62,13 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
         elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
             # NOTE: only single set for meshes
             set_id = '0'
+            
+            description_filter_results = list(filter(lambda d: d[1]['target_segment_id'] == segment['id'] and \
+                d[1]['target_set_id'] == set_id, description_items))
+            assert len(description_filter_results) == 1
+            description_item: DescriptionData = description_filter_results[0][1]
+
+            
             assert description_item['target_set_id'] == set_id
             assert description_item['target_kind'] == 'mesh'
 
