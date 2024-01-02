@@ -43,7 +43,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
             'end': 0,
             'kind': 'range',
             'start': 0,
-            'units': 'mullisecond'
+            'units': 'millisecond'
         }
         
         lattice_ids = []
