@@ -1,6 +1,7 @@
 
 
 
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, SegmentAnnotationData
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.volume.extract_omezarr_annotations import convert_hex_to_rgba_fractional, extract_omezarr_annotations
 from cellstar_preprocessor.model.volume import InternalVolume
@@ -18,21 +19,23 @@ INTERNAL_VOLUMES = [
 def test_extract_omezarr_annotations(internal_volume: InternalVolume):
     initialize_intermediate_zarr_structure_for_tests()
 
-    extract_omezarr_annotations(internal_volume=internal_volume)
+    d: AnnotationsMetadata = extract_omezarr_annotations(internal_volume=internal_volume)
 
     ome_zarr_root = open_zarr_structure_from_path(
         internal_volume.volume_input_path
     )
     ome_zarr_attrs = ome_zarr_root.attrs
 
-    root = open_zarr_structure_from_path(
-        internal_volume.intermediate_zarr_structure_path
-    )
+    # root = open_zarr_structure_from_path(
+    #     internal_volume.intermediate_zarr_structure_path
+    # )
 
-    d = root.attrs["annotations_dict"]
+    # d = root.attrs["annotations_dict"]
 
     assert d["entry_id"]["source_db_id"] == internal_volume.entry_data.source_db_id
     assert d["entry_id"]["source_db_name"] == internal_volume.entry_data.source_db_name
+
+    description_items = list(d['descriptions'].items())
 
     for channel_id, channel in enumerate(ome_zarr_attrs["omero"]["channels"]):
         # PLAN
@@ -40,31 +43,48 @@ def test_extract_omezarr_annotations(internal_volume: InternalVolume):
         # check if in volume channel annotations exist object with that channel_id
         # that its color is equal to channel color
         # that its label is equal to channel label
-        assert list(filter(lambda v: v["channel_id"] == channel_id, d["volume_channels_annotations"]))[0]
-        vol_ch_annotation = list(filter(lambda v: v["channel_id"] == channel_id, d["volume_channels_annotations"]))[0]
+        assert list(filter(lambda v: v["channel_id"] == str(channel_id), d["volume_channels_annotations"]))[0]
+        vol_ch_annotation = list(filter(lambda v: v["channel_id"] == str(channel_id), d["volume_channels_annotations"]))[0]
 
-        assert vol_ch_annotation["color"] == list(convert_hex_to_rgba_fractional(channel["color"]))
+        assert vol_ch_annotation["color"] == convert_hex_to_rgba_fractional(channel["color"])
         assert vol_ch_annotation["label"] == channel["label"]
 
     if "labels" in ome_zarr_root:
         for label_gr_name, label_gr in ome_zarr_root.labels.groups():
             # PLAN
             # for each label gr
-            # check if there is object in d["segmentation_lattices"] with that lattice_id == label_gr_name
-            assert list(filter(lambda lat: lat["lattice_id"] == label_gr_name, d["segmentation_lattices"]))[0]
-            lat_obj = list(filter(lambda lat: lat["lattice_id"] == label_gr_name, d["segmentation_lattices"]))[0]
+            # check if for each 
+
+
+            # # check if there is object in d["segmentation_lattices"] with that lattice_id == label_gr_name
+            # assert list(filter(lambda lat: lat["lattice_id"] == label_gr_name, d["segmentation_lattices"]))[0]
+            # lat_obj = list(filter(lambda lat: lat["lattice_id"] == label_gr_name, d["segmentation_lattices"]))[0]
 
             labels_metadata_list = label_gr.attrs["image-label"]["colors"]
             for ind_label_meta in labels_metadata_list:
-                label_value = ind_label_meta["label-value"]
+                label_value = int(ind_label_meta["label-value"])
                 ind_label_color_rgba = ind_label_meta["rgba"]
                 ind_label_color_fractional = [i / 255 for i in ind_label_color_rgba]
 
-                # check that in lat_obj["segment_list"] there is object with id == label_value
-                # and that its name correspond to lavel value
-                # its color correspond to ind_label_color_fractional
-                assert list(filter(lambda seg: seg["id"] == int(label_value), lat_obj["segment_list"]))[0]
-                seg = list(filter(lambda seg: seg["id"] == int(label_value), lat_obj["segment_list"]))[0]
 
-                assert seg["biological_annotation"]["name"] == f"segment {label_value}"
-                assert seg["color"] == ind_label_color_fractional
+                # find description
+                description_filter_results = list(filter(lambda d: d[1]['target_segment_id'] == label_value and \
+                    d[1]['target_lattice_id'] == label_gr_name, description_items))
+                assert len(description_filter_results) == 1
+                description_item: DescriptionData = description_filter_results[0][1]
+                
+                # check that 
+                assert description_item['target_segment_id'] == label_value
+                assert description_item['target_lattice_id'] == label_gr_name
+                assert description_item['target_kind'] == 'lattice'
+
+                # find segment annotation
+                segment_annotations: dict[str, dict[int, SegmentAnnotationData]] = d['segment_annotations']['lattice']
+                segment_annotation_item = segment_annotations[label_gr_name][label_value]
+                
+                # check each field
+                assert segment_annotation_item["color"] == ind_label_color_fractional
+                assert segment_annotation_item["lattice_id"] == label_gr_name
+                assert segment_annotation_item["segment_id"] == label_value
+                assert segment_annotation_item['segment_kind'] == 'lattice'
+                assert segment_annotation_item['time'] == 0

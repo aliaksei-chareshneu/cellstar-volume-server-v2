@@ -61,17 +61,15 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
             # for each time group, check if number of channels == -4 dimension of arr
             for time in range(n_of_time_groups):
                 n_of_channel_groups = arr.shape[-4]
-                assert len(segmentation_gr[label_gr_name][arr_resolution][time]) == n_of_channel_groups
+                assert n_of_channel_groups == 1, 'NGFFs with labels having more than one channel are not supported'
+            
+                assert isinstance(segmentation_gr[label_gr_name][arr_resolution][time], zarr.Group)
+                assert 'grid' in segmentation_gr[label_gr_name][arr_resolution][time]
+                assert segmentation_gr[label_gr_name][arr_resolution][time].grid.shape == segm_3d_arr_shape
+                assert segmentation_gr[label_gr_name][arr_resolution][time].grid.dtype == segm_3d_arr_dtype
 
-                # for each channel, check if shape is equal to shape of volume arr with swapaxes
-                for channel in range(n_of_channel_groups):
-                    assert isinstance(segmentation_gr[label_gr_name][arr_resolution][time][channel], zarr.Group)
-                    assert 'grid' in segmentation_gr[label_gr_name][arr_resolution][time][channel]
-                    assert segmentation_gr[label_gr_name][arr_resolution][time][channel].grid.shape == segm_3d_arr_shape
-                    assert segmentation_gr[label_gr_name][arr_resolution][time][channel].grid.dtype == segm_3d_arr_dtype
-
-                    assert 'set_table' in segmentation_gr[label_gr_name][arr_resolution][time][channel]
-                    assert segmentation_gr[label_gr_name][arr_resolution][time][channel].set_table.shape == (1,)
+                assert 'set_table' in segmentation_gr[label_gr_name][arr_resolution][time]
+                assert segmentation_gr[label_gr_name][arr_resolution][time].set_table.shape == (1,)
 
 
 
