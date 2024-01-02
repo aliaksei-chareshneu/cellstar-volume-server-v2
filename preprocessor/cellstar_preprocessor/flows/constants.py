@@ -44,7 +44,7 @@ INIT_ANNOTATIONS_DICT: AnnotationsMetadata = {
         'mesh': {},
         'primitive': {}
     },
-    'volume_channels_annotations': None
+    'volume_channels_annotations': []
 }
 
 # TODO: fill more levels if needed

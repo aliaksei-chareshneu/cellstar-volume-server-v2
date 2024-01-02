@@ -30,9 +30,9 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
     
     description_items = list(d['descriptions'].items())
     for segment in r["segment_list"]:
-        description_filter_results: DescriptionData = list(filter(lambda d: d[1]['target_segment_id'] == segment['id'], description_items))
+        description_filter_results = list(filter(lambda d: d[1]['target_segment_id'] == segment['id'], description_items))
         assert len(description_filter_results) == 1
-        description_item = description_filter_results[0][1]
+        description_item: DescriptionData = description_filter_results[0][1]
 
         assert description_item['external_references'] == segment["biological_annotation"]["external_references"]
         assert description_item['name'] == segment["biological_annotation"]["name"]
