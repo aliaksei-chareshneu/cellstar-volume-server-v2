@@ -23,7 +23,7 @@ def update_dict(orig_dict, new_dict: dict):
     return orig_dict
 
 
-def get_downsamplings(data_group) -> list[int]:
+def get_downsamplings(data_group: zarr.Group) -> list[int]:
     downsamplings = []
     for gr_name, gr in data_group.groups():
         downsamplings.append(gr_name)
