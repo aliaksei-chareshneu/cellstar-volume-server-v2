@@ -1,7 +1,7 @@
 import numpy as np
 import zarr
 from cellstar_db.file_system.constants import VOLUME_DATA_GROUPNAME
-from cellstar_db.models import EntryId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.models import EntryId, Metadata, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 
 from cellstar_preprocessor.flows.common import (
     get_downsamplings,
@@ -38,6 +38,7 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
             len(level["coordinateTransformations"]) == 2
             and level["coordinateTransformations"][1]["type"] == "translation"
         ):
+            # NOTE: why there is [1] not [0]? Because translation should be second
             translation_arr = level["coordinateTransformations"][1]["translation"]
 
             # instead of swapaxes, -1, -2, -3
@@ -200,7 +201,7 @@ def _get_channel_ids(time_data_group, segmentation_data=False) -> list:
         channel_ids = sorted(time_data_group.group_keys())
     else:
         channel_ids = sorted(time_data_group.array_keys())
-    channel_ids = sorted(int(x) for x in channel_ids)
+    channel_ids = sorted(str(x) for x in channel_ids)
 
     return channel_ids
 
@@ -213,7 +214,7 @@ def _get_start_end_time(resolution_data_group) -> tuple[int, int]:
     return (start_time, end_time)
 
 
-def _get_volume_sampling_info(root_data_group, sampling_info_dict):
+def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
     for res_gr_name, res_gr in root_data_group.groups():
         # create layers (time gr, channel gr)
         sampling_info_dict["boxes"][res_gr_name] = {
@@ -275,17 +276,7 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
         }
 
         for time_gr_name, time_gr in res_gr.groups():
-            first_group_key = sorted(time_gr.group_keys())[0]
-
-            sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"] = time_gr[
-                first_group_key
-            ].grid.shape
-
-            for channel_gr_name, channel_gr in time_gr.groups():
-                assert (
-                    sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"]
-                    == channel_gr.grid.shape
-                )
+            sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"] = time_gr.grid.shape
 
 
 def _get_source_axes_units(ome_zarr_root_attrs: zarr.Group):
@@ -333,7 +324,7 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
     )
 
     # 1. Collect common metadata
-    metadata_dict = root.attrs["metadata_dict"]
+    metadata_dict: Metadata = root.attrs["metadata_dict"]
     metadata_dict["entry_id"] = EntryId(
         source_db_id=internal_volume.entry_data.source_db_id,
         source_db_name=internal_volume.entry_data.source_db_name,
@@ -385,6 +376,11 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
     lattice_ids = []
 
     if LATTICE_SEGMENTATION_DATA_GROUPNAME in root:
+        metadata_dict["segmentation_lattices"]: SegmentationLatticesMetadata = {
+            'segmentation_lattice_ids': [],
+            'segmentation_sampling_info': {},
+            'time_info': {}
+        }
         for label_gr_name, label_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
             new_segm_attrs_dict = _add_defaults_to_ome_zarr_attrs(
                 ome_zarr_root=ome_zarr_root.labels[label_gr_name]
@@ -401,11 +397,15 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
 
             lattice_ids.append(lattice_id)
 
+            segmentation_downsamplings = get_downsamplings(
+                data_group=label_gr
+                )
+            
             metadata_dict["segmentation_lattices"]["segmentation_sampling_info"][
                 str(lattice_id)
             ] = {
                 # Info about "downsampling dimension"
-                "spatial_downsampling_levels": volume_downsamplings,
+                "spatial_downsampling_levels": segmentation_downsamplings,
                 # the only thing with changes with SPATIAL downsampling is box!
                 "boxes": {},
                 "time_transformations": [],
@@ -441,13 +441,6 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
                     "segmentation_sampling_info"
                 ][str(lattice_id)]["boxes"],
             )
-
-            segm_channel_ids = _get_channel_ids(
-                time_data_group=label_gr[0][0], segmentation_data=True
-            )
-            metadata_dict["segmentation_lattices"]["channel_ids"][
-                label_gr_name
-            ] = segm_channel_ids
 
             segm_start_time, segm_end_time = _get_start_end_time(
                 resolution_data_group=label_gr[0]
