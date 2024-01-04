@@ -35,7 +35,7 @@ class TimeInfo(TypedDict):
 
 class SegmentationLatticesMetadata(TypedDict):
     # e.g. label groups (Cell, Chromosomes)
-    segmentation_lattice_ids: list[str]
+    segmentation_ids: list[str]
     segmentation_sampling_info: dict[str, SamplingInfo]
     time_info: dict[str, TimeInfo]
 
