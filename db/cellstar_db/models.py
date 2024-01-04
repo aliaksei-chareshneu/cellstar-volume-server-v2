@@ -40,7 +40,7 @@ class SegmentationLatticesMetadata(TypedDict):
     time_info: dict[str, TimeInfo]
 
 class GeometricSegmentationSetsMetadata(TypedDict):
-    sets_ids: list[str]
+    segmentation_ids: list[str]
     # maps set ids to time info
     time_info: dict[str, TimeInfo]
 

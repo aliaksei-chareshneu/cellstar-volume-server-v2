@@ -16,7 +16,7 @@ def extract_metadata_geometric_segmentation(internal_segmentation: InternalSegme
 
     # segmentation is in zattrs
     geometric_segmentation_sets_metadata: GeometricSegmentationSetsMetadata = {
-        'sets_ids': [],
+        'segmentation_ids': [],
         'time_info': {}
     }
     
@@ -26,7 +26,7 @@ def extract_metadata_geometric_segmentation(internal_segmentation: InternalSegme
     # it is a list of objects each of which has timeframes as keys
     for gs_set in geometric_segmentation_data:
         set_id = gs_set['geometric_segmentation_set_id']
-        geometric_segmentation_sets_metadata['sets_ids'].append(set_id)
+        geometric_segmentation_sets_metadata['segmentation_ids'].append(set_id)
 
 
         raw_input_data = root.attrs[RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS][set_id]
