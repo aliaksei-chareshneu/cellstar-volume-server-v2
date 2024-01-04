@@ -65,8 +65,9 @@ class MeshesMetadata(TypedDict):
     detail_lvl_to_fraction: dict
 
 class MeshSegmentationSetsMetadata(TypedDict):
-    sets_ids: list[str]
-    sets: list[MeshesMetadata]
+    segmentation_ids: list[str]
+    # maps segmentation_id to MeshesMetadata
+    segmentation_metadata: dict[str, MeshesMetadata]
     # maps set ids to time info
     time_info: dict[str, TimeInfo]
 
