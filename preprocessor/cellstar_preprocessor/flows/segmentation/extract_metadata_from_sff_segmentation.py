@@ -50,7 +50,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
         source_axes_units = {}
 
         segmentation_lattices_metadata: SegmentationLatticesMetadata = {
-            'segmentation_lattice_ids': None,
+            'segmentation_ids': None,
             'segmentation_sampling_info': {},
             'time_info': {}
         }
@@ -78,7 +78,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
                 ],
             )
 
-        segmentation_lattices_metadata["segmentation_lattice_ids"] = lattice_ids
+        segmentation_lattices_metadata["segmentation_ids"] = lattice_ids
         metadata_dict["segmentation_lattices"] = segmentation_lattices_metadata
 
     elif (

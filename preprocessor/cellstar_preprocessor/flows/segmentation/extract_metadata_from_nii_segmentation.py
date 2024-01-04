@@ -87,7 +87,7 @@ def extract_metadata_from_nii_segmentation(internal_segmentation: InternalSegmen
             "units": time_units,
         }
 
-    metadata_dict["segmentation_lattices"]["segmentation_lattice_ids"] = lattice_ids
+    metadata_dict["segmentation_lattices"]["segmentation_ids"] = lattice_ids
 
     
     root.attrs["metadata_dict"] = metadata_dict

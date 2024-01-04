@@ -377,7 +377,7 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
 
     if LATTICE_SEGMENTATION_DATA_GROUPNAME in root:
         metadata_dict["segmentation_lattices"]: SegmentationLatticesMetadata = {
-            'segmentation_lattice_ids': [],
+            'segmentation_ids': [],
             'segmentation_sampling_info': {},
             'time_info': {}
         }
@@ -454,7 +454,7 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
                 ),
             }
 
-        metadata_dict["segmentation_lattices"]["segmentation_lattice_ids"] = lattice_ids
+        metadata_dict["segmentation_lattices"]["segmentation_ids"] = lattice_ids
 
     root.attrs["metadata_dict"] = metadata_dict
     return metadata_dict

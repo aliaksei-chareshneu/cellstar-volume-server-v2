@@ -38,7 +38,7 @@ class FetchMetadataTest(ServerTestBase):
                 segmentation_metadata = grid_metadata.get("segmentation_lattices")
 
                 # assert all segmentations contain valid downsamplings
-                segmentation_lattices: list = segmentation_metadata.get("segmentation_lattice_ids")
+                segmentation_lattices: list = segmentation_metadata.get("segmentation_ids")
                 self.assertIsNotNone(segmentation_lattices)
                 self.assertTrue(len(segmentation_lattices) > 0)
                 segmentation_downsamplings_dict: dict = segmentation_metadata.get("segmentation_downsamplings")
