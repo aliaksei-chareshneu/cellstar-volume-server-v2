@@ -87,7 +87,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
     ):
         
         mesh_segmentation_sets_metadata: MeshSegmentationSetsMetadata = {
-            'segmentation_metadata': [],
+            'segmentation_metadata': {},
             'segmentation_ids': [],
             'time_info': {}
         }
@@ -99,7 +99,6 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
             mesh_set_metadata: MeshesMetadata = {
                 'detail_lvl_to_fraction': internal_segmentation.simplification_curve,
                 'mesh_timeframes': {},
-                'segmentation_mesh_set_id': set_id
             }
             for timeframe_index, timeframe_gr in set_gr.groups():
                 mesh_comp_num: MeshComponentNumbers = {
@@ -123,7 +122,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
                         detail_lvls_metadata["detail_lvls"][int(detail_lvl)] = mesh_list_metadata
                     mesh_comp_num["segment_ids"][int(segment_id)] = detail_lvls_metadata
                 mesh_set_metadata["mesh_timeframes"][int(timeframe_index)] = mesh_comp_num
-            mesh_segmentation_sets_metadata["segmentation_metadata"].append(mesh_set_metadata)
+            mesh_segmentation_sets_metadata["segmentation_metadata"][set_id] = mesh_set_metadata
         metadata_dict['segmentation_meshes'] = mesh_segmentation_sets_metadata
 
                 #     mesh_comp_num["segment_ids"][segment_id] = {"detail_lvls": {}}

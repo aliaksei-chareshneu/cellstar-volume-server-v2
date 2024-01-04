@@ -59,7 +59,6 @@ class MeshComponentNumbers(TypedDict):
     segment_ids: dict[int, DetailLvlsMetadata]
 
 class MeshesMetadata(TypedDict):
-    segmentation_mesh_set_id: str
     # maps timeframe index to MeshComponentNumbers
     mesh_timeframes: dict[int, MeshComponentNumbers]
     detail_lvl_to_fraction: dict
