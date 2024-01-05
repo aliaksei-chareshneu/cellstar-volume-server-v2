@@ -81,14 +81,13 @@ def test_extract_omezarr_annotations(internal_volume: InternalVolume):
                 # find segment annotation
                 segment_annotations: list[SegmentAnnotationData] = d['annotations']
                 segment_annotation_filter_results = list(filter(lambda a: a['segment_id'] == label_value and \
-                    a['segment_kind'] == 'lattice' and a['segmentation_id'] == label_gr_name, segment_annotations))[0]
+                    a['segment_kind'] == 'lattice' and a['segmentation_id'] == label_gr_name, segment_annotations))
                 assert len(segment_annotation_filter_results) == 1
                 segment_annotation_item: SegmentAnnotationData = segment_annotation_filter_results[0]
 
 
                 # check each field
                 assert segment_annotation_item["color"] == ind_label_color_fractional
-                assert segment_annotation_item["lattice_id"] == label_gr_name
                 assert segment_annotation_item["segment_id"] == label_value
                 assert segment_annotation_item['segment_kind'] == 'lattice'
                 assert segment_annotation_item['time'] == 0
