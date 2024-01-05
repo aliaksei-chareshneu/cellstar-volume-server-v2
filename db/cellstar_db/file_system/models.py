@@ -20,7 +20,19 @@ class FileSystemVolumeMedatada(VolumeMetadata):
         return self.raw_metadata['entry_id']['source_db_id']
 
     def segmentation_lattice_ids(self) -> List[int]:
-        return self.raw_metadata["segmentation_lattices"]["segmentation_ids"]
+        if "segmentation_ids" in self.raw_metadata["segmentation_lattices"]:
+            return self.raw_metadata["segmentation_lattices"]["segmentation_ids"]
+        return []
+    
+    def segmentation_mesh_ids(self) -> list[int]:
+        if "segmentation_ids" in self.raw_metadata['segmentation_meshes']:
+            return self.raw_metadata['segmentation_meshes']["segmentation_ids"]
+        return []
+    
+    def geometric_segmentation_ids(self) -> list[int]:
+        if "segmentation_ids" in self.raw_metadata['geometric_segmentation']:
+            return self.raw_metadata['geometric_segmentation']["segmentation_ids"]
+        return []
 
     def segmentation_downsamplings(self, lattice_id: str) -> List[int]:
         s = []
