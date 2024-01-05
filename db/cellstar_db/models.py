@@ -111,12 +111,13 @@ class ChannelAnnotation(TypedDict):
 class SegmentAnnotationData(TypedDict):
     # label-value in NGFF
     # uuid
+    id: Optional[str]
+    
     segment_kind: Literal["lattice", "mesh", "primitive"]
     segment_id: int
-    lattice_id: Optional[str]
-    set_id: Optional[str]
+    segmentation_id: str
     color: Optional[tuple[float, float, float, float]]
-    time: Optional[int]
+    time: Optional[int | list[int | tuple[int, int]]]
     # other props added later if needed
 
 class ExternalReference(TypedDict):
@@ -127,20 +128,25 @@ class ExternalReference(TypedDict):
     label: Optional[str]
     description: Optional[str]
 
+class TargetId(TypedDict):
+    segmentation_id: str
+    segment_id: int
+
+class DescriptionText(TypedDict):
+    format: Literal["text", "markdown"]
+    text: str
+
 class DescriptionData(TypedDict):
     # uuid
     id: Optional[str]
-    target_kind: Optional[Literal["lattice", "mesh", "primitive", "entry"]]
-    target_segment_id: Optional[Union[int, None]]
-    target_lattice_id: Optional[str]
-    target_set_id: Optional[str]
+    target_kind: Literal["lattice", "mesh", "primitive", "entry"]
+    target_id: Optional[TargetId]
     name: Optional[str]
     external_references: Optional[list[ExternalReference]]
     is_hidden: Optional[bool]
-    time: Optional[int]
-    description_format: Optional[Literal["text", "markdown"]]
-    description: Optional[str]
+    time: Optional[int | list[int | tuple[int, int]]]
 
+    description: Optional[DescriptionText]
     metadata: Union[dict[str, Any], None]
 
 
@@ -149,8 +155,8 @@ class AnnotationsMetadata(TypedDict):
     entry_id: EntryId
     # id => DescriptionData
     descriptions: dict[str, DescriptionData]
-    # kind => lattice_id => segment_id
-    segment_annotations: dict[Literal["lattice", "mesh", "primitive"], dict[str, dict[int, SegmentAnnotationData]]]
+    # NOTE: on frontend, segment key = `${kind}:{segmentation_id}:{segment_id}`
+    annotations: list[SegmentAnnotationData]
     # Only in SFF
     details: Optional[str]
     volume_channels_annotations: Optional[list[ChannelAnnotation]]
@@ -193,6 +199,10 @@ class ShapePrimitiveBase(TypedDict):
     kind: ShapePrimitiveKind
     # NOTE: color in annotations
 
+class RotationParameters(TypedDict):
+    axis: tuple[float, float, float]
+    radians: float
+
 class Sphere(ShapePrimitiveBase):
     # in angstroms
     center: tuple[float, float, float]
@@ -203,7 +213,7 @@ class Box(ShapePrimitiveBase):
     translation: tuple[float, float, float]
     # default size 2, 2, 2 in angstroms for pdbe-1.rec
     scaling: tuple[float, float, float]
-    rotation: tuple[float, float, float, float] # quaternion
+    rotation: RotationParameters
 
 class Cylinder(ShapePrimitiveBase):
     start: tuple[float, float, float]
@@ -222,21 +232,23 @@ class Pyramid(ShapePrimitiveBase):
     translation: tuple[float, float, float]
     # default size 2, 2, 2 in angstroms for pdbe-1.rec
     scaling: tuple[float, float, float]
-    rotation: tuple[float, float, float, float]
+    rotation: RotationParameters
 
 class ShapePrimitiveData(TypedDict):
     shape_primitive_list: list[ShapePrimitiveBase]
 
 class GeometricSegmentationData(TypedDict):
-    geometric_segmentation_set_id: str
+    segmentation_id: str
     # maps timeframe index to ShapePrimitivesData
     primitives: dict[int, ShapePrimitiveData]
 
 class ZarrRoot(TypedDict):
+    # resolution => timeframe index => channel
     volume_data: list[dict[int, list[dict[int, list[dict[int, zarr.core.Array]]]]]]
+    # segmentation_id => downsampling => timeframe index
     lattice_segmentation_data: list[dict[str, list[dict[int, list[dict[int, LatticeSegmentationData]]]]]]
-    # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
-    mesh_segmentation_data: list[str, dict[int, list[dict[str, list[dict[int, list[dict[str, SingleMeshSegmentationData]]]]]]]]
+    # segmentation_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
+    mesh_segmentation_data: list[str, dict[int, list[dict[int, list[dict[int, list[dict[int, SingleMeshSegmentationData]]]]]]]]
 
 # Files:
 # NOTE: saved as JSON/Msgpack directly, without temporary storing in .zattrs
@@ -276,6 +288,10 @@ class ShapePrimitiveInputParams(BaseModel):
     id: int
     color: list[float, float, float, float]
 
+class RotationInputParameters(BaseModel):
+    axis: tuple[float, float, float]
+    radians: float
+
 class SphereInputParams(ShapePrimitiveInputParams):
     center: tuple[float, float, float]
     radius: float
@@ -285,7 +301,7 @@ class BoxInputParams(ShapePrimitiveInputParams):
     translation: tuple[float, float, float]
     # default size 2, 2, 2 in angstroms for pdbe-1.rec
     scaling: tuple[float, float, float]
-    rotation: tuple[float, float, float, float] # quaternion
+    rotation: RotationInputParameters
     
 class CylinderInputParams(ShapePrimitiveInputParams):
     start: tuple[float, float, float]
@@ -304,7 +320,7 @@ class PyramidInputParams(ShapePrimitiveInputParams):
     translation: tuple[float, float, float]
     # default size 2, 2, 2 in angstroms for pdbe-1.rec
     scaling: tuple[float, float, float]
-    rotation: tuple[float, float, float, float]
+    rotation: RotationInputParameters
 
 
 class ShapePrimitiveInputData(BaseModel):

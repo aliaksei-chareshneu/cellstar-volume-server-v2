@@ -39,11 +39,7 @@ INIT_ANNOTATIONS_DICT: AnnotationsMetadata = {
     'details': None,
     'entry_id': {"source_db_name": None, "source_db_id": None},
     'name': None,
-    'segment_annotations': {
-        'lattice': {},
-        'mesh': {},
-        'primitive': {}
-    },
+    'annotations': [],
     'volume_channels_annotations': []
 }
 

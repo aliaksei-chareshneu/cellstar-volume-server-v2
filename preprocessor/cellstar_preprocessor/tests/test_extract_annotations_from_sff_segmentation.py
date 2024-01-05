@@ -33,15 +33,14 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
         if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
             lattice_id: str = str(segment["three_d_volume"]["lattice_id"])
             
-            description_filter_results = list(filter(lambda d: d[1]['target_segment_id'] == segment['id'] and \
-                d[1]['target_lattice_id'] == lattice_id, description_items))
+            description_filter_results = list(filter(lambda d: d[1]['target_id']['segment_id'] == segment['id'] and \
+                d[1]['target_id']['segmentation_id'] == lattice_id, description_items))
             assert len(description_filter_results) == 1
             description_item: DescriptionData = description_filter_results[0][1]
 
             assert description_item['external_references'] == segment["biological_annotation"]["external_references"]
             assert description_item['name'] == segment["biological_annotation"]["name"]
             
-            assert description_item['target_lattice_id'] == lattice_id
             assert description_item['target_kind'] == 'lattice'
 
             # in segment annotations for that kind
@@ -49,9 +48,13 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
             # get segment by id
             # to do it get segment["three_d_volume"]["lattice_id"] 
             # and use that lattice_id to access dict
-            segment_annotations: dict[str, dict[int, SegmentAnnotationData]] = d['segment_annotations']['lattice']
-            segment_annotation_item = segment_annotations[lattice_id][segment['id']]
-            
+            # TODO: change filter
+            segment_annotations: list[SegmentAnnotationData] = d['segment_annotations']
+            segment_annotation_filter_results = list(filter(lambda a: a['segment_id'] == segment['id'] and \
+                a['segment_kind'] == 'lattice' and a['segmentation_id'] == lattice_id, segment_annotations))[0]
+            assert len(segment_annotation_filter_results) == 1
+            segment_annotation_item: SegmentAnnotationData = segment_annotation_filter_results[0]
+
             # check each field
             assert segment_annotation_item["color"] == segment["colour"]
             assert segment_annotation_item["lattice_id"] == lattice_id
@@ -63,17 +66,20 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
             # NOTE: only single set for meshes
             set_id = '0'
             
-            description_filter_results = list(filter(lambda d: d[1]['target_segment_id'] == segment['id'] and \
-                d[1]['target_set_id'] == set_id, description_items))
+            description_filter_results = list(filter(lambda d: d[1]['target_id']['segment_id'] == segment['id'] and \
+                d[1]['target_id']['segmentation_id'] == set_id, description_items))
+
             assert len(description_filter_results) == 1
             description_item: DescriptionData = description_filter_results[0][1]
 
             
-            assert description_item['target_set_id'] == set_id
             assert description_item['target_kind'] == 'mesh'
 
-            segment_annotations: dict[str, dict[int, SegmentAnnotationData]] = d['segment_annotations']['mesh']
-            segment_annotation_item = segment_annotations[set_id][segment['id']]
+            segment_annotations: list[SegmentAnnotationData] = d['segment_annotations']
+            segment_annotation_filter_results = list(filter(lambda a: a['segment_id'] == segment['id'] and \
+                a['segment_kind'] == 'mesh' and a['segmentation_id'] == lattice_id, segment_annotations))[0]
+            assert len(segment_annotation_filter_results) == 1
+            segment_annotation_item: SegmentAnnotationData = segment_annotation_filter_results[0]
 
             # check each field
             assert segment_annotation_item["color"] == segment["colour"]

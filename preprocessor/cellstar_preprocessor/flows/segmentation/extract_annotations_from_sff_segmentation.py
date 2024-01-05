@@ -1,5 +1,5 @@
 from uuid import uuid4
-from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData, TargetId
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME
@@ -30,45 +30,45 @@ def extract_annotations_from_sff_segmentation(
     time = 0
     if internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.three_d_volume:
         for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
-            d['segment_annotations']['lattice'][lattice_id] = {}
             for segment in internal_segmentation.raw_sff_annotations["segment_list"]:
                 if str(segment["three_d_volume"]["lattice_id"]) == str(lattice_id):
                     # create description
                     description_id = str(uuid4())
+                    target_id: TargetId = {
+                        'segment_id': segment["id"],
+                        'segmentation_id': str(lattice_id)
+                    }
                     description: DescriptionData = {
                         'id': description_id,
                         'target_kind': "lattice",
                         'description': None,
-                        'description_format': None,
                         'is_hidden': None,
                         'metadata': None,
                         'time': time,
                         'name': segment["biological_annotation"]["name"],
                         'external_references': segment["biological_annotation"]["external_references"],
-                        'target_lattice_id': str(lattice_id),
-                        'target_segment_id': segment["id"],
+                        'target_id': target_id
                     }
                     # create segment annotation
                     segment_annotation: SegmentAnnotationData = {
+                        'id': str(uuid4()),
                         'color': segment["colour"],
-                        'lattice_id': str(lattice_id),
+                        'segmentation_id': str(lattice_id),
                         'segment_id': segment["id"],
                         'segment_kind': 'lattice',
                         'time': time
                     }
                     d['descriptions'][description_id] = description
-                    d['segment_annotations']['lattice'][lattice_id][segment["id"]] = segment_annotation
+                    d['segment_annotations'].append(segment_annotation)
 
     elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
         for set_id, set_gr in root[MESH_SEGMENTATION_DATA_GROUPNAME].groups():
-            d['segment_annotations']['mesh'][set_id] = {}
             for segment in internal_segmentation.raw_sff_annotations["segment_list"]:
                 description_id = str(uuid4())
                 description: DescriptionData = {
                     'id': description_id,
                     'target_kind': "mesh",
                     'description': None,
-                    'description_format': None,
                     'is_hidden': None,
                     'metadata': None,
                     'time': time,
@@ -78,14 +78,15 @@ def extract_annotations_from_sff_segmentation(
                     'target_segment_id': segment["id"],
                 }
                 segment_annotation: SegmentAnnotationData = {
+                    'id': str(uuid4()),
                     'color': segment["colour"],
-                    'set_id': str(set_id),
+                    'segmentation_id': str(set_id),
                     'segment_id': segment["id"],
                     'segment_kind': 'mesh',
                     'time': time
                 }
                 d['descriptions'][description_id] = description
-                d['segment_annotations']['mesh'][set_id][segment["id"]] = segment_annotation
+                d['segment_annotations'].append(segment_annotation)
 
     root.attrs["annotations_dict"] = d
     print("Annotations extracted")

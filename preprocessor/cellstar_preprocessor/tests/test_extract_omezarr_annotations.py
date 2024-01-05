@@ -68,20 +68,24 @@ def test_extract_omezarr_annotations(internal_volume: InternalVolume):
 
 
                 # find description
-                description_filter_results = list(filter(lambda d: d[1]['target_segment_id'] == label_value and \
-                    d[1]['target_lattice_id'] == label_gr_name, description_items))
+                description_filter_results = list(filter(lambda d: d[1]['target_id']['segment_id'] == label_value and \
+                    d[1]['target_id']['segmentation_id'] == label_gr_name, description_items))
                 assert len(description_filter_results) == 1
                 description_item: DescriptionData = description_filter_results[0][1]
                 
                 # check that 
-                assert description_item['target_segment_id'] == label_value
-                assert description_item['target_lattice_id'] == label_gr_name
+                assert description_item['target_id']['segment_id'] == label_value
+                assert description_item['target_id']['segmentation_id'] == label_gr_name
                 assert description_item['target_kind'] == 'lattice'
 
                 # find segment annotation
-                segment_annotations: dict[str, dict[int, SegmentAnnotationData]] = d['segment_annotations']['lattice']
-                segment_annotation_item = segment_annotations[label_gr_name][label_value]
-                
+                segment_annotations: list[SegmentAnnotationData] = d['segment_annotations']
+                segment_annotation_filter_results = list(filter(lambda a: a['segment_id'] == label_value and \
+                    a['segment_kind'] == 'lattice' and a['segmentation_id'] == label_gr_name, segment_annotations))[0]
+                assert len(segment_annotation_filter_results) == 1
+                segment_annotation_item: SegmentAnnotationData = segment_annotation_filter_results[0]
+
+
                 # check each field
                 assert segment_annotation_item["color"] == ind_label_color_fractional
                 assert segment_annotation_item["lattice_id"] == label_gr_name

@@ -124,7 +124,7 @@ def geometric_segmentation_preprocessing(internal_segmentation: InternalSegmenta
     # with new set id
     set_id = str(uuid4())
     geometric_segmentation_data: GeometricSegmentationData = {
-        'geometric_segmentation_set_id': set_id,
+        'segmentation_id': set_id,
         'primitives': primitives
     }
     raw_geometric_segmentation_input = zarr_structure.attrs[RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS]

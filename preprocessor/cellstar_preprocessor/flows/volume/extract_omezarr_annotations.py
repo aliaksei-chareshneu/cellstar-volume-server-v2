@@ -1,5 +1,5 @@
 from uuid import uuid4
-from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData, TargetId
 from PIL import ImageColor
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
@@ -51,7 +51,6 @@ def extract_omezarr_annotations(internal_volume: InternalVolume):
             labels_metadata_list = label_gr.attrs["image-label"]["colors"]
             # support multiple lattices
 
-            d['segment_annotations']['lattice'][label_gr_name] = {}
             # for segment in intern.raw_sff_annotations["segment_list"]:
             for ind_label_meta in labels_metadata_list:
                 # int to put to grid
@@ -63,29 +62,32 @@ def extract_omezarr_annotations(internal_volume: InternalVolume):
                 # need to create two things: description and segment annotation
                 # create description
                 description_id = str(uuid4())
+                target_id: TargetId = {
+                    'segment_id': label_value,
+                    'segmentation_id': str(label_gr_name)
+                }
                 description: DescriptionData = {
                     'id': description_id,
                     'target_kind': "lattice",
                     'description': None,
-                    'description_format': None,
                     'is_hidden': None,
                     'metadata': None,
                     'time': time,
                     'name': f"segment {label_value}",
                     'external_references': [],
-                    'target_lattice_id': str(label_gr_name),
-                    'target_segment_id': label_value,
+                    'target_id': target_id
                 }
                 
                 segment_annotation: SegmentAnnotationData = {
+                    'id': str(uuid4()),
                     'color': ind_label_color_fractional,
-                    'lattice_id': str(label_gr_name),
+                    'segmentation_id': str(label_gr_name),
                     'segment_id': label_value,
                     'segment_kind': 'lattice',
                     'time': time
                 }
                 d['descriptions'][description_id] = description
-                d['segment_annotations']['lattice'][str(label_gr_name)][label_value] = segment_annotation
+                d['segment_annotations'].append(segment_annotation)
             
     root.attrs["annotations_dict"] = d
     return d
