@@ -3,31 +3,31 @@ from typing import Dict, List
 
 import numpy as np
 
-from cellstar_db.models import MeshComponentNumbers, VolumeMetadata
+from cellstar_db.models import MeshComponentNumbers, Metadata, VolumeMetadata
 
 
 class FileSystemVolumeMedatada(VolumeMetadata):
-    def __init__(self, raw_metadata: Dict):
+    def __init__(self, raw_metadata: Metadata):
         self.raw_metadata = raw_metadata
 
     def json_metadata(self) -> str:
         return self.raw_metadata
     
     def db_name(self) -> str:
-        return self.raw_metadata["general"]["source_db_name"]
+        return self.raw_metadata['entry_id']['source_db_name']
 
     def entry_id(self) -> str:
-        return self.raw_metadata["general"]["source_db_id"]
+        return self.raw_metadata['entry_id']['source_db_id']
 
     def segmentation_lattice_ids(self) -> List[int]:
         return self.raw_metadata["segmentation_lattices"]["segmentation_ids"]
 
-    def segmentation_downsamplings(self, lattice_id: int) -> List[int]:
+    def segmentation_downsamplings(self, lattice_id: str) -> List[int]:
         s = []
         try:
-            s = self.raw_metadata["segmentation_lattices"][
-                "segmentation_downsamplings"
-            ][str(lattice_id)]
+            s = self.raw_metadata["segmentation_lattices"]["segmentation_sampling_info"][
+                lattice_id
+            ]["spatial_downsampling_levels"]
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
         return s

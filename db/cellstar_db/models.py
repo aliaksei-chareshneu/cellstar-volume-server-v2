@@ -356,7 +356,7 @@ class VolumeMetadata(Protocol):
     def segmentation_lattice_ids(self) -> List[int]:
         ...
 
-    def segmentation_downsamplings(self, lattice_id: int) -> List[int]:
+    def segmentation_downsamplings(self, lattice_id: str) -> List[int]:
         ...
 
     def volume_downsamplings(self) -> List[int]:
