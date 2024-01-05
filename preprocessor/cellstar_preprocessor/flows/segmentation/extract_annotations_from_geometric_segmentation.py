@@ -81,7 +81,7 @@ def extract_annotations_from_geometric_segmentation(
                 }
 
                 d['descriptions'][description_id] = description
-                d['segment_annotations'].append(segment_annotation)
+                d['annotations'].append(segment_annotation)
 
     root.attrs["annotations_dict"] = d
     print("Annotations extracted")

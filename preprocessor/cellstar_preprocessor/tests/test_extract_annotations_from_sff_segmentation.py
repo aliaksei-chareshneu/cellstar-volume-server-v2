@@ -49,15 +49,14 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
             # to do it get segment["three_d_volume"]["lattice_id"] 
             # and use that lattice_id to access dict
             # TODO: change filter
-            segment_annotations: list[SegmentAnnotationData] = d['segment_annotations']
+            segment_annotations: list[SegmentAnnotationData] = d['annotations']
             segment_annotation_filter_results = list(filter(lambda a: a['segment_id'] == segment['id'] and \
-                a['segment_kind'] == 'lattice' and a['segmentation_id'] == lattice_id, segment_annotations))[0]
+                a['segment_kind'] == 'lattice' and a['segmentation_id'] == lattice_id, segment_annotations))
             assert len(segment_annotation_filter_results) == 1
             segment_annotation_item: SegmentAnnotationData = segment_annotation_filter_results[0]
 
             # check each field
             assert segment_annotation_item["color"] == segment["colour"]
-            assert segment_annotation_item["lattice_id"] == lattice_id
             assert segment_annotation_item["segment_id"] == segment["id"]
             assert segment_annotation_item['segment_kind'] == 'lattice'
             assert segment_annotation_item['time'] == 0
@@ -75,15 +74,14 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
             
             assert description_item['target_kind'] == 'mesh'
 
-            segment_annotations: list[SegmentAnnotationData] = d['segment_annotations']
+            segment_annotations: list[SegmentAnnotationData] = d['annotations']
             segment_annotation_filter_results = list(filter(lambda a: a['segment_id'] == segment['id'] and \
-                a['segment_kind'] == 'mesh' and a['segmentation_id'] == lattice_id, segment_annotations))[0]
+                a['segment_kind'] == 'mesh' and a['segmentation_id'] == set_id, segment_annotations))
             assert len(segment_annotation_filter_results) == 1
             segment_annotation_item: SegmentAnnotationData = segment_annotation_filter_results[0]
 
             # check each field
             assert segment_annotation_item["color"] == segment["colour"]
-            assert segment_annotation_item["set_id"] == set_id
             assert segment_annotation_item["segment_id"] == segment["id"]
             assert segment_annotation_item['segment_kind'] == 'mesh'
             assert segment_annotation_item['time'] == 0

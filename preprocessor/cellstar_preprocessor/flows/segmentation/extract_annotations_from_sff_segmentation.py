@@ -59,12 +59,16 @@ def extract_annotations_from_sff_segmentation(
                         'time': time
                     }
                     d['descriptions'][description_id] = description
-                    d['segment_annotations'].append(segment_annotation)
+                    d['annotations'].append(segment_annotation)
 
     elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
         for set_id, set_gr in root[MESH_SEGMENTATION_DATA_GROUPNAME].groups():
             for segment in internal_segmentation.raw_sff_annotations["segment_list"]:
                 description_id = str(uuid4())
+                target_id: TargetId = {
+                    'segment_id': segment["id"],
+                    'segmentation_id': str(set_id)
+                }
                 description: DescriptionData = {
                     'id': description_id,
                     'target_kind': "mesh",
@@ -74,8 +78,7 @@ def extract_annotations_from_sff_segmentation(
                     'time': time,
                     'name': segment["biological_annotation"]["name"],
                     'external_references': segment["biological_annotation"]["external_references"],
-                    'target_set_id': str(set_id),
-                    'target_segment_id': segment["id"],
+                    'target_id': target_id
                 }
                 segment_annotation: SegmentAnnotationData = {
                     'id': str(uuid4()),
@@ -86,7 +89,7 @@ def extract_annotations_from_sff_segmentation(
                     'time': time
                 }
                 d['descriptions'][description_id] = description
-                d['segment_annotations'].append(segment_annotation)
+                d['annotations'].append(segment_annotation)
 
     root.attrs["annotations_dict"] = d
     print("Annotations extracted")
