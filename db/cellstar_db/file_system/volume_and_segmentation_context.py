@@ -14,21 +14,15 @@ from cellstar_db.protocol import VolumeServerDB
 from cellstar_preprocessor.flows.common import open_json_file, open_zarr_structure_from_path, save_dict_to_json_file
 import zarr
 
+
+# TODO: fix - if path does not exist, should be created
 class VolumeAndSegmentationContext:
     def __init__(self, db: VolumeServerDB, namespace: str, key: str, intermediate_zarr_structure: Path):
         self.intermediate_zarr_structure = intermediate_zarr_structure
         self.db = db
-        self.path = db.path_to_zarr_root_data(namespace=namespace, key=key)
-        assert self.path.exists(), f"Path {self.path} does not exist"
         self.path_to_entry = self.db._path_to_object(namespace, key)
         self.key = key
         self.namespace = namespace
-        # if self.db.store_type == "directory":
-        #     self.store = zarr.DirectoryStore(path=self.path)
-        # elif self.db.store_type == "zip":
-        #     self.store = zarr.ZipStore(
-        #         path=self.path, compression=0, allowZip64=True, mode="w"
-        #     )
 
         if self.db.store_type == "directory":
             perm_store = zarr.DirectoryStore(str(self.db._path_to_object(namespace, key)))
@@ -112,12 +106,15 @@ class VolumeAndSegmentationContext:
         print('Segmentation added')
             
 
-    def remove_volume():
+    def remove_volume(self):
+        # NOTE: single volume for now
+        # need to delete group from store
+        # TODO: how to do it - possibly recreate the store without volume data group or?
         pass
 
-    def remove_segmentation():
+    def remove_segmentation(self, id: str, kind: Literal["lattice", "mesh", "primitive"]):
+        # 
         pass
-    
 
     def close(self):
         if hasattr(self.store, "close"):

@@ -830,8 +830,8 @@ async def main_preprocessor(
     input_paths: list[Path],
     input_kinds: list[InputKind],
     min_size_per_channel_mb: typing.Optional[float] = 5,
-    add_segmentation_to_entry: typing.Optional[bool] = False,
-    add_custom_annotations: typing.Optional[bool] = False,
+    # add_segmentation_to_entry: typing.Optional[bool] = False,
+    # add_custom_annotations: typing.Optional[bool] = False,
 ):
     if quantize_downsampling_levels:
         quantize_downsampling_levels = quantize_downsampling_levels.split(" ")
@@ -861,8 +861,8 @@ async def main_preprocessor(
         working_folder=Path(working_folder),
         storing_params=StoringParams(),
         db_path=Path(db_path),
-        add_segmentation_to_entry=add_segmentation_to_entry,
-        add_custom_annotations=add_custom_annotations
+        # add_segmentation_to_entry=add_segmentation_to_entry,
+        # add_custom_annotations=add_custom_annotations
     )
 
     for input_path, input_kind in zip(input_paths, input_kinds):
@@ -876,6 +876,25 @@ async def main_preprocessor(
     await preprocessor.store_to_db()
 
 
+app = typer.Typer()
+
+@app.command("delete")
+def delete_entry(
+    entry_id: str = typer.Option(default=...),
+    source_db: str = typer.Option(default=...),
+    db_path: Path = typer.Option(default=...)
+    ):
+    print(f"Deleting db item: {entry_id} {source_db}")
+    new_db_path = Path(db_path)
+    if new_db_path.is_dir() == False:
+        new_db_path.mkdir()
+
+    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+    asyncio.run(
+        db.delete(namespace=source_db, key=entry_id)
+    )
+
+@app.command("add")
 def main(
     quantize_dtype_str: Annotated[
         typing.Optional[QuantizationDtype], typer.Option(None)
@@ -896,8 +915,8 @@ def main(
     db_path: Path = typer.Option(default=...),
     input_path: list[Path] = typer.Option(default=...),
     input_kind: list[InputKind] = typer.Option(default=...),
-    add_segmentation_to_entry: bool = typer.Option(default=False),
-    add_custom_annotations: bool = typer.Option(default=False),
+    # add_segmentation_to_entry: bool = typer.Option(default=False),
+    # add_custom_annotations: bool = typer.Option(default=False),
 ):
     asyncio.run(
         main_preprocessor(
@@ -916,16 +935,20 @@ def main(
             min_size_per_channel_mb=min_size_per_channel_mb,
             min_downsampling_level=min_downsampling_level,
             max_downsampling_level=max_downsampling_level,
-            add_segmentation_to_entry=add_segmentation_to_entry,
-            add_custom_annotations=add_custom_annotations
+            # add_segmentation_to_entry=add_segmentation_to_entry,
+            # add_custom_annotations=add_custom_annotations
         )
     )
+
 
 
 if __name__ == "__main__":
     # solutions how to run it async - two last https://github.com/tiangolo/typer/issues/85
     # currently using last one
-    typer.run(main)
+    # typer.run(main)
+    
+    # could try https://github.com/tiangolo/typer/issues/88#issuecomment-1732469681
+    app()
 
 
 # NOTE: for testing:
