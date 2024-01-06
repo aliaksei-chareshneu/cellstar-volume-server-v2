@@ -8,8 +8,10 @@
 from argparse import ArgumentError
 from pathlib import Path
 from typing import Literal
-from cellstar_db.file_system.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME
+from cellstar_db.file_system.constants import GEOMETRIC_SEGMENTATION_FILENAME, GEOMETRIC_SEGMENTATIONS_ZATTRS, LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME
+from cellstar_db.models import GeometricSegmentationData, ShapePrimitiveData
 from cellstar_db.protocol import VolumeServerDB
+from cellstar_preprocessor.flows.common import open_json_file, open_zarr_structure_from_path, save_dict_to_json_file
 import zarr
 
 class VolumeAndSegmentationContext:
@@ -18,6 +20,7 @@ class VolumeAndSegmentationContext:
         self.db = db
         self.path = db.path_to_zarr_root_data(namespace=namespace, key=key)
         assert self.path.exists(), f"Path {self.path} does not exist"
+        self.path_to_entry = self.db._path_to_object(namespace, key)
         self.key = key
         self.namespace = namespace
         # if self.db.store_type == "directory":
@@ -53,6 +56,9 @@ class VolumeAndSegmentationContext:
         temp_store = zarr.DirectoryStore(
                 str(self.intermediate_zarr_structure)
             )
+        temp_zarr_structure: zarr.Group = open_zarr_structure_from_path(
+            self.intermediate_zarr_structure
+        )
         perm_root = zarr.group(self.store)
         if kind == 'lattice':
             source_path = f'{LATTICE_SEGMENTATION_DATA_GROUPNAME}/{id}'
@@ -71,13 +77,25 @@ class VolumeAndSegmentationContext:
             zarr.copy_store(source=temp_store, dest=self.store, source_path=source_path, dest_path=source_path)    
             
         elif kind == 'primitive':
-            pass
-            # add to JSON
-        
-        # close if zip
-        if self.db.store_type == "zip":
-            self.store.close()
-            
+            geometric_segmentation_data: list[GeometricSegmentationData] = temp_zarr_structure.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS]
+            # find that segmentation by id
+            filter_results = list(filter(lambda g: g["segmentation_id"] == id, geometric_segmentation_data))
+            assert len(filter_results) == 1
+            target_geometric_segmentation = filter_results[0]
+            # open existing geometric segmentation JSON file as list
+            # if exists, if not - create
+            d: list[GeometricSegmentationData] = []
+            shape_primitives_path: Path = self.path_to_entry / GEOMETRIC_SEGMENTATION_FILENAME
+            if (shape_primitives_path).exists():
+                d = open_json_file(path=shape_primitives_path)
+                # add to list new segmentation
+            d.append(target_geometric_segmentation)
+            # save back to file
+            save_dict_to_json_file(
+                d,
+                GEOMETRIC_SEGMENTATION_FILENAME,
+                self.path_to_entry
+            )
 
         print('Segmentation added')
             

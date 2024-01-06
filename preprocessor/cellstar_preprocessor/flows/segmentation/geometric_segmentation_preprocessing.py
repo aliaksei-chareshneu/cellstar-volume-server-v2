@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from uuid import uuid4
 from cellstar_db.models import Box, BoxInputParams, Cylinder, Ellipsoid, EllipsoidInputParams, GeometricSegmentationData, GeometricSegmentationInputData, Pyramid, PyramidInputParams, ShapePrimitiveBase, ShapePrimitiveData, ShapePrimitiveKind, Sphere, SphereInputParams
-from cellstar_preprocessor.flows.common import open_zarr_structure_from_path, save_dict_to_json
+from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import GEOMETRIC_SEGMENTATION_FILENAME, GEOMETRIC_SEGMENTATIONS_ZATTRS, LATTICE_SEGMENTATION_DATA_GROUPNAME, RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS
 import zarr
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
@@ -50,7 +50,7 @@ def _process_geometric_segmentation_data(data: GeometricSegmentationInputData, z
                         kind=kind,
                         translation=params.translation,
                         scaling=params.scaling,
-                        rotation=params.rotation,
+                        rotation=params.rotation.dict(),
                         id=segment_id
                     )
                 )
@@ -73,7 +73,7 @@ def _process_geometric_segmentation_data(data: GeometricSegmentationInputData, z
                         kind=kind,
                         translation=params.translation,
                         scaling=params.scaling,
-                        rotation=params.rotation,
+                        rotation=params.rotation.dict(),
                         id=segment_id
                     )
                 )

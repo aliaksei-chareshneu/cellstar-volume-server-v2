@@ -34,12 +34,17 @@ def get_downsamplings(data_group: zarr.Group) -> list[int]:
     return downsamplings
 
 
-def save_dict_to_json(
-    d: dict, filename: Path, path: Path
+def save_dict_to_json_file(
+    d: dict, filename: str, path: Path
 ) -> None:
     with (path / filename).open("w") as fp:
         json.dump(d, fp, indent=4)
 
+def open_json_file(path: Path):
+    with open(path.resolve(), "r", encoding="utf-8") as f:
+        # reads into dict
+        read_file: dict | list = json.load(f)
+    return read_file
 
 def compute_downsamplings_to_be_stored(
     *,

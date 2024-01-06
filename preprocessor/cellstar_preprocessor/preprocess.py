@@ -30,7 +30,7 @@ from cellstar_db.models import AnnotationsMetadata, Metadata
 
 from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
-    save_dict_to_json,
+    save_dict_to_json_file,
     update_dict,
 )
 from cellstar_preprocessor.flows.constants import (
@@ -159,7 +159,7 @@ class SaveAnnotationsTask(TaskBase):
 
     def execute(self) -> None:
         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        save_dict_to_json(
+        save_dict_to_json_file(
             root.attrs["annotations_dict"],
             ANNOTATION_METADATA_FILENAME,
             self.intermediate_zarr_structure_path,
@@ -172,23 +172,23 @@ class SaveMetadataTask(TaskBase):
 
     def execute(self) -> None:
         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        save_dict_to_json(
+        save_dict_to_json_file(
             root.attrs["metadata_dict"],
             GRID_METADATA_FILENAME,
             self.intermediate_zarr_structure_path,
         )
 
-class SaveGeometricSegmentationSets(TaskBase):
-    def __init__(self, intermediate_zarr_structure_path: Path):
-        self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
+# class SaveGeometricSegmentationSets(TaskBase):
+#     def __init__(self, intermediate_zarr_structure_path: Path):
+#         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
 
-    def execute(self) -> None:
-        root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        save_dict_to_json(
-            root.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS],
-            GEOMETRIC_SEGMENTATION_FILENAME,
-            self.intermediate_zarr_structure_path,
-        )
+#     def execute(self) -> None:
+#         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
+#         save_dict_to_json_file(
+#             root.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS],
+#             GEOMETRIC_SEGMENTATION_FILENAME,
+#             self.intermediate_zarr_structure_path,
+#         )
 
 class SFFAnnotationCollectionTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
@@ -625,7 +625,7 @@ class Preprocessor:
             )
 
         if any(isinstance(input, GeometricSegmentationInput) for input in inputs):
-            tasks.append(SaveGeometricSegmentationSets(self.intermediate_zarr_structure))
+            # tasks.append(SaveGeometricSegmentationSets(self.intermediate_zarr_structure))
             tasks.append(
                 GeometricSegmentationAnnotationsCollectionTask(self.get_internal_segmentation())
             )
@@ -694,31 +694,34 @@ class Preprocessor:
             root.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS] = []
             root.attrs[RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS] = {}
 
-            if self.preprocessor_input.add_segmentation_to_entry:
-                db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
-                metadata_file_path: Path = (
-                    db._path_to_object(namespace=self.preprocessor_input.entry_data.source_db,
-                                        key=self.preprocessor_input.entry_data.entry_id) / GRID_METADATA_FILENAME
-                )
-                with open(metadata_file_path.resolve(), "r", encoding="utf-8") as f:
-                    # reads into dict
-                    read_json_of_metadata: dict = json.load(f)
+            # delete previous annotations.json, metadata.json, geometric_segmentation.json
 
-                root.attrs["metadata_dict"] = read_json_of_metadata
-                print('Adding segmentation to existing entry: Prefilled metadata dict is read from existing entry')
-            if self.preprocessor_input.add_custom_annotations:
-                db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
-                annotations_file_path: Path = (
-                    db._path_to_object(namespace=self.preprocessor_input.entry_data.source_db,
-                                        key=self.preprocessor_input.entry_data.entry_id) / ANNOTATION_METADATA_FILENAME
-                )
 
-                with open(annotations_file_path.resolve(), "r", encoding="utf-8") as f:
-                    # reads into dict
-                    read_json_of_annotations: dict = json.load(f)
+            # if self.preprocessor_input.add_segmentation_to_entry:
+            #     db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
+            #     metadata_file_path: Path = (
+            #         db._path_to_object(namespace=self.preprocessor_input.entry_data.source_db,
+            #                             key=self.preprocessor_input.entry_data.entry_id) / GRID_METADATA_FILENAME
+            #     )
+            #     with open(metadata_file_path.resolve(), "r", encoding="utf-8") as f:
+            #         # reads into dict
+            #         read_json_of_metadata: dict = json.load(f)
 
-                root.attrs["annotations_dict"] = read_json_of_annotations
-                print('Adding custom annotations to existing entry: Prefilled annotations dict is read from existing entry')
+            #     root.attrs["metadata_dict"] = read_json_of_metadata
+            #     print('Adding segmentation to existing entry: Prefilled metadata dict is read from existing entry')
+            # if self.preprocessor_input.add_custom_annotations:
+            #     db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
+            #     annotations_file_path: Path = (
+            #         db._path_to_object(namespace=self.preprocessor_input.entry_data.source_db,
+            #                             key=self.preprocessor_input.entry_data.entry_id) / ANNOTATION_METADATA_FILENAME
+            #     )
+
+            #     with open(annotations_file_path.resolve(), "r", encoding="utf-8") as f:
+            #         # reads into dict
+            #         read_json_of_annotations: dict = json.load(f)
+
+            #     root.attrs["annotations_dict"] = read_json_of_annotations
+            #     print('Adding custom annotations to existing entry: Prefilled annotations dict is read from existing entry')
             
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
@@ -762,6 +765,10 @@ class Preprocessor:
                 # TODO: add volume
                 for id in segmentation_lattice_ids:
                     write_context.add_segmentation(id=id, kind='lattice')
+                for id in segmentation_mesh_ids:
+                    write_context.add_segmentation(id=id, kind='mesh')
+                for id in geometric_segmentation_ids:
+                    write_context.add_segmentation(id=id, kind='primitive')
 
         # then for each input call methods of context
             # if there is one volume input - do add_volume
