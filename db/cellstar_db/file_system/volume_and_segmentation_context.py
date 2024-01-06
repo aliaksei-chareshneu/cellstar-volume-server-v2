@@ -8,7 +8,7 @@
 from argparse import ArgumentError
 from pathlib import Path
 from typing import Literal
-from cellstar_db.file_system.constants import GEOMETRIC_SEGMENTATION_FILENAME, GEOMETRIC_SEGMENTATIONS_ZATTRS, LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME
+from cellstar_db.file_system.constants import GEOMETRIC_SEGMENTATION_FILENAME, GEOMETRIC_SEGMENTATIONS_ZATTRS, LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
 from cellstar_db.models import GeometricSegmentationData, ShapePrimitiveData
 from cellstar_db.protocol import VolumeServerDB
 from cellstar_preprocessor.flows.common import open_json_file, open_zarr_structure_from_path, save_dict_to_json_file
@@ -49,8 +49,20 @@ class VolumeAndSegmentationContext:
     # possibly async?
     # add* methods do something like db.store()
     # TODO: get temp store path from somewhere
-    def add_volume():
-        pass
+    
+    def add_volume(self):
+        # NOTE: only a single volume for now
+        # get temp 
+        # TODO: move these three into separate function
+        temp_store = zarr.DirectoryStore(
+                str(self.intermediate_zarr_structure)
+            )
+        temp_zarr_structure: zarr.Group = open_zarr_structure_from_path(
+            self.intermediate_zarr_structure
+        )
+        perm_root = zarr.group(self.store)
+        zarr.copy_store(source=temp_store, dest=self.store, source_path=VOLUME_DATA_GROUPNAME, dest_path=VOLUME_DATA_GROUPNAME)
+        print('Volume added')
 
     def add_segmentation(self, id: str, kind: Literal["lattice", "mesh", "primitive"]):
         temp_store = zarr.DirectoryStore(

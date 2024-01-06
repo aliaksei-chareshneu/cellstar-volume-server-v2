@@ -755,14 +755,15 @@ class Preprocessor:
             segmentation_mesh_ids = metadata.segmentation_mesh_ids()
             geometric_segmentation_ids = metadata.geometric_segmentation_ids()
 
-
             with db.write_data(
                 namespace=self.preprocessor_input.entry_data.source_db,
                 key=self.preprocessor_input.entry_data.entry_id,
                 intermediate_zarr_structure=self.intermediate_zarr_structure
             ) as write_context:
                 write_context: VolumeAndSegmentationContext
-                # TODO: add volume
+                # adding volume
+                write_context.add_volume()
+                # adding segmentations
                 for id in segmentation_lattice_ids:
                     write_context.add_segmentation(id=id, kind='lattice')
                 for id in segmentation_mesh_ids:
