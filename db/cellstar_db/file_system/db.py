@@ -18,8 +18,9 @@ from cellstar_db.file_system.constants import (
 )
 from cellstar_db.file_system.models import FileSystemVolumeMedatada
 from cellstar_db.file_system.read_context import FileSystemDBReadContext
-from cellstar_db.models import AnnotationsMetadata, VolumeMetadata
+from cellstar_db.models import AnnotationsMetadata, Metadata, VolumeMetadata
 from cellstar_db.protocol import DBReadContext, VolumeServerDB
+from db.cellstar_db.file_system.volume_and_segmentation_context import VolumeAndSegmentationContext
 
 
 class FileSystemVolumeServerDB(VolumeServerDB):
@@ -289,13 +290,16 @@ class FileSystemVolumeServerDB(VolumeServerDB):
     def read(self, namespace: str, key: str) -> DBReadContext:
         return FileSystemDBReadContext(db=self, namespace=namespace, key=key)
 
+    def write_data(self, namespace: str, key: str, intermediate_zarr_structure: Path) -> VolumeAndSegmentationContext:
+        return VolumeAndSegmentationContext(db=self, namespace=namespace, key=key, intermediate_zarr_structure=intermediate_zarr_structure)
+
     async def read_metadata(self, namespace: str, key: str) -> VolumeMetadata:
         path: Path = (
             self._path_to_object(namespace=namespace, key=key) / GRID_METADATA_FILENAME
         )
         with open(path.resolve(), "r", encoding="utf-8") as f:
             # reads into dict
-            read_json_of_metadata: Dict = json.load(f)
+            read_json_of_metadata: Metadata = json.load(f)
         return FileSystemVolumeMedatada(read_json_of_metadata)
 
     async def read_annotations(self, namespace: str, key: str) -> AnnotationsMetadata:

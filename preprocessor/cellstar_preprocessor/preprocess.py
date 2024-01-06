@@ -5,6 +5,8 @@ import shutil
 import typing
 from argparse import ArgumentError
 from pathlib import Path
+from cellstar_db.file_system.models import FileSystemVolumeMedatada
+from cellstar_db.file_system.volume_and_segmentation_context import VolumeAndSegmentationContext
 from cellstar_preprocessor.flows.segmentation.collect_custom_annotations import collect_custom_annotations
 from cellstar_preprocessor.flows.segmentation.extract_annotations_from_geometric_segmentation import extract_annotations_from_geometric_segmentation
 from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
@@ -24,7 +26,7 @@ import zarr
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from pydantic import BaseModel
 from typing_extensions import Annotated
-from cellstar_db.models import AnnotationsMetadata
+from cellstar_db.models import AnnotationsMetadata, Metadata
 
 from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
@@ -736,24 +738,61 @@ class Preprocessor:
             new_db_path.mkdir()
 
         db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
-        if self.preprocessor_input.add_segmentation_to_entry:
-            await db.add_segmentation_to_entry(
+        
+        # call it once and get context
+        # get segmentation_ids from metadata
+        # using its method
+        metadata_path: Path = self.intermediate_zarr_structure / GRID_METADATA_FILENAME
+        with open(metadata_path.resolve(), "r", encoding="utf-8") as f:
+            # reads into dict
+            read_json_of_metadata: Metadata = json.load(f)
+            metadata = FileSystemVolumeMedatada(read_json_of_metadata)
+
+            segmentation_lattice_ids = metadata.segmentation_lattice_ids()
+            segmentation_mesh_ids = metadata.segmentation_mesh_ids()
+            geometric_segmentation_ids = metadata.geometric_segmentation_ids()
+
+
+            with db.write_data(
                 namespace=self.preprocessor_input.entry_data.source_db,
                 key=self.preprocessor_input.entry_data.entry_id,
-                temp_store_path=self.intermediate_zarr_structure,
-            )
-        elif self.preprocessor_input.add_custom_annotations:
-            await db.add_custom_annotations(
-                namespace=self.preprocessor_input.entry_data.source_db,
-                key=self.preprocessor_input.entry_data.entry_id,
-                temp_store_path=self.intermediate_zarr_structure,
-            )
-        else:
-            await db.store(
-                namespace=self.preprocessor_input.entry_data.source_db,
-                key=self.preprocessor_input.entry_data.entry_id,
-                temp_store_path=self.intermediate_zarr_structure,
-            )
+                intermediate_zarr_structure=self.intermediate_zarr_structure
+            ) as write_context:
+                write_context: VolumeAndSegmentationContext
+                # TODO: add volume
+                for id in segmentation_lattice_ids:
+                    write_context.add_segmentation(id=id, kind='lattice')
+
+        # then for each input call methods of context
+            # if there is one volume input - do add_volume
+            # which will copy VOLUME_DATA_GROUP from temp to perm store
+            # write_context.add_volume()
+            # if there is segmentation
+            # do add_segmentation
+            # but need to know which which segmentation_id (id is sufficient, because it is unique)
+            # to find correct one in intermediate zarr structure
+
+        
+        
+        
+        # if self.preprocessor_input.add_segmentation_to_entry:
+        #     await db.add_segmentation_to_entry(
+        #         namespace=self.preprocessor_input.entry_data.source_db,
+        #         key=self.preprocessor_input.entry_data.entry_id,
+        #         temp_store_path=self.intermediate_zarr_structure,
+        #     )
+        # elif self.preprocessor_input.add_custom_annotations:
+        #     await db.add_custom_annotations(
+        #         namespace=self.preprocessor_input.entry_data.source_db,
+        #         key=self.preprocessor_input.entry_data.entry_id,
+        #         temp_store_path=self.intermediate_zarr_structure,
+        #     )
+        # else:
+        #     await db.store(
+        #         namespace=self.preprocessor_input.entry_data.source_db,
+        #         key=self.preprocessor_input.entry_data.entry_id,
+        #         temp_store_path=self.intermediate_zarr_structure,
+        #     )
 
         print("Data stored to db")
 
