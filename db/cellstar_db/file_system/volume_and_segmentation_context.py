@@ -15,39 +15,51 @@ from cellstar_preprocessor.flows.common import open_json_file, open_zarr_structu
 import zarr
 
 
-# TODO: fix - if path does not exist, should be created
 class VolumeAndSegmentationContext:
-    def __init__(self, db: VolumeServerDB, namespace: str, key: str, intermediate_zarr_structure: Path):
-        self.intermediate_zarr_structure = intermediate_zarr_structure
+    def __init__(self, db: VolumeServerDB, namespace: str, key: str, working_folder: Path):
+        self.working_folder = working_folder
+        self.intermediate_zarr_structure = (
+            working_folder
+            / key
+        )
         self.db = db
         self.path_to_entry = self.db._path_to_object(namespace, key)
         self.key = key
         self.namespace = namespace
-
-        if self.db.store_type == "directory":
-            perm_store = zarr.DirectoryStore(str(self.db._path_to_object(namespace, key)))
-            self.store = perm_store
-        elif self.db.store_type == "zip":
-            entry_dir_path = self.db._path_to_object(namespace, key)
-            entry_dir_path.mkdir(parents=True, exist_ok=True)
-            perm_store = zarr.ZipStore(
-                path=str(self.db.path_to_zarr_root_data(namespace, key)),
+        self.zarr_structure_for_copying = self.intermediate_zarr_structure.parent / f'temp_{self.intermediate_zarr_structure.name}.zarr'
+        self.path_to_zarr_root_data: Path = self.db.path_to_zarr_root_data(namespace, key)
+        
+        if self.db.store_type == "zip":
+            entry_dir_path: Path = self.db._path_to_object(namespace, key)
+            if not entry_dir_path.exists():
+                entry_dir_path.mkdir(parents=True, exist_ok=True)
+            # 0. Opening existing store
+            # if exists - reading, if not - writing
+            # alternatively try 'a'
+            mode = 'r' if self.path_to_zarr_root_data.exists() else 'w'
+            existing_store = zarr.ZipStore(
+                path=str(self.path_to_zarr_root_data),
                 compression=0,
                 allowZip64=True,
-                mode="w",
+                mode=mode,
             )
-            self.store = perm_store
-        else:
-            raise ArgumentError("store type is wrong: {self.store_type}")
+            # 1. Creating store for copying
+            self.store = zarr.DirectoryStore(
+                path=str(self.zarr_structure_for_copying)
+            )
 
-    # possibly async?
-    # add* methods do something like db.store()
-    # TODO: get temp store path from somewhere
-    
+            # 2. Copying entire existing store to temp store
+            zarr.copy_store(existing_store, self.store)
+            # 3. Closing existing store
+            existing_store.close()
+            # 3. Deleting existing store
+            self.db.path_to_zarr_root_data(namespace, key).unlink()
+            
+        else:
+            raise ArgumentError("store type is not supported: {self.store_type}")
+
     def add_volume(self):
         # NOTE: only a single volume for now
-        # get temp 
-        # TODO: move these three into separate function
         temp_store = zarr.DirectoryStore(
                 str(self.intermediate_zarr_structure)
             )
@@ -107,14 +119,40 @@ class VolumeAndSegmentationContext:
             
 
     def remove_volume(self):
-        # NOTE: single volume for now
-        # need to delete group from store
+        # NOTE: all volumes for now
+        # need to delete group content from store
         # TODO: how to do it - possibly recreate the store without volume data group or?
-        pass
+        # plan:
+        # create temp store
+        # move all groups from existing store to temp store
+        # delete perm store
+        # create it again
+        # copy all groups from temp store to new perm store EXCEPT VOLUME_DATA_GROUP
+
+        perm_root = zarr.group(self.store)
+        del perm_root[VOLUME_DATA_GROUPNAME]
+        print('Volumes deletes')
 
     def remove_segmentation(self, id: str, kind: Literal["lattice", "mesh", "primitive"]):
         # 
         pass
+    
+    def _before_closing(self):
+        # NOTE: this part in atexit and in exit
+            # 5. Re-creating existing store with mode writing
+            # 6. Copying entire self.store to new existing store
+            # 7. Closing new existing store
+            # 8. removing self.store
+        new_existing_store = zarr.ZipStore(
+            path=str(self.path_to_zarr_root_data),
+            compression=0,
+            allowZip64=True,
+            mode="w",
+        )
+        zarr.copy_store(self.store, new_existing_store)
+        # self.store.close()
+        new_existing_store.close()
+        self.store.rmdir()
 
     def close(self):
         if hasattr(self.store, "close"):
@@ -127,7 +165,7 @@ class VolumeAndSegmentationContext:
 
     def __exit__(self, exc_type, exc_value, traceback):
         if hasattr(self.store, "close"):
-            self.store.close()
+            self._before_closing()
         else:
             pass
 
@@ -136,9 +174,9 @@ class VolumeAndSegmentationContext:
 
     async def __aexit__(self, *args, **kwargs):
         if hasattr(self.store, "aclose"):
-            await self.store.aclose()
+            raise Exception('async mode is not supported')
         if hasattr(self.store, "close"):
-            self.store.close()
+            self._before_closing()
         else:
             pass
 

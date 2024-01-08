@@ -755,21 +755,21 @@ class Preprocessor:
             segmentation_mesh_ids = metadata.segmentation_mesh_ids()
             geometric_segmentation_ids = metadata.geometric_segmentation_ids()
 
-            with db.write_data(
+            with db.edit_data(
                 namespace=self.preprocessor_input.entry_data.source_db,
                 key=self.preprocessor_input.entry_data.entry_id,
-                intermediate_zarr_structure=self.intermediate_zarr_structure
-            ) as write_context:
-                write_context: VolumeAndSegmentationContext
+                working_folder=self.preprocessor_input.working_folder
+            ) as db_edit_context:
+                db_edit_context: VolumeAndSegmentationContext
                 # adding volume
-                write_context.add_volume()
+                db_edit_context.add_volume()
                 # adding segmentations
                 for id in segmentation_lattice_ids:
-                    write_context.add_segmentation(id=id, kind='lattice')
+                    db_edit_context.add_segmentation(id=id, kind='lattice')
                 for id in segmentation_mesh_ids:
-                    write_context.add_segmentation(id=id, kind='mesh')
+                    db_edit_context.add_segmentation(id=id, kind='mesh')
                 for id in geometric_segmentation_ids:
-                    write_context.add_segmentation(id=id, kind='primitive')
+                    db_edit_context.add_segmentation(id=id, kind='primitive')
 
         # then for each input call methods of context
             # if there is one volume input - do add_volume
@@ -884,7 +884,7 @@ def delete_entry(
     source_db: str = typer.Option(default=...),
     db_path: Path = typer.Option(default=...)
     ):
-    print(f"Deleting db item: {entry_id} {source_db}")
+    print(f"Deleting db entry: {entry_id} {source_db}")
     new_db_path = Path(db_path)
     if new_db_path.is_dir() == False:
         new_db_path.mkdir()
@@ -894,6 +894,30 @@ def delete_entry(
         db.delete(namespace=source_db, key=entry_id)
     )
 
+@app.command("remove-volume")
+def remove_volume(
+    entry_id: str = typer.Option(default=...),
+    source_db: str = typer.Option(default=...),
+    db_path: Path = typer.Option(default=...),
+    working_folder: Path = typer.Option(default=...)
+    ):
+    print(f"Deleting volumes for entry: {entry_id} {source_db}")
+    new_db_path = Path(db_path)
+    if new_db_path.is_dir() == False:
+        new_db_path.mkdir()
+
+    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+
+    with db.edit_data(
+        namespace=source_db,
+        key=entry_id,
+        working_folder=working_folder
+    ) as db_edit_context:
+        db_edit_context: VolumeAndSegmentationContext
+        db_edit_context.remove_volume()
+
+# NOTE: works as adding, i.e. if entry already has volume/segmentation
+# it will not add anything, throwing error instead (group exists in destination)
 @app.command("add")
 def main(
     quantize_dtype_str: Annotated[

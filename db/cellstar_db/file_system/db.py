@@ -290,8 +290,8 @@ class FileSystemVolumeServerDB(VolumeServerDB):
     def read(self, namespace: str, key: str) -> DBReadContext:
         return FileSystemDBReadContext(db=self, namespace=namespace, key=key)
 
-    def write_data(self, namespace: str, key: str, intermediate_zarr_structure: Path) -> VolumeAndSegmentationContext:
-        return VolumeAndSegmentationContext(db=self, namespace=namespace, key=key, intermediate_zarr_structure=intermediate_zarr_structure)
+    def edit_data(self, namespace: str, key: str, working_folder: Path) -> VolumeAndSegmentationContext:
+        return VolumeAndSegmentationContext(db=self, namespace=namespace, key=key, working_folder=working_folder)
 
     async def read_metadata(self, namespace: str, key: str) -> VolumeMetadata:
         path: Path = (
