@@ -120,23 +120,43 @@ class VolumeAndSegmentationContext:
 
     def remove_volume(self):
         # NOTE: all volumes for now
-        # need to delete group content from store
-        # TODO: how to do it - possibly recreate the store without volume data group or?
-        # plan:
-        # create temp store
-        # move all groups from existing store to temp store
-        # delete perm store
-        # create it again
-        # copy all groups from temp store to new perm store EXCEPT VOLUME_DATA_GROUP
-
         perm_root = zarr.group(self.store)
         del perm_root[VOLUME_DATA_GROUPNAME]
         print('Volumes deletes')
 
     def remove_segmentation(self, id: str, kind: Literal["lattice", "mesh", "primitive"]):
-        # 
-        pass
-    
+        # plan:
+        perm_root = zarr.group(self.store)
+        # find that segmentation by id
+        # TODO: move to separate function to get source path
+        # TODO: add other types (mesh etc)
+        if kind == 'lattice':
+            source_path = f'{LATTICE_SEGMENTATION_DATA_GROUPNAME}/{id}'
+            del perm_root[source_path]
+        elif kind == 'mesh':
+            source_path = f'{MESH_SEGMENTATION_DATA_GROUPNAME}/{id}'
+            del perm_root[source_path]
+        elif kind == 'primitive':
+            shape_primitives_path: Path = self.path_to_entry / GEOMETRIC_SEGMENTATION_FILENAME
+            # if (shape_primitives_path).exists():
+            d: list[GeometricSegmentationData] = open_json_file(path=shape_primitives_path)
+            # TODO: find that geometric segmentation by id
+            
+            filter_results = [(index, g) for index, g in enumerate(d) if g["segmentation_id"] == id]
+            # filter_results = list(filter(lambda g: g["segmentation_id"] == id, d))
+            assert len(filter_results) == 1
+            target_index = filter_results[0][0]
+            # instead of append, remove it
+            # d.append(target_geometric_segmentation)
+            d.pop(target_index)
+
+            # save back to file
+            save_dict_to_json_file(
+                d,
+                GEOMETRIC_SEGMENTATION_FILENAME,
+                self.path_to_entry
+            )
+
     def _before_closing(self):
         # NOTE: this part in atexit and in exit
             # 5. Re-creating existing store with mode writing
