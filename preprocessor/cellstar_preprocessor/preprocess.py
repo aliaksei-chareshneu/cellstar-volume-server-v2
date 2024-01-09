@@ -669,6 +669,18 @@ class Preprocessor:
                 analyzed_inputs.append(NIISegmentationInput(input_path=input_item[0]))
         return analyzed_inputs
 
+    async def entry_exists(self):
+        new_db_path = Path(self.preprocessor_input.db_path)
+        if new_db_path.is_dir() == False:
+            new_db_path.mkdir()
+
+        db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
+
+        exists = await db.contains(namespace=self.preprocessor_input.entry_data.source_db,
+            key=self.preprocessor_input.entry_data.entry_id)
+        
+        return exists
+        
     def initialization(self):
         self.intermediate_zarr_structure = (
             self.preprocessor_input.working_folder
@@ -871,6 +883,10 @@ async def main_preprocessor(
     # cli_arguments = None
     # preprocessor_input: PreprocessorInput = _convert_cli_args_to_preprocessor_input(cli_arguments)
     preprocessor = Preprocessor(preprocessor_input)
+    if await preprocessor.entry_exists():
+        raise Exception(f'''Entry {preprocessor_input.entry_data.entry_id}
+            from {preprocessor_input.entry_data.source_db} source already exists in database {preprocessor_input.db_path}'''
+        )
     preprocessor.initialization()
     preprocessor.preprocessing()
     await preprocessor.store_to_db()
