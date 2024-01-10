@@ -344,7 +344,7 @@ class GeometricSegmentationInputData(BaseModel):
 
 
 class VolumeMetadata(Protocol):
-    def json_metadata(self) -> str:
+    def json_metadata(self) -> Metadata:
         ...
 
     def db_name(self) -> str:
