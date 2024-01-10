@@ -6,6 +6,7 @@ import shutil
 import typing
 from argparse import ArgumentError
 from pathlib import Path
+from cellstar_db.file_system.annotations_context import AnnnotationsEditContext
 from cellstar_db.file_system.models import FileSystemVolumeMedatada
 from cellstar_db.file_system.volume_and_segmentation_context import VolumeAndSegmentationContext
 from cellstar_preprocessor.flows.segmentation.collect_custom_annotations import collect_custom_annotations
@@ -968,8 +969,28 @@ def remove_segmentation(
         db_edit_context: VolumeAndSegmentationContext
         db_edit_context.remove_segmentation(id=id, kind=kind)
 
+@app.command("remove-annotations")
+def remove_annotations(
+    entry_id: str = typer.Option(default=...),
+    source_db: str = typer.Option(default=...),
+    id: list[str] = typer.Option(default=...),
+    db_path: Path = typer.Option(default=...),
+    ):
+    print(f"Deleting annotation for entry: {entry_id} {source_db}")
+    new_db_path = Path(db_path)
+    if new_db_path.is_dir() == False:
+        new_db_path.mkdir()
 
+    db = FileSystemVolumeServerDB(db_path, store_type="zip")
 
+    with db.edit_annotations(
+        namespace=source_db,
+        key=entry_id
+    ) as db_edit_annotations_context:
+        db_edit_annotations_context: AnnnotationsEditContext
+        asyncio.run(
+            db_edit_annotations_context.remove_segment_annotations(ids=id)
+        )
 
 if __name__ == "__main__":
     # solutions how to run it async - two last https://github.com/tiangolo/typer/issues/85

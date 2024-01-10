@@ -5,6 +5,7 @@ from argparse import ArgumentError
 from pathlib import Path
 from sys import stdout
 from typing import Dict
+from cellstar_db.file_system.annotations_context import AnnnotationsEditContext
 
 import zarr
 
@@ -292,6 +293,9 @@ class FileSystemVolumeServerDB(VolumeServerDB):
 
     def edit_data(self, namespace: str, key: str, working_folder: Path) -> VolumeAndSegmentationContext:
         return VolumeAndSegmentationContext(db=self, namespace=namespace, key=key, working_folder=working_folder)
+
+    def edit_annotations(self, namespace: str, key: str) -> AnnnotationsEditContext:
+        return AnnnotationsEditContext(db=self, namespace=namespace, key=key)
 
     async def read_metadata(self, namespace: str, key: str) -> VolumeMetadata:
         path: Path = (
