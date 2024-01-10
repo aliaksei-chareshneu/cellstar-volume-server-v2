@@ -8,10 +8,10 @@
 from argparse import ArgumentError
 from pathlib import Path
 from typing import Literal
-from cellstar_db.file_system.constants import GEOMETRIC_SEGMENTATION_FILENAME, GEOMETRIC_SEGMENTATIONS_ZATTRS, LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
+from cellstar_db.file_system.constants import ANNOTATION_METADATA_FILENAME, GEOMETRIC_SEGMENTATION_FILENAME, GEOMETRIC_SEGMENTATIONS_ZATTRS, GRID_METADATA_FILENAME, LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
 from cellstar_db.models import GeometricSegmentationData, ShapePrimitiveData
 from cellstar_db.protocol import VolumeServerDB
-from cellstar_preprocessor.flows.common import open_json_file, open_zarr_structure_from_path, save_dict_to_json_file
+from cellstar_preprocessor.flows.common import open_json_file, open_zarr_structure_from_path, open_zarr_zip, save_dict_to_json_file
 import zarr
 
 
@@ -173,6 +173,27 @@ class VolumeAndSegmentationContext:
         # self.store.close()
         new_existing_store.close()
         self.store.rmdir()
+
+        # here save annotations and metadata in new_existing_store
+        self.__save_annotations_and_metadata()
+
+    def __save_annotations_and_metadata(self):
+        temp_store = zarr.DirectoryStore(
+                str(self.intermediate_zarr_structure)
+            )
+        root: zarr.Group = open_zarr_structure_from_path(
+            self.intermediate_zarr_structure
+        )
+        save_dict_to_json_file(
+            root.attrs["annotations_dict"],
+            ANNOTATION_METADATA_FILENAME,
+            self.path_to_entry,
+        )
+        save_dict_to_json_file(
+            root.attrs["metadata_dict"],
+            GRID_METADATA_FILENAME,
+            self.path_to_entry,
+        )
 
     def close(self):
         if hasattr(self.store, "close"):

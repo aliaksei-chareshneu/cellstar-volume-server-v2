@@ -49,11 +49,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
         lattice_ids = []
         source_axes_units = {}
 
-        segmentation_lattices_metadata: SegmentationLatticesMetadata = {
-            'segmentation_ids': None,
-            'segmentation_sampling_info': {},
-            'time_info': {}
-        }
+        segmentation_lattices_metadata: SegmentationLatticesMetadata = metadata_dict["segmentation_lattices"]
 
         for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
             downsamplings = get_downsamplings(data_group=lattice_gr)
@@ -86,11 +82,7 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
         == SegmentationPrimaryDescriptor.mesh_list
     ):
         
-        mesh_segmentation_sets_metadata: MeshSegmentationSetsMetadata = {
-            'segmentation_metadata': {},
-            'segmentation_ids': [],
-            'time_info': {}
-        }
+        mesh_segmentation_sets_metadata: MeshSegmentationSetsMetadata = metadata_dict["segmentation_meshes"]
 
         # NOTE: mesh has no time and channel (both equal zero)
         # order: segment_ids, detail_lvls, time, channel, mesh_ids

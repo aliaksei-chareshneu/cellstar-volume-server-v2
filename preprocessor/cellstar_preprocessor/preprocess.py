@@ -1,4 +1,5 @@
 import asyncio
+from enum import Enum
 import json
 import logging
 import shutil
@@ -26,7 +27,7 @@ import zarr
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from pydantic import BaseModel
 from typing_extensions import Annotated
-from cellstar_db.models import AnnotationsMetadata, Metadata
+from cellstar_db.models import AnnotationsMetadata, GeometricSegmentationData, Metadata
 
 from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
@@ -40,7 +41,10 @@ from cellstar_preprocessor.flows.constants import (
     GRID_METADATA_FILENAME,
     INIT_ANNOTATIONS_DICT,
     INIT_METADATA_DICT,
+    LATTICE_SEGMENTATION_DATA_GROUPNAME,
+    MESH_SEGMENTATION_DATA_GROUPNAME,
     RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS,
+    VOLUME_DATA_GROUPNAME,
 )
 from cellstar_preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import (
     extract_annotations_from_sff_segmentation,
@@ -94,6 +98,10 @@ from cellstar_preprocessor.model.input import (
 )
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
+
+class PreprocessorMode(str, Enum):
+    add = "add"
+    extend = "extend"
 
 
 class InputT(BaseModel):
@@ -153,30 +161,30 @@ class QuantizeInternalVolumeTask(TaskBase):
         quantize_internal_volume(internal_volume=self.internal_volume)
 
 
-class SaveAnnotationsTask(TaskBase):
-    def __init__(self, intermediate_zarr_structure_path: Path):
-        self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
+# class SaveAnnotationsTask(TaskBase):
+#     def __init__(self, intermediate_zarr_structure_path: Path):
+#         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
 
-    def execute(self) -> None:
-        root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        save_dict_to_json_file(
-            root.attrs["annotations_dict"],
-            ANNOTATION_METADATA_FILENAME,
-            self.intermediate_zarr_structure_path,
-        )
+#     def execute(self) -> None:
+#         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
+#         save_dict_to_json_file(
+#             root.attrs["annotations_dict"],
+#             ANNOTATION_METADATA_FILENAME,
+#             self.intermediate_zarr_structure_path,
+#         )
 
 
-class SaveMetadataTask(TaskBase):
-    def __init__(self, intermediate_zarr_structure_path: Path):
-        self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
+# class SaveMetadataTask(TaskBase):
+#     def __init__(self, intermediate_zarr_structure_path: Path):
+#         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
 
-    def execute(self) -> None:
-        root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
-        save_dict_to_json_file(
-            root.attrs["metadata_dict"],
-            GRID_METADATA_FILENAME,
-            self.intermediate_zarr_structure_path,
-        )
+#     def execute(self) -> None:
+#         root = open_zarr_structure_from_path(self.intermediate_zarr_structure_path)
+#         save_dict_to_json_file(
+#             root.attrs["metadata_dict"],
+#             GRID_METADATA_FILENAME,
+#             self.intermediate_zarr_structure_path,
+#         )
 
 # class SaveGeometricSegmentationSets(TaskBase):
 #     def __init__(self, intermediate_zarr_structure_path: Path):
@@ -633,8 +641,8 @@ class Preprocessor:
                 GeometricSegmentationMetadataCollectionTask(self.get_internal_segmentation())
             )
 
-        tasks.append(SaveMetadataTask(self.intermediate_zarr_structure))
-        tasks.append(SaveAnnotationsTask(self.intermediate_zarr_structure))
+        # tasks.append(SaveMetadataTask(self.intermediate_zarr_structure))
+        # tasks.append(SaveAnnotationsTask(self.intermediate_zarr_structure))
 
         return tasks
 
@@ -681,7 +689,7 @@ class Preprocessor:
         
         return exists
         
-    def initialization(self):
+    async def initialization(self, mode: PreprocessorMode):
         self.intermediate_zarr_structure = (
             self.preprocessor_input.working_folder
             / self.preprocessor_input.entry_data.entry_id
@@ -698,43 +706,30 @@ class Preprocessor:
             root = zarr.group(store=store)
 
             # first initialize metadata and annotations dicts as empty
-            root.attrs["metadata_dict"] = INIT_METADATA_DICT
+            # or as dicts read from db if mode is "extend"
+            if mode == PreprocessorMode.extend:
+                new_db_path = Path(self.preprocessor_input.db_path)
+                db = FileSystemVolumeServerDB(new_db_path, store_type="zip") 
+                volume_metadata = await db.read_metadata(
+                    self.preprocessor_input.entry_data.source_db,
+                    self.preprocessor_input.entry_data.entry_id
+                )
+                root.attrs["metadata_dict"] = volume_metadata.json_metadata()
+                root.attrs["annotations_dict"] = await db.read_annotations(
+                    self.preprocessor_input.entry_data.source_db,
+                    self.preprocessor_input.entry_data.entry_id
+                )
+            
+            elif mode == PreprocessorMode.add:
+                root.attrs["metadata_dict"] = INIT_METADATA_DICT
 
-            root.attrs["annotations_dict"] = INIT_ANNOTATIONS_DICT
-
+                root.attrs["annotations_dict"] = INIT_ANNOTATIONS_DICT
+            else: 
+                raise Exception('Preprocessor mode is not supported')
             # init GeometricSegmentationData in zattrs
             root.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS] = []
             root.attrs[RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS] = {}
 
-            # delete previous annotations.json, metadata.json, geometric_segmentation.json
-
-
-            # if self.preprocessor_input.add_segmentation_to_entry:
-            #     db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
-            #     metadata_file_path: Path = (
-            #         db._path_to_object(namespace=self.preprocessor_input.entry_data.source_db,
-            #                             key=self.preprocessor_input.entry_data.entry_id) / GRID_METADATA_FILENAME
-            #     )
-            #     with open(metadata_file_path.resolve(), "r", encoding="utf-8") as f:
-            #         # reads into dict
-            #         read_json_of_metadata: dict = json.load(f)
-
-            #     root.attrs["metadata_dict"] = read_json_of_metadata
-            #     print('Adding segmentation to existing entry: Prefilled metadata dict is read from existing entry')
-            # if self.preprocessor_input.add_custom_annotations:
-            #     db = FileSystemVolumeServerDB(self.preprocessor_input.db_path)
-            #     annotations_file_path: Path = (
-            #         db._path_to_object(namespace=self.preprocessor_input.entry_data.source_db,
-            #                             key=self.preprocessor_input.entry_data.entry_id) / ANNOTATION_METADATA_FILENAME
-            #     )
-
-            #     with open(annotations_file_path.resolve(), "r", encoding="utf-8") as f:
-            #         # reads into dict
-            #         read_json_of_annotations: dict = json.load(f)
-
-            #     root.attrs["annotations_dict"] = read_json_of_annotations
-            #     print('Adding custom annotations to existing entry: Prefilled annotations dict is read from existing entry')
-            
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
             raise e
@@ -747,7 +742,7 @@ class Preprocessor:
         self._execute_tasks(tasks)
         return
 
-    async def store_to_db(self):
+    def store_to_db(self):
         new_db_path = Path(self.preprocessor_input.db_path)
         if new_db_path.is_dir() == False:
             new_db_path.mkdir()
@@ -757,76 +752,43 @@ class Preprocessor:
         # call it once and get context
         # get segmentation_ids from metadata
         # using its method
-        metadata_path: Path = self.intermediate_zarr_structure / GRID_METADATA_FILENAME
-        with open(metadata_path.resolve(), "r", encoding="utf-8") as f:
-            # reads into dict
-            read_json_of_metadata: Metadata = json.load(f)
-            metadata = FileSystemVolumeMedatada(read_json_of_metadata)
+        root = open_zarr_structure_from_path(
+            self.intermediate_zarr_structure
+            )
+        
+        segmentation_lattice_ids = []
+        segmentation_mesh_ids = []
+        geometric_segmentation_ids = []
+        
+        if LATTICE_SEGMENTATION_DATA_GROUPNAME in root:
+            segmentation_lattice_ids = list(root[LATTICE_SEGMENTATION_DATA_GROUPNAME].group_keys())
+        if MESH_SEGMENTATION_DATA_GROUPNAME in root:
+            segmentation_mesh_ids = list(root[MESH_SEGMENTATION_DATA_GROUPNAME].group_keys())
+        if GEOMETRIC_SEGMENTATIONS_ZATTRS in root.attrs:
+            geometric_segm_attrs: list[GeometricSegmentationData] = root.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS]
+            geometric_segmentation_ids = [g["segmentation_id"] for g in geometric_segm_attrs]
 
-            segmentation_lattice_ids = metadata.segmentation_lattice_ids()
-            segmentation_mesh_ids = metadata.segmentation_mesh_ids()
-            geometric_segmentation_ids = metadata.geometric_segmentation_ids()
-
-            with db.edit_data(
-                namespace=self.preprocessor_input.entry_data.source_db,
-                key=self.preprocessor_input.entry_data.entry_id,
-                working_folder=self.preprocessor_input.working_folder
-            ) as db_edit_context:
-                db_edit_context: VolumeAndSegmentationContext
-                # adding volume
+        with db.edit_data(
+            namespace=self.preprocessor_input.entry_data.source_db,
+            key=self.preprocessor_input.entry_data.entry_id,
+            working_folder=self.preprocessor_input.working_folder
+        ) as db_edit_context:
+            db_edit_context: VolumeAndSegmentationContext
+            # adding volume
+            if VOLUME_DATA_GROUPNAME in root:
                 db_edit_context.add_volume()
-                # adding segmentations
-                for id in segmentation_lattice_ids:
-                    db_edit_context.add_segmentation(id=id, kind='lattice')
-                for id in segmentation_mesh_ids:
-                    db_edit_context.add_segmentation(id=id, kind='mesh')
-                for id in geometric_segmentation_ids:
-                    db_edit_context.add_segmentation(id=id, kind='primitive')
-
-        # then for each input call methods of context
-            # if there is one volume input - do add_volume
-            # which will copy VOLUME_DATA_GROUP from temp to perm store
-            # write_context.add_volume()
-            # if there is segmentation
-            # do add_segmentation
-            # but need to know which which segmentation_id (id is sufficient, because it is unique)
-            # to find correct one in intermediate zarr structure
-
-        
-        
-        
-        # if self.preprocessor_input.add_segmentation_to_entry:
-        #     await db.add_segmentation_to_entry(
-        #         namespace=self.preprocessor_input.entry_data.source_db,
-        #         key=self.preprocessor_input.entry_data.entry_id,
-        #         temp_store_path=self.intermediate_zarr_structure,
-        #     )
-        # elif self.preprocessor_input.add_custom_annotations:
-        #     await db.add_custom_annotations(
-        #         namespace=self.preprocessor_input.entry_data.source_db,
-        #         key=self.preprocessor_input.entry_data.entry_id,
-        #         temp_store_path=self.intermediate_zarr_structure,
-        #     )
-        # else:
-        #     await db.store(
-        #         namespace=self.preprocessor_input.entry_data.source_db,
-        #         key=self.preprocessor_input.entry_data.entry_id,
-        #         temp_store_path=self.intermediate_zarr_structure,
-        #     )
+            # adding segmentations
+            for id in segmentation_lattice_ids:
+                db_edit_context.add_segmentation(id=id, kind='lattice')
+            for id in segmentation_mesh_ids:
+                db_edit_context.add_segmentation(id=id, kind='mesh')
+            for id in geometric_segmentation_ids:
+                db_edit_context.add_segmentation(id=id, kind='primitive')
 
         print("Data stored to db")
 
-
-# How it supposed to work:
-
-
-def _convert_cli_args_to_preprocessor_input(cli_arguments) -> PreprocessorInput:
-    # TODO: implement
-    # return DEFAULT_PREPROCESSOR_INPUT
-    return OME_ZARR_PREPROCESSOR_INPUT
-
-
 async def main_preprocessor(
+    mode: PreprocessorMode,
     quantize_dtype_str: typing.Optional[QuantizationDtype],
     quantize_downsampling_levels: typing.Optional[str],
     force_volume_dtype: typing.Optional[str],
@@ -842,8 +804,6 @@ async def main_preprocessor(
     input_paths: list[Path],
     input_kinds: list[InputKind],
     min_size_per_channel_mb: typing.Optional[float] = 5,
-    # add_segmentation_to_entry: typing.Optional[bool] = False,
-    # add_custom_annotations: typing.Optional[bool] = False,
 ):
     if quantize_downsampling_levels:
         quantize_downsampling_levels = quantize_downsampling_levels.split(" ")
@@ -873,26 +833,78 @@ async def main_preprocessor(
         working_folder=Path(working_folder),
         storing_params=StoringParams(),
         db_path=Path(db_path),
-        # add_segmentation_to_entry=add_segmentation_to_entry,
-        # add_custom_annotations=add_custom_annotations
     )
 
     for input_path, input_kind in zip(input_paths, input_kinds):
         preprocessor_input.inputs.files.append((Path(input_path), input_kind))
 
-    # cli_arguments = None
-    # preprocessor_input: PreprocessorInput = _convert_cli_args_to_preprocessor_input(cli_arguments)
     preprocessor = Preprocessor(preprocessor_input)
-    if await preprocessor.entry_exists():
-        raise Exception(f'''Entry {preprocessor_input.entry_data.entry_id}
-            from {preprocessor_input.entry_data.source_db} source already exists in database {preprocessor_input.db_path}'''
-        )
-    preprocessor.initialization()
+    if mode == PreprocessorMode.add:
+        if await preprocessor.entry_exists():
+            raise Exception(f'Entry {preprocessor_input.entry_data.entry_id} from {preprocessor_input.entry_data.source_db} source already exists in database {preprocessor_input.db_path}'
+            )
+    else:
+        if not await preprocessor.entry_exists():
+            raise Exception(f'Entry {preprocessor_input.entry_data.entry_id} from {preprocessor_input.entry_data.source_db} source does not exist in database {preprocessor_input.db_path}'
+            )
+        assert mode == PreprocessorMode.extend, 'Preprocessor mode is not supported'
+    
+    await preprocessor.initialization(mode=mode)
     preprocessor.preprocessing()
-    await preprocessor.store_to_db()
+    preprocessor.store_to_db()
 
 
 app = typer.Typer()
+
+# NOTE: works as adding, i.e. if entry already has volume/segmentation
+# it will not add anything, throwing error instead (group exists in destination)
+@app.command("preprocess")
+def main(
+    mode: PreprocessorMode = PreprocessorMode.add.value,
+    quantize_dtype_str: Annotated[
+        typing.Optional[QuantizationDtype], typer.Option(None)
+    ] = None,
+    quantize_downsampling_levels: Annotated[
+        typing.Optional[str], typer.Option(None, help="Space-separated list of numbers")
+    ] = None,
+    force_volume_dtype: Annotated[typing.Optional[str], typer.Option(None)] = None,
+    max_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = None,
+    min_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5,
+    min_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
+    max_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
+    entry_id: str = typer.Option(default=...),
+    source_db: str = typer.Option(default=...),
+    source_db_id: str = typer.Option(default=...),
+    source_db_name: str = typer.Option(default=...),
+    working_folder: Path = typer.Option(default=...),
+    db_path: Path = typer.Option(default=...),
+    input_path: list[Path] = typer.Option(default=...),
+    input_kind: list[InputKind] = typer.Option(default=...),
+    # add_segmentation_to_entry: bool = typer.Option(default=False),
+    # add_custom_annotations: bool = typer.Option(default=False),
+):
+    asyncio.run(
+        main_preprocessor(
+            mode=mode,
+            entry_id=entry_id,
+            source_db=source_db,
+            source_db_id=source_db_id,
+            source_db_name=source_db_name,
+            working_folder=working_folder,
+            db_path=db_path,
+            input_paths=input_path,
+            input_kinds=input_kind,
+            quantize_dtype_str=quantize_dtype_str,
+            quantize_downsampling_levels=quantize_downsampling_levels,
+            force_volume_dtype=force_volume_dtype,
+            max_size_per_channel_mb=max_size_per_channel_mb,
+            min_size_per_channel_mb=min_size_per_channel_mb,
+            min_downsampling_level=min_downsampling_level,
+            max_downsampling_level=max_downsampling_level,
+            # add_segmentation_to_entry=add_segmentation_to_entry,
+            # add_custom_annotations=add_custom_annotations
+        )
+    )
 
 @app.command("delete")
 def delete_entry(
@@ -956,54 +968,6 @@ def remove_segmentation(
         db_edit_context: VolumeAndSegmentationContext
         db_edit_context.remove_segmentation(id=id, kind=kind)
 
-
-# NOTE: works as adding, i.e. if entry already has volume/segmentation
-# it will not add anything, throwing error instead (group exists in destination)
-@app.command("add")
-def main(
-    quantize_dtype_str: Annotated[
-        typing.Optional[QuantizationDtype], typer.Option(None)
-    ] = None,
-    quantize_downsampling_levels: Annotated[
-        typing.Optional[str], typer.Option(None, help="Space-separated list of numbers")
-    ] = None,
-    force_volume_dtype: Annotated[typing.Optional[str], typer.Option(None)] = None,
-    max_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = None,
-    min_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5,
-    min_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
-    max_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
-    entry_id: str = typer.Option(default=...),
-    source_db: str = typer.Option(default=...),
-    source_db_id: str = typer.Option(default=...),
-    source_db_name: str = typer.Option(default=...),
-    working_folder: Path = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...),
-    input_path: list[Path] = typer.Option(default=...),
-    input_kind: list[InputKind] = typer.Option(default=...),
-    # add_segmentation_to_entry: bool = typer.Option(default=False),
-    # add_custom_annotations: bool = typer.Option(default=False),
-):
-    asyncio.run(
-        main_preprocessor(
-            entry_id=entry_id,
-            source_db=source_db,
-            source_db_id=source_db_id,
-            source_db_name=source_db_name,
-            working_folder=working_folder,
-            db_path=db_path,
-            input_paths=input_path,
-            input_kinds=input_kind,
-            quantize_dtype_str=quantize_dtype_str,
-            quantize_downsampling_levels=quantize_downsampling_levels,
-            force_volume_dtype=force_volume_dtype,
-            max_size_per_channel_mb=max_size_per_channel_mb,
-            min_size_per_channel_mb=min_size_per_channel_mb,
-            min_downsampling_level=min_downsampling_level,
-            max_downsampling_level=max_downsampling_level,
-            # add_segmentation_to_entry=add_segmentation_to_entry,
-            # add_custom_annotations=add_custom_annotations
-        )
-    )
 
 
 

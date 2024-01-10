@@ -47,9 +47,20 @@ INIT_ANNOTATIONS_DICT: AnnotationsMetadata = {
 INIT_METADATA_DICT: Metadata = {
     'entry_id': {"source_db_name": None, "source_db_id": None},
     'volumes': {},
-    'geometric_segmentation': {},
-    'segmentation_lattices': {},
-    'segmentation_meshes': {}
+    'geometric_segmentation': {
+        'segmentation_ids': [],
+        'time_info': {}
+    },
+    'segmentation_lattices': {
+        'segmentation_ids': [],
+        'segmentation_sampling_info': {},
+        'time_info': {}
+    },
+    'segmentation_meshes': {
+        'segmentation_metadata': {},
+        'segmentation_ids': [],
+        'time_info': {}
+    }
 }
 
 GEOMETRIC_SEGMENTATIONS_ZATTRS = 'geometric_segmentations'

@@ -15,10 +15,7 @@ def extract_metadata_geometric_segmentation(internal_segmentation: InternalSegme
     metadata_dict: Metadata = root.attrs["metadata_dict"]
 
     # segmentation is in zattrs
-    geometric_segmentation_sets_metadata: GeometricSegmentationSetsMetadata = {
-        'segmentation_ids': [],
-        'time_info': {}
-    }
+    geometric_segmentation_sets_metadata: GeometricSegmentationSetsMetadata = metadata_dict['geometric_segmentation']
     
     time_info_for_all_sets: dict[str, TimeInfo] = {}
 

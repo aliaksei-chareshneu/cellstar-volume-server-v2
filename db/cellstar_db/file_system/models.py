@@ -10,7 +10,7 @@ class FileSystemVolumeMedatada(VolumeMetadata):
     def __init__(self, raw_metadata: Metadata):
         self.raw_metadata = raw_metadata
 
-    def json_metadata(self) -> str:
+    def json_metadata(self) -> Metadata:
         return self.raw_metadata
     
     def db_name(self) -> str:
