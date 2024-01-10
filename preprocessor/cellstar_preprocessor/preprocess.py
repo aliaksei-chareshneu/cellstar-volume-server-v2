@@ -992,6 +992,29 @@ def remove_annotations(
             db_edit_annotations_context.remove_segment_annotations(ids=id)
         )
 
+@app.command("remove-descriptions")
+def remove_descriptions(
+    entry_id: str = typer.Option(default=...),
+    source_db: str = typer.Option(default=...),
+    id: list[str] = typer.Option(default=...),
+    db_path: Path = typer.Option(default=...),
+    ):
+    print(f"Deleting descriptions for entry: {entry_id} {source_db}")
+    new_db_path = Path(db_path)
+    if new_db_path.is_dir() == False:
+        new_db_path.mkdir()
+
+    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+
+    with db.edit_annotations(
+        namespace=source_db,
+        key=entry_id
+    ) as db_edit_annotations_context:
+        db_edit_annotations_context: AnnnotationsEditContext
+        asyncio.run(
+            db_edit_annotations_context.remove_descriptions(ids=id)
+        )
+
 if __name__ == "__main__":
     # solutions how to run it async - two last https://github.com/tiangolo/typer/issues/85
     # currently using last one
