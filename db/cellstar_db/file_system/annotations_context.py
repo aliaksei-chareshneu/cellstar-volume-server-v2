@@ -65,7 +65,7 @@ class AnnnotationsEditContext:
         d['annotations'] = new_annotations_list
         path = self.db._path_to_object(namespace=self.namespace, key=self.key)
         save_dict_to_json_file(d, ANNOTATION_METADATA_FILENAME, path)
-        
+
     async def add_or_modify_segment_annotations(self, xs: list[SegmentAnnotationData]):
         # 1. read annotations.json file using existing read_annotations function to AnnotationsMetadata TypedDict in d variable
         d = await self.db.read_annotations(namespace=self.namespace, key=self.key)
@@ -76,24 +76,59 @@ class AnnnotationsEditContext:
                 annotation_id = x['id']
             else:
                 annotation_id = str(uuid4())
-            # id exists, replacing description
-            if annotation_id in d['description'].keys():
-                # loop over each field in x except external_references and replace the fields with the same name in d['description'][descr_id]
-                for field_name in x.keys():
-                    if field_name != 'external_references':
-                        d['description'][annotation_id][field_name] = x[field_name]
-                    else:
-                    # or add if id does not exist
-                        for ref in x['external_references']:
-                            if 'id' not in ref:
-                                ref['id'] = str(uuid4())
+            # id exists, replacing annotation    
+            if any(a['id'] == annotation_id for a in d['annotations']):
+                for idx, item in enumerate(d['annotations']):
+                    if item['id'] == annotation_id:
+                        # do stuff on item
+                        for field_name in x.keys():
+                            item[field_name] = x[field_name]
 
-                            for index, existing_ref in enumerate(d['description'][annotation_id][field_name]):
-                                if existing_ref['id'] == ref['id']:
-                                    d['description'][annotation_id][field_name].pop(index)
-                                # does not exist or exists - push anyway
-                                d['description'][annotation_id][field_name].append(ref)
+                        d['annotations'][idx] = item
 
+                    
+                # # for each field in x, replace that field in existing_annotation
+ 
+                # # loop over each field in x and replace the fields with the same name in d['description'][descr_id]
+                # for field_name in x.keys():
+                #     target_annotation_item[field_name] = x[field_name]
+
+
+
+
+
+                #     # filter_results = [(index, g) for index, g in enumerate(d) if g["segmentation_id"] == id]
+                #     # # filter_results = list(filter(lambda g: g["segmentation_id"] == id, d))
+                #     # assert len(filter_results) == 1
+                #     # target_index = filter_results[0][0]
+                #     # # instead of append, remove it
+                #     # # d.append(target_geometric_segmentation)
+                #     # d.pop(target_index)
+
+
+                #     # d['annotations'][annotation_id][field_name] = x[field_name]
+                
+                print(f'Annotation with id {annotation_id} was modified')
+            # id does not exist, add annotation
+            else:
+                d['annotations'].append(x)
+                print(f'Annotation with id {annotation_id} was added')
+
+                    # if field_name != 'external_references':
+                    #     d['description'][annotation_id][field_name] = x[field_name]
+                    # else:
+                    # # or add if id does not exist
+                    #     for ref in x['external_references']:
+                    #         if 'id' not in ref:
+                    #             ref['id'] = str(uuid4())
+
+                    #         for index, existing_ref in enumerate(d['description'][annotation_id][field_name]):
+                    #             if existing_ref['id'] == ref['id']:
+                    #                 d['description'][annotation_id][field_name].pop(index)
+                    #             # does not exist or exists - push anyway
+                    #             d['description'][annotation_id][field_name].append(ref)
+        path = self.db._path_to_object(namespace=self.namespace, key=self.key)
+        save_dict_to_json_file(d, ANNOTATION_METADATA_FILENAME, path)
     
     def __enter__(self):
         return self
