@@ -27,5 +27,8 @@ async def test_modify_annotations(generate_test_data):
             filter_results = list(filter(lambda a: a['id'] == annotation['id'], current_annotations))
             assert len(filter_results) == 1
             existing_annotation = filter_results[0]
-            # check if those are equal
-            assert existing_annotation == annotation
+            # checks each field of modify annotations
+            # if it is equal to the field with the same name of that annotation from current annotations
+            for field_name in annotation:
+                assert existing_annotation[field_name] == annotation[field_name]
+            
