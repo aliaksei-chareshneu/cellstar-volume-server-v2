@@ -273,12 +273,10 @@ def _generate_test_data_for_remove_annotations(testing_db) -> list[str]:
         existing_annotation_ids[1]
     ]
 
-# TODO: change so that there is one external reference with same id
 def _generate_test_data_for_modify_descriptions(testing_db) -> list[DescriptionData]:
     # first get existing description ids from testing db
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
 
-    # TODO: make it a list
     fake_descriptions = copy.deepcopy(FAKE_DESCRIPTIONS)
     existing_description_ids = list(annotations['descriptions'].keys())
     
@@ -299,10 +297,7 @@ def _generate_test_data_for_modify_descriptions(testing_db) -> list[DescriptionD
     ]
 
 def _generate_test_data_for_add_descriptions():
-    fake_description_items = FAKE_DESCRIPTIONS.items()
-    return [
-        FAKE_DESCRIPTIONS
-    ]
+    return FAKE_DESCRIPTIONS
 
 @pytest.fixture(scope="module")
 def generate_test_data(testing_db):
@@ -315,5 +310,5 @@ def generate_test_data(testing_db):
     test_data['remove_annotations'] = _generate_test_data_for_remove_annotations(testing_db)
     
     test_data['modify_descriptions'] = _generate_test_data_for_modify_descriptions(testing_db)
-    
+    test_data['add_descriptions'] = _generate_test_data_for_add_descriptions()
     yield testing_db, test_data
