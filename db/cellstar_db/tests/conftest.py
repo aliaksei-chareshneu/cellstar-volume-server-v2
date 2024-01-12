@@ -140,13 +140,13 @@ FAKE_SEGMENT_ANNOTATIONS = [
 
 class TestData(TypedDict):
     modify_annotations: list[SegmentAnnotationData]
+    add_annotations: list[SegmentAnnotationData]
+    # NOTE: uuid
+    remove_annotations: list[str]
 
 def _generate_test_data_for_modify_annotations(testing_db) -> list[SegmentAnnotationData]:
     # first get existing annotation ids from testing db
-    annotations: AnnotationsMetadata = asyncio.run(testing_db.read_annotations(
-        TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
-        TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
-    ))
+    annotations: AnnotationsMetadata = __get_annotations(testing_db)
     fake_segment_annotations = copy.deepcopy(FAKE_SEGMENT_ANNOTATIONS)
     existing_annotation_ids = [a['id'] for a in annotations['annotations']]
     first_fake_segment_annotation = fake_segment_annotations[0]
@@ -165,12 +165,29 @@ def _generate_test_data_for_add_annotations() -> list[SegmentAnnotationData]:
         FAKE_SEGMENT_ANNOTATIONS[1]
     ]
 
+def __get_annotations(testing_db: FileSystemVolumeServerDB):
+    annotations: AnnotationsMetadata = asyncio.run(testing_db.read_annotations(
+        TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
+        TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
+    ))
+    return annotations
+
+def _generate_test_data_for_remove_annotations(testing_db) -> list[str]:
+    # get ids of exisiting annotations
+    annotations: AnnotationsMetadata = __get_annotations(testing_db)
+    existing_annotation_ids = [a['id'] for a in annotations['annotations']]
+    return [
+        existing_annotation_ids[0],
+        existing_annotation_ids[1]
+    ]
+
 @pytest.fixture(scope="module")
 def generate_test_data(testing_db):
     test_data: TestData = {
-        'modify_annotations': []
+
     }
     
     test_data['modify_annotations'] = _generate_test_data_for_modify_annotations(testing_db)
     test_data['add_annotations'] = _generate_test_data_for_add_annotations()
+    test_data['remove_annotations'] = _generate_test_data_for_remove_annotations(testing_db)
     yield testing_db, test_data
