@@ -299,6 +299,15 @@ def _generate_test_data_for_modify_descriptions(testing_db) -> list[DescriptionD
 def _generate_test_data_for_add_descriptions():
     return FAKE_DESCRIPTIONS
 
+def _generate_test_data_for_remove_descriptions(testing_db):
+    # get ids of exisiting descriptions
+    annotations: AnnotationsMetadata = __get_annotations(testing_db)
+    existing_description_ids = list(annotations['descriptions'].keys())
+    return [
+        existing_description_ids[0],
+        existing_description_ids[1]
+    ]
+
 @pytest.fixture(scope="module")
 def generate_test_data(testing_db):
     test_data: TestData = {
@@ -311,4 +320,6 @@ def generate_test_data(testing_db):
     
     test_data['modify_descriptions'] = _generate_test_data_for_modify_descriptions(testing_db)
     test_data['add_descriptions'] = _generate_test_data_for_add_descriptions()
+    test_data['remove_descriptions'] = _generate_test_data_for_remove_descriptions(testing_db)
+    
     yield testing_db, test_data
