@@ -123,9 +123,3 @@ class AnnnotationsEditContext:
         self.key = key
         self.path = db.path_to_zarr_root_data(namespace=self.namespace, key=self.key)
         assert self.path.exists(), f"Path {self.path} does not exist"
-        # if self.db.store_type == "directory":
-        #     self.store = zarr.DirectoryStore(path=self.path)
-        # elif self.db.store_type == "zip":
-        #     self.store = zarr.ZipStore(
-        #         path=self.path, compression=0, allowZip64=True, mode="r"
-        #     )

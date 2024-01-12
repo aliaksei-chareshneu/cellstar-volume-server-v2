@@ -5,6 +5,7 @@ from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from cellstar_db.models import AnnotationsMetadata, SegmentAnnotationData
 import pytest
 from cellstar_preprocessor.preprocess import main_preprocessor
+import copy
 
 TEST_DB_FOLDER = Path('db/cellstar_db/tests/test_data/testing_db')
 TEST_ENTRY_INPUT_PATHS = [
@@ -93,7 +94,7 @@ FAKE_SEGMENT_ANNOTATIONS = [
         "color": [
             0, 0, 0, 1.0
         ],
-        "id": "0ccb5109-35b1-40b6-be07-146c05bd1ecd",
+        "id": "whatever_1",
         "segment_id": 9999999999999,
         "segment_kind": "lattice",
         "segmentation_id": "999999999",
@@ -101,43 +102,40 @@ FAKE_SEGMENT_ANNOTATIONS = [
     },
     {
         "color": [
-            0.862361133098602,
-            0.965298295021057,
-            0.697644174098969,
-            1.0
+            1.0, 1.0, 1.0, 1.0
         ],
-        "id": "3943800d-bb47-4bf1-a02f-e1418469daa5",
-        "segment_id": 101,
+        "id": "whatever_2",
+        "segment_id": 888888888,
         "segment_kind": "lattice",
-        "segmentation_id": "0",
-        "time": 0
+        "segmentation_id": "888888888",
+        "time": 8888888888
     },
-    {
-        "color": [
-            0.706890761852264,
-            0.626759827136993,
-            0.604495763778687,
-            1.0
-        ],
-        "id": "a8e24249-e42b-4c89-9b7b-3eee6eb46f32",
-        "segment_id": 103,
-        "segment_kind": "lattice",
-        "segmentation_id": "0",
-        "time": 0
-    },
-    {
-        "color": [
-            0.787909328937531,
-            0.924791157245636,
-            0.951091408729553,
-            1.0
-        ],
-        "id": "162dbfcc-77f2-474d-82cb-bf8088b903b4",
-        "segment_id": 104,
-        "segment_kind": "lattice",
-        "segmentation_id": "0",
-        "time": 0
-    }
+    # {
+    #     "color": [
+    #         0.706890761852264,
+    #         0.626759827136993,
+    #         0.604495763778687,
+    #         1.0
+    #     ],
+    #     "id": "a8e24249-e42b-4c89-9b7b-3eee6eb46f32",
+    #     "segment_id": 103,
+    #     "segment_kind": "lattice",
+    #     "segmentation_id": "0",
+    #     "time": 0
+    # },
+    # {
+    #     "color": [
+    #         0.787909328937531,
+    #         0.924791157245636,
+    #         0.951091408729553,
+    #         1.0
+    #     ],
+    #     "id": "162dbfcc-77f2-474d-82cb-bf8088b903b4",
+    #     "segment_id": 104,
+    #     "segment_kind": "lattice",
+    #     "segmentation_id": "0",
+    #     "time": 0
+    # }
 ]
 
 class TestData(TypedDict):
@@ -149,15 +147,22 @@ def _generate_test_data_for_modify_annotations(testing_db) -> list[SegmentAnnota
         TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
         TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
     ))
+    fake_segment_annotations = copy.deepcopy(FAKE_SEGMENT_ANNOTATIONS)
     existing_annotation_ids = [a['id'] for a in annotations['annotations']]
-    first_fake_segment_annotation = FAKE_SEGMENT_ANNOTATIONS[0]
+    first_fake_segment_annotation = fake_segment_annotations[0]
     first_fake_segment_annotation['id'] = existing_annotation_ids[0]
-    second_fake_segment_annotation = FAKE_SEGMENT_ANNOTATIONS[1]
+    second_fake_segment_annotation = fake_segment_annotations[1]
     second_fake_segment_annotation['id'] = existing_annotation_ids[1]
 
     return [
         first_fake_segment_annotation,
         second_fake_segment_annotation
+    ]
+
+def _generate_test_data_for_add_annotations() -> list[SegmentAnnotationData]:
+    return [
+        FAKE_SEGMENT_ANNOTATIONS[0],
+        FAKE_SEGMENT_ANNOTATIONS[1]
     ]
 
 @pytest.fixture(scope="module")
@@ -167,18 +172,5 @@ def generate_test_data(testing_db):
     }
     
     test_data['modify_annotations'] = _generate_test_data_for_modify_annotations(testing_db)
-
+    test_data['add_annotations'] = _generate_test_data_for_add_annotations()
     yield testing_db, test_data
-
-
-# @pytest.fixture(
-#     # scope="function" | "module" | ...
-#     scope='function'
-# )
-# def testing_entry_ctx(testing_db):
-#     db = testing_db
-#     # use files in /files to create a temporary test entry
-#     # with ...:
-#         # set up test entry in tmpdir
-#         # yield 'fake_entry_context'
-#     yield testing_db

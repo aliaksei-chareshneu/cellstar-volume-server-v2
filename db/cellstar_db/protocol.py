@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Protocol, Tuple
 
-from cellstar_db.models import VolumeMetadata, VolumeSliceData
+from cellstar_db.models import AnnotationsMetadata, VolumeMetadata, VolumeSliceData
 
 
 class DBReadContext(Protocol):
@@ -81,7 +81,7 @@ class VolumeServerDB(Protocol):
     async def read_metadata(self, namespace: str, key: str) -> VolumeMetadata:
         ...
 
-    async def read_annotations(self, namespace: str, key: str) -> Dict:
+    async def read_annotations(self, namespace: str, key: str) -> AnnotationsMetadata:
         ...
 
     async def list_sources(self) -> list[str]:
