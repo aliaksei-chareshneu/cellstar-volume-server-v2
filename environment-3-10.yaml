@@ -47,5 +47,6 @@ dependencies:
     - seaborn
     - -e ./preprocessor
     - -e ./db
+    - -e ./query
     - h5py
     - vedo
