@@ -29,26 +29,35 @@ class AnnnotationsEditContext:
             else:
                 descr_id = str(uuid4())
 
-            if descr_id in d['description'].keys():
-                # loop over each field in x except external_references and replace the fields with the same name in d['description'][descr_id]
+            if descr_id in d['descriptions'].keys():
+                # loop over each field in x except external_references and replace the fields with the same name in d['descriptions'][descr_id]
                 for field_name in x.keys():
                     if field_name != 'external_references':
-                        d['description'][descr_id][field_name] = x[field_name]
+                        d['descriptions'][descr_id][field_name] = x[field_name]
                     else:
-                    # or add if id does not exist
                         for ref in x['external_references']:
                             if 'id' not in ref:
                                 ref['id'] = str(uuid4())
 
-                            for index, existing_ref in enumerate(d['description'][descr_id][field_name]):
-                                if existing_ref['id'] == ref['id']:
-                                    d['description'][descr_id][field_name].pop(index)
-                                # does not exist or exists - push anyway
-                                d['description'][descr_id][field_name].append(ref)
+                            # if ref with that id exists
+                            if any(r['id'] == ref['id'] for r in d['descriptions'][descr_id][field_name]):
+                                for idx, item in enumerate(d['descriptions'][descr_id][field_name]):
+                                    if item['id'] == ref['id']:
+                                        # do stuff on item
+                                        # NOTE: replacing fields of the reference
+                                        for ref_field_name in ref.keys():
+                                            item[ref_field_name] = ref[ref_field_name]
+                                            
+                                        # NOTE: replacing the reference item
+                                        d['descriptions'][descr_id][field_name][idx] = item
 
+                            # ref with that id does not exist, append
+                            else:
+                                d['descriptions'][descr_id][field_name].append(ref)
+  
             # id does not exist, add description
             else:
-                d['description'][descr_id] = x
+                d['descriptions'][descr_id] = x
         # 4. write d back to annotations.json
         path = self.db._path_to_object(namespace=self.namespace, key=self.key)
         save_dict_to_json_file(d, ANNOTATION_METADATA_FILENAME, path)

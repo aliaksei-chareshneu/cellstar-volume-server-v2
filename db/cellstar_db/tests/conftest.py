@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 from typing import TypedDict
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
-from cellstar_db.models import AnnotationsMetadata, SegmentAnnotationData
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, SegmentAnnotationData
 import pytest
 from cellstar_preprocessor.preprocess import main_preprocessor
 import copy
@@ -89,14 +89,14 @@ def testing_db():
 #     )
 # ]
 
-FAKE_SEGMENT_ANNOTATIONS = [
+FAKE_SEGMENT_ANNOTATIONS: list[SegmentAnnotationData] = [
     {
         "color": [
             0, 0, 0, 1.0
         ],
         "id": "whatever_1",
         "segment_id": 9999999999999,
-        "segment_kind": "lattice",
+        # "segment_kind": "lattice",
         "segmentation_id": "999999999",
         "time": 999999999999999
     },
@@ -110,39 +110,138 @@ FAKE_SEGMENT_ANNOTATIONS = [
         "segmentation_id": "888888888",
         "time": 8888888888
     },
-    # {
-    #     "color": [
-    #         0.706890761852264,
-    #         0.626759827136993,
-    #         0.604495763778687,
-    #         1.0
-    #     ],
-    #     "id": "a8e24249-e42b-4c89-9b7b-3eee6eb46f32",
-    #     "segment_id": 103,
-    #     "segment_kind": "lattice",
-    #     "segmentation_id": "0",
-    #     "time": 0
-    # },
-    # {
-    #     "color": [
-    #         0.787909328937531,
-    #         0.924791157245636,
-    #         0.951091408729553,
-    #         1.0
-    #     ],
-    #     "id": "162dbfcc-77f2-474d-82cb-bf8088b903b4",
-    #     "segment_id": 104,
-    #     "segment_kind": "lattice",
-    #     "segmentation_id": "0",
-    #     "time": 0
-    # }
 ]
+
+FAKE_DESCRIPTIONS: dict[str, DescriptionData] = {
+    "7fbb778a-4a01-41d4-b8e2-e4ca187eb5ff": {
+        "description": None,
+        "external_references": [
+            {
+                "accession": "GO_0006260",
+                "description": "FAKE TO BE REPLACED",
+                "id": 51,
+                "label": "DNA replication",
+                "resource": "go",
+                "url": "http://purl.obolibrary.org/obo/GO_0006260"
+            },
+            {
+                "accession": "GO_0030174",
+                "description": "Any process that modulates the frequency, rate or extent of initiation of DNA-dependent DNA replication; the process in which DNA becomes competent to replicate. In eukaryotes, replication competence is established in early G1 and lost during the ensuing S phase.",
+                "id": 52,
+                "label": "regulation of DNA-dependent DNA replication initiation",
+                "resource": "go",
+                "url": "http://purl.obolibrary.org/obo/GO_0030174"
+            },
+            {
+                "accession": "PR_000010246",
+                "description": "A protein that is a translation product of the human MCM4 gene or a 1:1 ortholog thereof.",
+                "id": 53,
+                "label": "DNA replication licensing factor MCM4",
+                "resource": "pr",
+                "url": "http://purl.obolibrary.org/obo/PR_000010246"
+            },
+            {
+                "accession": "NCIT_C33909",
+                "description": "DNA replication licensing factor MCM4 (863 aa, ~97 kDa) is encoded by the human MCM4 gene. This protein is involved in the initiation of DNA replication.",
+                "id": 54,
+                "label": "DNA Replication Licensing Factor MCM4",
+                "resource": "ncit",
+                "url": "http://purl.obolibrary.org/obo/NCIT_C33909"
+            },
+            {
+                "accession": "Q26454",
+                "description": "undefined (Drosophila melanogaster (Fruit fly))",
+                "id": 55,
+                "label": "MCM4_DROME",
+                "resource": "UniProt",
+                "url": "https://www.uniprot.org/uniprot/Q26454"
+            }
+        ],
+        "id": "7fbb778a-4a01-41d4-b8e2-e4ca187eb5ff",
+        "is_hidden": None,
+        "metadata": None,
+        "name": "DNA replication licensing factor MCM4",
+        "target_id": {
+            "segment_id": 97,
+            "segmentation_id": "0"
+        },
+        "target_kind": "lattice",
+        "time": 0
+    },
+    "9b590856-bd9a-4edc-9e49-c7b5af12773f": {
+        "description": None,
+        "external_references": [
+            {
+                "accession": "GO_0006260",
+                "description": "The cellular metabolic process in which a cell duplicates one or more molecules of DNA. DNA replication begins when specific sequences, known as origins of replication, are recognized and bound by initiation proteins, and ends when the original DNA molecule has been completely duplicated and the copies topologically separated. The unit of replication usually corresponds to the genome of the cell, an organelle, or a virus. The template for replication can either be an existing DNA molecule or RNA.",
+                "id": 41,
+                "label": "DNA replication",
+                "resource": "go",
+                "url": "http://purl.obolibrary.org/obo/GO_0006260"
+            },
+            {
+                "accession": "GO_0030174",
+                "description": "Any process that modulates the frequency, rate or extent of initiation of DNA-dependent DNA replication; the process in which DNA becomes competent to replicate. In eukaryotes, replication competence is established in early G1 and lost during the ensuing S phase.",
+                "id": 42,
+                "label": "regulation of DNA-dependent DNA replication initiation",
+                "resource": "go",
+                "url": "http://purl.obolibrary.org/obo/GO_0030174"
+            },
+            {
+                "accession": "PR_000010242",
+                "description": "A protein that is a translation product of the human MCM2 gene or a 1:1 ortholog thereof.",
+                "id": 43,
+                "label": "DNA replication licensing factor MCM2",
+                "resource": "pr",
+                "url": "http://purl.obolibrary.org/obo/PR_000010242"
+            },
+            {
+                "accession": "NCIT_C28642",
+                "description": "DNA replication licensing factor MCM2 (904 aa, ~102 kDa) is encoded by the human MCM2 gene. This protein plays a role in cell cycle regulation.",
+                "id": 44,
+                "label": "DNA Replication Licensing Factor MCM2",
+                "resource": "ncit",
+                "url": "http://purl.obolibrary.org/obo/NCIT_C28642"
+            },
+            {
+                "accession": "P49735",
+                "description": "undefined (Drosophila melanogaster (Fruit fly))",
+                "id": 45,
+                "label": "MCM2_DROME",
+                "resource": "UniProt",
+                "url": "https://www.uniprot.org/uniprot/P49735"
+            }
+        ],
+        "id": "9b590856-bd9a-4edc-9e49-c7b5af12773f",
+        "is_hidden": None,
+        "metadata": None,
+        "name": "DNA replication licensing factor MCM2",
+        "target_id": {
+            "segment_id": 85,
+            "segmentation_id": "0"
+        },
+        "target_kind": "lattice",
+        "time": 0
+    }
+}
 
 class TestData(TypedDict):
     modify_annotations: list[SegmentAnnotationData]
     add_annotations: list[SegmentAnnotationData]
     # NOTE: uuid
     remove_annotations: list[str]
+
+    modify_descriptions: list[DescriptionData]
+    add_descriptions: list[DescriptionData]
+    # NOTE: uuid
+    remove_descriptions: list[str]
+
+def __get_annotations(testing_db: FileSystemVolumeServerDB):
+    annotations: AnnotationsMetadata = asyncio.run(testing_db.read_annotations(
+        TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
+        TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
+    ))
+    return annotations
 
 def _generate_test_data_for_modify_annotations(testing_db) -> list[SegmentAnnotationData]:
     # first get existing annotation ids from testing db
@@ -165,13 +264,6 @@ def _generate_test_data_for_add_annotations() -> list[SegmentAnnotationData]:
         FAKE_SEGMENT_ANNOTATIONS[1]
     ]
 
-def __get_annotations(testing_db: FileSystemVolumeServerDB):
-    annotations: AnnotationsMetadata = asyncio.run(testing_db.read_annotations(
-        TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
-        TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
-    ))
-    return annotations
-
 def _generate_test_data_for_remove_annotations(testing_db) -> list[str]:
     # get ids of exisiting annotations
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
@@ -179,6 +271,33 @@ def _generate_test_data_for_remove_annotations(testing_db) -> list[str]:
     return [
         existing_annotation_ids[0],
         existing_annotation_ids[1]
+    ]
+
+# TODO: change so that there is one external reference with same id
+def _generate_test_data_for_modify_descriptions(testing_db) -> list[DescriptionData]:
+    # first get existing description ids from testing db
+    annotations: AnnotationsMetadata = __get_annotations(testing_db)
+    fake_descriptions_dict = copy.deepcopy(FAKE_DESCRIPTIONS)
+
+    existing_description_ids = list(annotations['descriptions'].keys())
+    
+    # TODO: do items
+    fake_descriptions = list(fake_descriptions_dict.items())
+
+    first_fake_description = fake_descriptions[0][1]
+    first_fake_description["id"] = existing_description_ids[0]
+
+    existing_description_external_reference_id = annotations['descriptions'][
+        existing_description_ids[0]
+    ]["external_references"][0]["id"]
+    first_fake_description["external_references"][0]["id"] = existing_description_external_reference_id
+
+    second_fake_description = fake_descriptions[1][1]
+    second_fake_description["id"] = existing_description_ids[1]
+
+    return [
+        first_fake_description,
+        second_fake_description
     ]
 
 @pytest.fixture(scope="module")
@@ -190,4 +309,7 @@ def generate_test_data(testing_db):
     test_data['modify_annotations'] = _generate_test_data_for_modify_annotations(testing_db)
     test_data['add_annotations'] = _generate_test_data_for_add_annotations()
     test_data['remove_annotations'] = _generate_test_data_for_remove_annotations(testing_db)
+    
+    test_data['modify_descriptions'] = _generate_test_data_for_modify_descriptions(testing_db)
+    
     yield testing_db, test_data
