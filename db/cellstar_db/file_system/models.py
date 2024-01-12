@@ -59,16 +59,16 @@ class FileSystemVolumeMedatada(VolumeMetadata):
     def sampled_grid_dimensions(self, level: int) -> List[int]:
         return self.raw_metadata["volumes"]["volume_sampling_info"]["boxes"][str(level)]["grid_dimensions"]
 
-    def mean(self, level: int, time: int, channel_id: int) -> np.float32:
+    def mean(self, level: int, time: int, channel_id: str) -> np.float32:
         return np.float32(self.raw_metadata["volumes"]["volume_sampling_info"]["descriptive_statistics"][str(level)][str(time)][str(channel_id)]["mean"])
 
-    def std(self, level: int, time: int, channel_id: int) -> np.float32:
+    def std(self, level: int, time: int, channel_id: str) -> np.float32:
         return np.float32(self.raw_metadata["volumes"]["volume_sampling_info"]["descriptive_statistics"][str(level)][str(time)][str(channel_id)]["std"])
 
-    def max(self, level: int, time: int, channel_id: int) -> np.float32:
+    def max(self, level: int, time: int, channel_id: str) -> np.float32:
         return np.float32(self.raw_metadata["volumes"]["volume_sampling_info"]["descriptive_statistics"][str(level)][str(time)][str(channel_id)]["max"])
 
-    def min(self, level: int, time: int, channel_id: int) -> np.float32:
+    def min(self, level: int, time: int, channel_id: str) -> np.float32:
         return np.float32(self.raw_metadata["volumes"]["volume_sampling_info"]["descriptive_statistics"][str(level)][str(time)][str(channel_id)]["min"])
 
     def mesh_component_numbers(self) -> MeshComponentNumbers:
