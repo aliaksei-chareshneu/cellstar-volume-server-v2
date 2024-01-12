@@ -112,8 +112,8 @@ FAKE_SEGMENT_ANNOTATIONS: list[SegmentAnnotationData] = [
     },
 ]
 
-FAKE_DESCRIPTIONS: dict[str, DescriptionData] = {
-    "7fbb778a-4a01-41d4-b8e2-e4ca187eb5ff": {
+FAKE_DESCRIPTIONS: list[DescriptionData] = [
+    {
         "description": None,
         "external_references": [
             {
@@ -168,7 +168,7 @@ FAKE_DESCRIPTIONS: dict[str, DescriptionData] = {
         "target_kind": "lattice",
         "time": 0
     },
-    "9b590856-bd9a-4edc-9e49-c7b5af12773f": {
+    {
         "description": None,
         "external_references": [
             {
@@ -223,7 +223,7 @@ FAKE_DESCRIPTIONS: dict[str, DescriptionData] = {
         "target_kind": "lattice",
         "time": 0
     }
-}
+]
 
 class TestData(TypedDict):
     modify_annotations: list[SegmentAnnotationData]
@@ -277,14 +277,12 @@ def _generate_test_data_for_remove_annotations(testing_db) -> list[str]:
 def _generate_test_data_for_modify_descriptions(testing_db) -> list[DescriptionData]:
     # first get existing description ids from testing db
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
-    fake_descriptions_dict = copy.deepcopy(FAKE_DESCRIPTIONS)
 
+    # TODO: make it a list
+    fake_descriptions = copy.deepcopy(FAKE_DESCRIPTIONS)
     existing_description_ids = list(annotations['descriptions'].keys())
     
-    # TODO: do items
-    fake_descriptions = list(fake_descriptions_dict.items())
-
-    first_fake_description = fake_descriptions[0][1]
+    first_fake_description = fake_descriptions[0]
     first_fake_description["id"] = existing_description_ids[0]
 
     existing_description_external_reference_id = annotations['descriptions'][
@@ -292,12 +290,18 @@ def _generate_test_data_for_modify_descriptions(testing_db) -> list[DescriptionD
     ]["external_references"][0]["id"]
     first_fake_description["external_references"][0]["id"] = existing_description_external_reference_id
 
-    second_fake_description = fake_descriptions[1][1]
+    second_fake_description = fake_descriptions[1]
     second_fake_description["id"] = existing_description_ids[1]
 
     return [
         first_fake_description,
         second_fake_description
+    ]
+
+def _generate_test_data_for_add_descriptions():
+    fake_description_items = FAKE_DESCRIPTIONS.items()
+    return [
+        FAKE_DESCRIPTIONS
     ]
 
 @pytest.fixture(scope="module")
