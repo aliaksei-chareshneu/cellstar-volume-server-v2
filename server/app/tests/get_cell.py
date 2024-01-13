@@ -2,22 +2,31 @@ import unittest
 
 import requests
 
-from app.tests._test_server_runner import ServerTestBase
+from server.app.tests._test_server_runner import ServerTestBase
+
+# TODO: max points seem not to work?
 
 test_configs = {
     "emdb": {
         "emd-1832": {
-            "cell": {"segmentation": 0, "max_points": 100000000},
-            "down_sampled": {"segmentation": 0, "max_points": 10},
+            "cell": {"segmentation": '0',
+                     "time": 0,
+                     "channel_id": '0',
+                     "max_points": 100000000},
+            "down_sampled": {"segmentation": '0',
+                             "time": 0,
+                     "channel_id": '0',
+                     "max_points": 10},
         }
     }
 }
 
-
+# @app.get("/v2/{source}/{id}/volume/cell/{time}/{channel_id}")
 class FetchVolumeTest(ServerTestBase):
     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
         r = requests.get(
-            f'{self.serverUrl()}/v1/{db}/{entry}/cell/{params.get("segmentation")}' f'/{params.get("max_points")}'
+            # TODO: add test for segmentation cell
+            f'{self.serverUrl()}/v2/{db}/{entry}/volume/cell/{params.get("time")}/{params.get("channel_id")}?max_points={params.get("max_points")}'
         )
         self.assertEqual(r.status_code, 200)
         body = r.text
