@@ -3,7 +3,7 @@ from collections import defaultdict
 from math import ceil, floor
 from typing import Optional, Tuple
 
-from cellstar_db.models import VolumeMetadata
+from cellstar_db.models import GeometricSegmentationJson, MeshesData, VolumeMetadata
 from cellstar_db.protocol import VolumeServerDB
 
 from server.app.api.requests import (
@@ -98,6 +98,8 @@ class VolumeServerService:
                     lattice_id=lattice_id,
                     down_sampling_ratio=slice_box.downsampling_rate,
                     box=(slice_box.bottom_left, slice_box.top_right),
+                    channel_id=req.channel_id,
+                    time=req.time
                 )
             elif req.data_kind == VolumeRequestDataKind.volume:
                 db_slice = await reader.read_volume_slice(
@@ -111,7 +113,6 @@ class VolumeServerService:
                     lattice_id=lattice_id,
                     down_sampling_ratio=slice_box.downsampling_rate,
                     box=(slice_box.bottom_left, slice_box.top_right),
-                    channel_id=req.channel_id,
                     time=req.time
                 )
             else:
@@ -125,7 +126,7 @@ class VolumeServerService:
         box = self._decide_slice_box(None, None, metadata)
         return serialize_volume_info(metadata, box)
 
-    async def get_geometric_segmentation(self, req: GeometricSegmentationRequest) -> list[object]:
+    async def get_geometric_segmentation(self, req: GeometricSegmentationRequest) -> GeometricSegmentationJson:
         with self.db.read(req.source, req.structure_id) as context:
             try:
                 gs = await context.read_geometric_segmentation()
@@ -142,7 +143,11 @@ class VolumeServerService:
         with Timing("read meshes"):
             with self.db.read(req.source, req.structure_id) as context:
                 try:
-                    meshes = await context.read_meshes(req.time, req.channel_id, req.segment_id, req.detail_lvl)
+                    meshes = await context.read_meshes(
+                        segmentation_id=req.segmentation_id,
+                        time=req.time,
+                        segment_id=req.segment_id,
+                        detail_lvl=req.detail_lvl)
                     # try:  # DEBUG, TODO REMOVE
                     #     meshes1 = await context.read_meshes(req.segment_id+1, req.detail_lvl)
                     #     for mesh in meshes1: mesh['mesh_id'] = 1
@@ -159,14 +164,18 @@ class VolumeServerService:
                     error_msg = f"Invalid segment_id={req.segment_id} or detail_lvl={req.detail_lvl} (available segment_ids and detail_lvls: {segments_levels})"
                     raise KeyError(error_msg)
         with Timing("serialize meshes"):
-            bcif = serialize_meshes(meshes, metadata, box, req.time, req.channel_id)
+            bcif = serialize_meshes(meshes, metadata, box, req.time)
 
         return bcif
 
-    async def get_meshes(self, req: MeshRequest) -> list[object]:
+    async def get_meshes(self, req: MeshRequest) -> MeshesData:
         with self.db.read(req.source, req.structure_id) as context:
             try:
-                meshes = await context.read_meshes(req.time, req.channel_id, req.segment_id, req.detail_lvl)
+                meshes = await context.read_meshes(
+                        segmentation_id=req.segmentation_id,
+                        time=req.time,
+                        segment_id=req.segment_id,
+                        detail_lvl=req.detail_lvl)
             except KeyError as e:
                 print("Exception in get_meshes: " + str(e))
                 meta = await self.db.read_metadata(req.source, req.structure_id)

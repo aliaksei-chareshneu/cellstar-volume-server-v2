@@ -17,7 +17,7 @@ from cellstar_db.file_system.constants import (
     LATTICE_SEGMENTATION_DATA_GROUPNAME,
     VOLUME_DATA_GROUPNAME,
 )
-from cellstar_db.models import ShapePrimitiveData, VolumeSliceData, MeshesData
+from cellstar_db.models import GeometricSegmentationData, GeometricSegmentationJson, MeshData, ShapePrimitiveData, VolumeSliceData, MeshesData
 from cellstar_db.protocol import DBReadContext, VolumeServerDB
 from cellstar_db.utils.box import normalize_box
 from cellstar_db.utils.quantization import decode_quantized_data
@@ -28,7 +28,7 @@ class FileSystemDBReadContext(DBReadContext):
         self,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
-        channel_id: int,
+        channel_id: str,
         time: int,
         mode: str = "dask",
         timer_printout=False,
@@ -51,13 +51,13 @@ class FileSystemDBReadContext(DBReadContext):
             if LATTICE_SEGMENTATION_DATA_GROUPNAME in root and (lattice_id is not None):
                 segm_arr = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
-                ][time][channel_id].grid
+                ][time].grid
                 assert (
                     np.array(box[1]) <= np.array(segm_arr.shape)
                 ).all(), f"requested box {box} does not correspond to arr dimensions"
                 segm_dict = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
-                ][time][channel_id].set_table[0]
+                ][time].set_table[0]
             else:
                 raise HTTPException(status_code=404, detail="No segmentation data is available for the the given entry or lattice_id is None")
 
@@ -125,16 +125,27 @@ class FileSystemDBReadContext(DBReadContext):
 
         return d
 
-    async def read_meshes(self, time: int, channel_id: int, segment_id: int, detail_lvl: int) -> MeshesData:
+    async def read_meshes(self,
+                          segmentation_id: str,
+                          time: int,
+                          segment_id: int,
+                          detail_lvl: int) -> MeshesData:
         """
         Returns list of meshes for a given segment, entry, detail lvl
         """
         try:
-            mesh_list = []
+            mesh_list: MeshesData = []
             root: zarr.Group = zarr.group(self.store)
-            mesh_list_group = root[MESH_SEGMENTATION_DATA_GROUPNAME][segment_id][detail_lvl][time][channel_id]
+
+            # # segmentation_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
+            # mesh_segmentation_data: list[str, dict[int, list[dict[int, list[dict[int, list[dict[int, SingleMeshSegmentationData]]]]]]]]
+            mesh_list_group = root[MESH_SEGMENTATION_DATA_GROUPNAME][
+                segmentation_id
+            ][time][segment_id][detail_lvl]
+            
+            
             for mesh_name, mesh in mesh_list_group.groups():
-                mesh_data = {"mesh_id": int(mesh_name)}
+                mesh_data: MeshData = {"mesh_id": int(mesh_name)}
                 for mesh_component_name, mesh_component_arr in mesh.arrays():
                     mesh_data[f"{mesh_component_name}"] = mesh_component_arr[...]
                 assert 'vertices' in mesh_data
@@ -146,29 +157,24 @@ class FileSystemDBReadContext(DBReadContext):
 
         return mesh_list
 
-    async def read_geometric_segmentation(self) -> list[object]:
+    async def read_geometric_segmentation(self) -> GeometricSegmentationJson:
         try:
-            # root: zarr.Group = zarr.group(self.store)
-            # TODO: read and parse JSON
-            # path: Path = (
-            #     self._path_to_object(namespace=namespace, key=key) / GRID_METADATA_FILENAME
-            # )
+            # GeometricSegmentationJson = list[GeometricSegmentationData]
             path: Path = Path(self.store.path).parent / GEOMETRIC_SEGMENTATION_FILENAME
             with open(path.resolve(), "r", encoding="utf-8") as f:
                 # reads into dict
-                read_json: ShapePrimitiveData = json.load(f)
-                shape_primitive_list = read_json["shape_primitive_list"]
+                read_json: list[GeometricSegmentationData] = json.load(f)
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
             raise e
 
-        return shape_primitive_list
+        return read_json
     
     async def read_volume_slice(
         self,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
-        channel_id: int,
+        channel_id: str,
         time: int,
         mode: str = "dask",
         timer_printout=False,
@@ -224,7 +230,6 @@ class FileSystemDBReadContext(DBReadContext):
         lattice_id: int,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
-        channel_id: int,
         time: int,
         mode: str = "dask",
         timer_printout=False,
@@ -240,13 +245,13 @@ class FileSystemDBReadContext(DBReadContext):
             if LATTICE_SEGMENTATION_DATA_GROUPNAME in root and (lattice_id is not None):
                 segm_arr = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
-                ][time][channel_id].grid
+                ][time].grid
                 assert (
                     np.array(box[1]) <= np.array(segm_arr.shape)
                 ).all(), f"requested box {box} does not correspond to arr dimensions"
                 segm_dict = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][lattice_id][
                     down_sampling_ratio
-                ][time][channel_id].set_table[0]
+                ][time].set_table[0]
             else:
                 raise HTTPException(status_code=404, detail="No segmentation data is available for the the given entry or lattice_id is None")
             
@@ -265,7 +270,6 @@ class FileSystemDBReadContext(DBReadContext):
                     "lattice_id": lattice_id
                 },
                 "time": time,
-                "channel_id": channel_id
             }
 
         except Exception as e:

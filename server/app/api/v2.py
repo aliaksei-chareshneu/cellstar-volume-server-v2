@@ -44,13 +44,12 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         )
         return response
 
-    @app.get("/v2/{source}/{id}/segmentation/box/{segmentation}/{time}/{channel_id}/{a1}/{a2}/{a3}/{b1}/{b2}/{b3}")
+    @app.get("/v2/{source}/{id}/segmentation/box/{segmentation}/{time}/{a1}/{a2}/{a3}/{b1}/{b2}/{b3}")
     async def get_segmentation_box(
         source: str,
         id: str,
         segmentation: str,
         time: int,
-        channel_id: int,
         a1: float,
         a2: float,
         a3: float,
@@ -63,9 +62,8 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
             volume_server=volume_server,
             source=source,
             id=id,
-            segmentation=segmentation,
+            segmentation_id=segmentation,
             time=time,
-            channel_id=channel_id,
             a1=a1,
             a2=a2,
             a3=a3,
@@ -82,7 +80,7 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         source: str,
         id: str,
         time: int,
-        channel_id: int,
+        channel_id: str,
         a1: float,
         a2: float,
         a3: float,
@@ -108,22 +106,21 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
         return Response(response, headers={"Content-Disposition": f'attachment;filename="{id}.bcif"'})
 
-    @app.get("/v2/{source}/{id}/segmentation/cell/{segmentation}/{time}/{channel_id}")
-    async def get_segmentation_cell(source: str, id: str, segmentation: str, time: int, channel_id: int,  max_points: Optional[int] = Query(0)):
+    @app.get("/v2/{source}/{id}/segmentation/cell/{segmentation}/{time}")
+    async def get_segmentation_cell(source: str, id: str, segmentation: str, time: int, max_points: Optional[int] = Query(0)):
         response = await get_segmentation_cell_query(
             volume_server=volume_server,
             source=source,
             id=id,
             segmentation=segmentation,
             time=time,
-            channel_id=channel_id,
             max_points=max_points
         )
 
         return Response(response, headers={"Content-Disposition": f'attachment;filename="{id}.bcif"'})
 
     @app.get("/v2/{source}/{id}/volume/cell/{time}/{channel_id}")
-    async def get_volume_cell(source: str, id: str, time: int, channel_id: int, max_points: Optional[int] = Query(0)):
+    async def get_volume_cell(source: str, id: str, time: int, channel_id: str, max_points: Optional[int] = Query(0)):
         response = await get_volume_cell_query(
             volume_server=volume_server,
             source=source,
@@ -144,17 +141,22 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
         return metadata
 
-    @app.get("/v2/{source}/{id}/mesh/{segment_id}/{detail_lvl}/{time}/{channel_id}")
-    async def get_meshes(source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int):
-        request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl, time=time, channel_id=channel_id)
+    @app.get("/v2/{source}/{id}/mesh/{segment_id}/{detail_lvl}/{time}")
+    async def get_meshes(source: str, id: str, segmentation_id: str,
+                          time: int,
+                          segment_id: int,
+                          detail_lvl: int):
+        request = MeshRequest(
+            source=source, structure_id=id,
+            segmentation_id=segmentation_id,
+            segment_id=segment_id,
+            detail_lvl=detail_lvl, time=time)
         try:
             meshes = await volume_server.get_meshes(request)
             return JSONNumpyResponse(meshes)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
 
-    # TODO: time, channel?
-    # TODO: segment id or all shape primitives segments at once? probably at once
     @app.get("/v2/{source}/{id}/geometric_segmentation")
     async def get_geometric_segmentation(source: str, id: str):
         request = GeometricSegmentationRequest(source=source, structure_id=id)
@@ -173,9 +175,16 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
 
         return Response(response_bytes, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'})
 
-    @app.get("/v2/{source}/{id}/mesh_bcif/{segment_id}/{detail_lvl}/{time}/{channel_id}")
-    async def get_meshes_bcif(source: str, id: str, time: int, channel_id: int, segment_id: int, detail_lvl: int):
-        request = MeshRequest(source=source, structure_id=id, segment_id=segment_id, detail_lvl=detail_lvl, time=time, channel_id=channel_id)
+    @app.get("/v2/{source}/{id}/mesh_bcif/{segment_id}/{detail_lvl}/{time}")
+    async def get_meshes_bcif(source: str, id: str, segmentation_id: str,
+                          time: int,
+                          segment_id: int,
+                          detail_lvl: int):
+        request = MeshRequest(
+            source=source, structure_id=id,
+            segmentation_id=segmentation_id,
+            segment_id=segment_id,
+            detail_lvl=detail_lvl, time=time)
         try:
             response_bytes = await volume_server.get_meshes_bcif(request)
             return Response(

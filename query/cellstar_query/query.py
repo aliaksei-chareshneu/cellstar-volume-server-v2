@@ -7,9 +7,8 @@ async def get_segmentation_box_query(
         volume_server: VolumeServerService,
         source: str,
         id: str,
-        segmentation: str,
+        segmentation_id: str,
         time: int,
-        channel_id: int,
         a1: float,
         a2: float,
         a3: float,
@@ -22,8 +21,7 @@ async def get_segmentation_box_query(
         req=VolumeRequestInfo(
             source=source,
             structure_id=id,
-            segmentation_id=segmentation,
-            channel_id=channel_id,
+            segmentation_id=segmentation_id,
             time=time,
             max_points=max_points,
             data_kind=VolumeRequestDataKind.segmentation,
@@ -37,7 +35,7 @@ async def get_volume_box_query(
         source: str,
         id: str,
         time: int,
-        channel_id: int,
+        channel_id: str,
         a1: float,
         a2: float,
         a3: float,
@@ -66,7 +64,6 @@ async def get_segmentation_cell_query(
     id: str,
     segmentation: str,
     time: int,
-    channel_id: int,
     max_points: int
 ):
     response = await volume_server.get_volume_data(
@@ -75,7 +72,6 @@ async def get_segmentation_cell_query(
                 structure_id=id,
                 segmentation_id=segmentation,
                 time=time,
-                channel_id=channel_id,
                 max_points=max_points,
                 data_kind=VolumeRequestDataKind.segmentation,
             ),
@@ -89,7 +85,7 @@ async def get_volume_cell_query(
     source: str,
     id: str,
     time: int,
-    channel_id: int,
+    channel_id: str,
     max_points: int
 ):
     response = await volume_server.get_volume_data(

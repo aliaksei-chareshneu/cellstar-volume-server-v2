@@ -29,7 +29,8 @@ def serialize_volume_slice(slice: VolumeSliceData, metadata: VolumeMetadata, box
     # TODO: create new category with request and responce info (e.g. query region, timing info, etc.)
     # writer.write_category(volume_info_category, [volume_info])
 
-    volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=slice['time'], channel_id=slice["channel_id"])
+    volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=slice['time'],
+                            channel_id=slice["channel_id"] if "channel_id" in slice else None)
 
     # volume
     if "volume_slice" in slice:
@@ -73,7 +74,7 @@ def serialize_volume_info(metadata: VolumeMetadata, box: GridSliceBox) -> bytes:
     return writer.encode()
 
 
-def serialize_meshes(meshes: MeshesData, metadata: VolumeMetadata, box: GridSliceBox, time: int, channel_id: int) -> bytes:
+def serialize_meshes(meshes: MeshesData, metadata: VolumeMetadata, box: GridSliceBox, time: int) -> bytes:
     with Timing("  prepare meshes for cif"):
         meshes_for_cif = MeshesForCif(meshes)
 
@@ -81,7 +82,7 @@ def serialize_meshes(meshes: MeshesData, metadata: VolumeMetadata, box: GridSlic
         writer = create_binary_writer(encoder="cellstar-volume-server")
 
         writer.start_data_block("volume_info")
-        volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=time, channel_id=channel_id)
+        volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=time)
         writer.write_category(VolumeData3dInfoCategory, [volume_info])
 
         writer.start_data_block("meshes")

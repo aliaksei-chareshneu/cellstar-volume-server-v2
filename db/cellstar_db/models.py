@@ -263,7 +263,8 @@ class MeshData(TypedDict):
     mesh_id: int
     vertices: np.ndarray  # shape = (n_vertices, 3)
     triangles: np.ndarray  # shape = (n_triangles, 3)
-
+    normals: Optional[np.ndarray]
+    
 MeshesData = list[MeshData]
 
 class LatticeSegmentationSliceData(TypedDict):
@@ -277,7 +278,7 @@ class VolumeSliceData(TypedDict):
     # changed segm slice to another typeddict
     segmentation_slice: Optional[LatticeSegmentationSliceData]
     volume_slice: Optional[np.ndarray]
-    channel_id: str
+    channel_id: Optional[str]
     time: int
 
 # END SERVER OUTPUT DATA MODEL

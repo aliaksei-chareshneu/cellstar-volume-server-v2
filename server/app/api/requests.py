@@ -14,7 +14,7 @@ class VolumeRequestInfo(BaseModel):
     source: str
     structure_id: str
     segmentation_id: Optional[str] = None
-    channel_id: int
+    channel_id: Optional[str] = None
     time: int
     max_points: int
     data_kind: VolumeRequestDataKind = VolumeRequestDataKind.all
@@ -23,6 +23,12 @@ class VolumeRequestInfo(BaseModel):
     def _validate_segmentation_ui(cls, id: Optional[str], values):
         if id is None and values["data_kind"] != "volume":
             raise ValueError("segmentation_id must be defined for segmentation/all queries")
+        return id
+    
+    @validator("channel_id")
+    def _validate_channel_id(cls, id: Optional[str], values):
+        if id is None and values["data_kind"] != "segmentation":
+            raise ValueError("channel_id must be defined for volume queries")
         return id
 
 class VolumeRequestBox(BaseModel):
@@ -48,9 +54,9 @@ class GeometricSegmentationRequest(BaseModel):
 class MeshRequest(BaseModel):
     source: str
     structure_id: str
+    segmentation_id: str
     segment_id: int
     detail_lvl: int
-    channel_id: int
     time: int
 
 

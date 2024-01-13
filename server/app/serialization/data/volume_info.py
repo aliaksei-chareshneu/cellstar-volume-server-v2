@@ -1,4 +1,5 @@
 from cellstar_db.models import VolumeMetadata
+from typing import Optional
 
 from server.app.core.models import GridSliceBox
 
@@ -10,7 +11,7 @@ class VolumeInfo:
         metadata: VolumeMetadata,
         box: GridSliceBox,
         time: int = 0,
-        channel_id: int = 0,
+        channel_id: Optional[str] = None,
         axis_order: tuple[int, int, int] = (0, 1, 2)
     ):
         self.name = name
@@ -30,6 +31,7 @@ class VolumeInfo:
         self.dimensions = [self.grid_size[i] * voxel_size[i] / self.cell_size[i] for i in range(3)]
 
         self.time = time
-        self.channel_id = channel_id
+        if channel_id:
+            self.channel_id = channel_id
 
         self.axis_order = axis_order

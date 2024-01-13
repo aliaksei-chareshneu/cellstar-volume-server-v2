@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Protocol, Tuple
 
-from cellstar_db.models import AnnotationsMetadata, VolumeMetadata, VolumeSliceData
+from cellstar_db.models import AnnotationsMetadata, GeometricSegmentationJson, MeshesData, VolumeMetadata, VolumeSliceData
 
 
 class DBReadContext(Protocol):
@@ -9,11 +9,11 @@ class DBReadContext(Protocol):
         self,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
-        channel_id: int,
+        channel_id: str,
         time: int,
         mode: str = "dask",
         timer_printout=False,
-        lattice_id: int = 0,
+        lattice_id: str = '0',
     ) -> VolumeSliceData:
         """
         Reads a slice from a specific (down)sampling of segmentation and volume data
@@ -23,13 +23,17 @@ class DBReadContext(Protocol):
         """
         ...
 
-    async def read_meshes(self, segment_id: int, detail_lvl: int) -> list[object]:
+    async def read_meshes(self,
+                          segmentation_id: str,
+                          time: int,
+                          segment_id: int,
+                          detail_lvl: int) -> MeshesData:
         """
         Returns list of meshes for a given segment, entry, detail lvl
         """
         ...
 
-    async def read_geometric_segmentation(self) -> list[object]:
+    async def read_geometric_segmentation(self) -> GeometricSegmentationJson:
         """
         Returns list of shape primitives for geometric segmentation
         """
@@ -39,7 +43,7 @@ class DBReadContext(Protocol):
         self,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
-        channel_id: int,
+        channel_id: str,
         time: int,
         mode: str = "dask",
         timer_printout=False,
@@ -51,7 +55,6 @@ class DBReadContext(Protocol):
         lattice_id: int,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
-        channel_id: int,
         time: int,
         mode: str = "dask",
         timer_printout=False,
