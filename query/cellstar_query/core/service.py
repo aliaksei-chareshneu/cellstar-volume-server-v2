@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 from cellstar_db.models import GeometricSegmentationJson, MeshesData, VolumeMetadata
 from cellstar_db.protocol import VolumeServerDB
 
-from server.app.api.requests import (
+from cellstar_query.requests import (
     EntriesRequest,
     GeometricSegmentationRequest,
     MeshRequest,
@@ -15,9 +15,9 @@ from server.app.api.requests import (
     VolumeRequestDataKind,
     VolumeRequestInfo,
 )
-from server.app.core.models import GridSliceBox
-from server.app.core.timing import Timing
-from server.app.serialization.cif import serialize_meshes, serialize_volume_info, serialize_volume_slice
+from cellstar_query.core.models import GridSliceBox
+from cellstar_query.core.timing import Timing
+from cellstar_query.serialization.cif import serialize_meshes, serialize_volume_info, serialize_volume_slice
 
 __MAX_DOWN_SAMPLING_VALUE__ = 1000000
 
@@ -129,7 +129,9 @@ class VolumeServerService:
     async def get_geometric_segmentation(self, req: GeometricSegmentationRequest) -> GeometricSegmentationJson:
         with self.db.read(req.source, req.structure_id) as context:
             try:
-                gs = await context.read_geometric_segmentation()
+                gs = await context.read_geometric_segmentation(
+                    segmentation_id=req.segmentation_id
+                )
                 # TODO: fix "error": "local variable 'gs' referenced before assignment"
             except Exception as e:
                 raise Exception("Exception in get_geometric_segmentation: " + str(e))
@@ -205,9 +207,11 @@ class VolumeServerService:
         """`max_points=None` means unlimited number of points"""
         box = None
 
+        # loops over downsampling rates
         for downsampling_rate in sorted(metadata.volume_downsamplings()):
             if req_box:
                 box = calc_slice_box(req_box.bottom_left, req_box.top_right, metadata, downsampling_rate)
+            # for cell query
             else:
                 box = GridSliceBox(
                     downsampling_rate=downsampling_rate,
@@ -217,6 +221,9 @@ class VolumeServerService:
 
             # TODO: decide what to do when max_points is 0
             # e.g. whether to return the lowest downsampling or highest
+            
+            # returns first downsampling if max_points is None
+            # of if box volume is lower than max_points  
             if max_points is None or (box is not None and box.volume < max_points):
                 return box
 

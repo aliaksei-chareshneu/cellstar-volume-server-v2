@@ -148,9 +148,9 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         )
         return response
         
-    @app.get("/v2/{source}/{id}/geometric_segmentation")
-    async def get_geometric_segmentation(source: str, id: str):
-        request = GeometricSegmentationRequest(source=source, structure_id=id)
+    @app.get("/v2/{source}/{id}/geometric_segmentation/{segmentation_id}")
+    async def get_geometric_segmentation(source: str, id: str, segmentation_id: str):
+        request = GeometricSegmentationRequest(source=source, structure_id=id, segmentation_id=segmentation_id)
         try:
             geometric_segmentation = await volume_server.get_geometric_segmentation(request)
             return JSONNumpyResponse(geometric_segmentation)

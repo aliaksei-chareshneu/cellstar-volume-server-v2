@@ -1,8 +1,8 @@
 from ciftools.models.writer import CIFCategoryDesc
 from ciftools.models.writer import CIFFieldDesc as Field
 
-from server.app.serialization.data.volume_info import VolumeInfo
-from server.app.serialization.volume_cif_categories import encoders
+from cellstar_query.serialization.data.volume_info import VolumeInfo
+from cellstar_query.serialization.volume_cif_categories import encoders
 
 
 class VolumeDataTimeAndChannelInfo(CIFCategoryDesc):

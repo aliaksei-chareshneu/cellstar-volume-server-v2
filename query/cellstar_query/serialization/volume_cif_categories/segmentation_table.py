@@ -2,8 +2,8 @@ from ciftools.binary.data_types import DataType, DataTypeEnum
 from ciftools.models.writer import CIFCategoryDesc
 from ciftools.models.writer import CIFFieldDesc as Field
 
-from server.app.serialization.data.segment_set_table import SegmentSetTable
-from server.app.serialization.volume_cif_categories import encoders
+from cellstar_query.serialization.data.segment_set_table import SegmentSetTable
+from cellstar_query.serialization.volume_cif_categories import encoders
 
 
 class SegmentationDataTableCategory(CIFCategoryDesc):

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Protocol, Tuple
 
-from cellstar_db.models import AnnotationsMetadata, GeometricSegmentationJson, MeshesData, VolumeMetadata, VolumeSliceData
+from cellstar_db.models import AnnotationsMetadata, GeometricSegmentationData, GeometricSegmentationJson, MeshesData, VolumeMetadata, VolumeSliceData
 
 
 class DBReadContext(Protocol):
@@ -33,7 +33,7 @@ class DBReadContext(Protocol):
         """
         ...
 
-    async def read_geometric_segmentation(self) -> GeometricSegmentationJson:
+    async def read_geometric_segmentation(self) -> GeometricSegmentationData:
         """
         Returns list of shape primitives for geometric segmentation
         """

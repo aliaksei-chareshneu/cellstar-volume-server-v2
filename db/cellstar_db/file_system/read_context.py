@@ -157,18 +157,21 @@ class FileSystemDBReadContext(DBReadContext):
 
         return mesh_list
 
-    async def read_geometric_segmentation(self) -> GeometricSegmentationJson:
+    async def read_geometric_segmentation(self, segmentation_id: str) -> GeometricSegmentationData:
         try:
             # GeometricSegmentationJson = list[GeometricSegmentationData]
             path: Path = Path(self.store.path).parent / GEOMETRIC_SEGMENTATION_FILENAME
             with open(path.resolve(), "r", encoding="utf-8") as f:
                 # reads into dict
                 read_json: list[GeometricSegmentationData] = json.load(f)
+                filter_results = list(filter(lambda i: i['segmentation_id'] == segmentation_id, read_json))
+                assert len(filter_results) == 1
+                target_segmentation: GeometricSegmentationData = filter_results[0]
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
             raise e
 
-        return read_json
+        return target_segmentation
     
     async def read_volume_slice(
         self,

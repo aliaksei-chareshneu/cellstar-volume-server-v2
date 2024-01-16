@@ -50,7 +50,8 @@ class EntriesRequest(BaseModel):
 class GeometricSegmentationRequest(BaseModel):
     source: str
     structure_id: str
-
+    segmentation_id: str
+    
 class MeshRequest(BaseModel):
     source: str
     structure_id: str

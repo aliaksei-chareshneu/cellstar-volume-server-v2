@@ -1,6 +1,11 @@
 
-from server.app.api.requests import EntriesRequest, MetadataRequest, VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
-from server.app.core.service import VolumeServerService
+from cellstar_query.requests import EntriesRequest, GeometricSegmentationRequest, MeshRequest, MetadataRequest, VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
+from cellstar_query.core.service import VolumeServerService
+from cellstar_query.serialization.json_numpy_response import JSONNumpyResponse
+from fastapi import Response
+from fastapi.responses import JSONResponse
+
+HTTP_CODE_UNPROCESSABLE_ENTITY = 422
 
 
 async def get_segmentation_box_query(
@@ -126,7 +131,7 @@ async def get_list_entries_query(
 
     return response    
 
-async def get_list_entries_keywords_query(
+async def get_list_entries_keyword_query(
         volume_server: VolumeServerService,
         limit: int,
         keyword: str
@@ -134,3 +139,51 @@ async def get_list_entries_keywords_query(
     request = EntriesRequest(limit=limit, keyword=keyword)
     response = await volume_server.get_entries(request)
     return response
+
+async def get_meshes_query(
+        volume_server: VolumeServerService,
+        source: str, id: str, segmentation_id: str,
+        time: int,
+        segment_id: int,
+        detail_lvl: int
+):
+    request = MeshRequest(
+            source=source, structure_id=id,
+            segmentation_id=segmentation_id,
+            segment_id=segment_id,
+            detail_lvl=detail_lvl, time=time)
+    try:
+        meshes = await volume_server.get_meshes(request)
+        return JSONNumpyResponse(meshes)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
+
+async def get_meshes_bcif_query(
+        volume_server: VolumeServerService,
+        source: str, id: str, segmentation_id: str,
+        time: int,
+        segment_id: int,
+        detail_lvl: int
+):
+    request = MeshRequest(
+            source=source, structure_id=id,
+            segmentation_id=segmentation_id,
+            segment_id=segment_id,
+            detail_lvl=detail_lvl, time=time)
+    try:
+        response_bytes = await volume_server.get_meshes_bcif(request)
+        return Response(
+            response_bytes, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'}
+        )
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
+    finally:
+        pass
+
+async def get_geometric_segmentation_query(volume_server: VolumeServerService, source: str, id: str):
+        request = GeometricSegmentationRequest(source=source, structure_id=id)
+        try:
+            geometric_segmentation = await volume_server.get_geometric_segmentation(request)
+            return JSONNumpyResponse(geometric_segmentation)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
