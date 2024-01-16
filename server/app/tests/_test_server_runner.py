@@ -7,7 +7,7 @@ from abc import ABC
 import uvicorn
 from uvicorn import Config
 
-from main import app
+from server.main import app
 
 
 class TestServerRunner(uvicorn.Server):
