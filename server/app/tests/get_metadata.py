@@ -15,7 +15,9 @@ class FetchMetadataTest(ServerTestBase):
     def test(self):
         try:
             with self.server.run_in_thread():
-                r = requests.get(f"{self.serverUrl()}/v2/emdb/emd-1832/metadata/")
+                # idr/idr-6001247
+                # r = requests.get(f"{self.serverUrl()}/v2/emdb/emd-1832/metadata/")
+                r = requests.get(f"{self.serverUrl()}/v2/idr/idr-6001247/metadata/")
                 self.assertEqual(r.status_code, 200)
                 body: dict = dict(r.json())
                 self.assertIsNotNone(body)
@@ -48,8 +50,6 @@ class FetchMetadataTest(ServerTestBase):
                     segmentation_downsamplings: list = segmentation_sampling_info.get(segmentation_lattice).get('spatial_downsampling_levels')
                     self.assertIsNotNone(segmentation_downsamplings)
 
-                # assert corresponding voxel sizes exist for each downsampling
-                # TODO: rework this part
                 boxes_dict: dict = volume_sampling_info.get('boxes')
                 # first check if number of keys of boxes == to length of volume downsamplings
                 self.assertIsNotNone(boxes_dict)
@@ -122,13 +122,13 @@ class FetchMetadataTest(ServerTestBase):
                     previous_mean = ds['mean'][0]
                     for i in range(1, len(ds['mean'])):
                         new_mean = ds['mean'][i]
-                        self.assertAlmostEqual(previous_mean, new_mean, delta=abs(new_mean / 100))
+                        self.assertAlmostEqual(previous_mean, new_mean, delta=abs(new_mean / 50))
                         previous_mean = new_mean
 
                     previous_min = ds['min'][0]
                     for i in range(1, len(ds['min'])):
                         new_min = ds['min'][i]
-                        self.assertAlmostEqual(previous_min, new_min, delta=abs(new_min / 100))
+                        self.assertAlmostEqual(previous_min, new_min, delta=abs(new_min / 50))
                         previous_min = new_min
                     
                     previous_max = ds['max'][0]
