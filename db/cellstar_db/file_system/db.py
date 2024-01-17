@@ -21,7 +21,7 @@ from cellstar_db.file_system.models import FileSystemVolumeMedatada
 from cellstar_db.file_system.read_context import FileSystemDBReadContext
 from cellstar_db.models import AnnotationsMetadata, Metadata, VolumeMetadata
 from cellstar_db.protocol import DBReadContext, VolumeServerDB
-from db.cellstar_db.file_system.volume_and_segmentation_context import VolumeAndSegmentationContext
+from cellstar_db.file_system.volume_and_segmentation_context import VolumeAndSegmentationContext
 
 
 class FileSystemVolumeServerDB(VolumeServerDB):
