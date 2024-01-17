@@ -6,14 +6,14 @@ import pytest
 # assert that output file exists 
 
 QUERY_APP_PATH = Path('query_app/query_app.py')
+OUTPUT_FILE_PATH = Path('query_app/tests/test_output/volume.bcif')
 
-# @pytest.mark.asyncio
 def test_volume_cell_query():
     commands_lst = [
         "python",
         str(QUERY_APP_PATH.resolve()),
         "--db_path", "preprocessor/temp/test_db",
-        "--out", "volume.bcif",
+        "--out", str(OUTPUT_FILE_PATH.resolve()),
         "volume-cell",
         "--entry-id", "emd-1832",
         "--source-db", "emdb",
@@ -23,3 +23,9 @@ def test_volume_cell_query():
     subprocess.run(
         commands_lst
     )
+
+    assert OUTPUT_FILE_PATH.exists()
+    assert OUTPUT_FILE_PATH.is_file()
+
+    # delete output file
+    OUTPUT_FILE_PATH.unlink()
