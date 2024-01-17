@@ -215,7 +215,7 @@ class BoxDataQueryTask(VolumetricDataQueryTask):
                 source=self.source_db,
                 id=self.entry_id,
                 time=self.time,
-                segmentation=self.segmentation_id,
+                segmentation_id=self.segmentation_id,
                 a1=a1,
                 a2=a2,
                 a3=a3,
