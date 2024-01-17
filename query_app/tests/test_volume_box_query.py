@@ -9,17 +9,18 @@ from query_app.tests.constants import QUERY_APP_PATH
 
 OUTPUT_FILE_PATH = Path('query_app/tests/test_output/volume.bcif')
 
-def test_volume_cell_query():
+def test_volume_box_query():
     commands_lst = [
         "python",
         str(QUERY_APP_PATH.resolve()),
         "--db_path", "preprocessor/temp/test_db",
         "--out", str(OUTPUT_FILE_PATH.resolve()),
-        "volume-cell",
+        "volume-box",
         "--entry-id", "emd-1832",
         "--source-db", "emdb",
         "--time", "0",
         "--channel-id", "0",
+        "--box-coords", "1.0", "1.0", "1.0", "100.0", "100.0", "100.0"
     ]
     subprocess.run(
         commands_lst
