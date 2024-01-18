@@ -160,7 +160,7 @@ def map_value_to_segment_id(zarr_structure):
 
 def store_segmentation_data_in_zarr_structure(
     original_data: np.ndarray,
-    lattice_data_group: zarr.Group,
+    lattice_data_group: zarr.hierarchy.Group,
     value_to_segment_id_dict_for_specific_lattice_id: dict,
     params_for_storing: dict,
 ):
@@ -183,13 +183,14 @@ def store_segmentation_data_in_zarr_structure(
         levels,
         lattice_data_group,
         params_for_storing=params_for_storing,
-        time_frame="0"
+        time_frame="0",
+        channel="0",
     )
 
 
 def write_mesh_component_data_to_zarr_arr(
-    target_group: zarr.Group,
-    mesh: zarr.Group,
+    target_group: zarr.hierarchy.group,
+    mesh: zarr.hierarchy.group,
     mesh_component_name: str,
     params_for_storing: dict,
 ):
@@ -228,7 +229,7 @@ def _round_to_significant_digits(number: float, digits: int) -> float:
     return round(number, first_digit + digits - 1)
 
 
-def compute_vertex_density(mesh_list_group: zarr.Group, mode="area"):
+def compute_vertex_density(mesh_list_group: zarr.hierarchy.group, mode="area"):
     """Takes as input mesh list group with stored original lvl meshes.
     Returns estimate of vertex_density for mesh list"""
     mesh_list = []
@@ -265,9 +266,14 @@ def _decimate_vedo_obj(vedo_obj, ratio):
 
 def _get_mesh_data_from_vedo_obj(vedo_obj):
     d = {"arrays": {}, "attrs": {}}
-    d["arrays"]["vertices"] = np.array(vedo_obj.points(), dtype=np.float32)
-    d["arrays"]["triangles"] = np.array(vedo_obj.faces(), dtype=np.int32)
-    d["arrays"]["normals"] = np.array(vedo_obj.normals(), dtype=np.float32)
+    # NOTE: for old version of vedo
+    # d["arrays"]["vertices"] = np.array(vedo_obj.points(), dtype=np.float32)
+    # d["arrays"]["triangles"] = np.array(vedo_obj.faces(), dtype=np.int32)
+    # d["arrays"]["normals"] = np.array(vedo_obj.normals(), dtype=np.float32)
+    d["arrays"]["vertices"] = np.array(vedo_obj.vertices, dtype=np.float32)
+    d["arrays"]["triangles"] = np.array(vedo_obj.cells, dtype=np.int32)
+    d["arrays"]["normals"] = np.array(vedo_obj.cell_normals, dtype=np.float32)
+    
     d["attrs"]["area"] = vedo_obj.area()
     # d['attrs']['volume'] = vedo_obj.volume()
     d["attrs"]["num_vertices"] = len(d["arrays"]["vertices"])
@@ -277,20 +283,21 @@ def _get_mesh_data_from_vedo_obj(vedo_obj):
 
 def store_mesh_data_in_zarr(
     mesh_data_dict,
-    segment: zarr.Group,
+    segment: zarr.hierarchy.group,
     detail_level: int,
+    # time_frame: str,
+    # channel: str,
     params_for_storing: dict,
 ):
-    # order
-    # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
-
-    resolution_gr = segment.create_group(detail_level)
+    # zarr group for that detail lvl
+    resolution_gr = segment.create_group(str(detail_level))
     # time_gr = resolution_gr.create_group(time_frame)
     # channel_gr = time_gr.create_group(channel)
 
     d = mesh_data_dict
     for mesh_id in d:
-        single_mesh_group = resolution_gr.create_group(mesh_id)
+        single_mesh_group = resolution_gr.create_group(str(mesh_id))
+
         for array_name, array in d[mesh_id]["arrays"].items():
             dset = create_dataset_wrapper(
                 zarr_group=single_mesh_group,
@@ -310,7 +317,7 @@ def store_mesh_data_in_zarr(
 
 
 def simplify_meshes(
-    mesh_list_group: zarr.Group, ratio: float, segment_id: int
+    mesh_list_group: zarr.hierarchy.Group, ratio: float, segment_id: int
 ):
     """Returns dict with mesh data for each mesh in mesh list"""
     # for each mesh

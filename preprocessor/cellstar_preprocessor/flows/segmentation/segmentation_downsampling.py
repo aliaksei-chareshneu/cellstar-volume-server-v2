@@ -122,7 +122,8 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
                         # if there is no meshes left in dict - break from while loop
                         if not bool(mesh_data_dict):
                             break
-
+                        
+                        # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
                         group_ref = store_mesh_data_in_zarr(
                             mesh_data_dict,
                             segment,
