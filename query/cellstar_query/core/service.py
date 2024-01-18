@@ -3,7 +3,7 @@ from collections import defaultdict
 from math import ceil, floor
 from typing import Optional, Tuple
 
-from cellstar_db.models import GeometricSegmentationJson, MeshesData, VolumeMetadata
+from cellstar_db.models import GeometricSegmentationData, GeometricSegmentationJson, MeshesData, VolumeMetadata
 from cellstar_db.protocol import VolumeServerDB
 
 from cellstar_query.requests import (
@@ -126,7 +126,7 @@ class VolumeServerService:
         box = self._decide_slice_box(None, None, metadata)
         return serialize_volume_info(metadata, box)
 
-    async def get_geometric_segmentation(self, req: GeometricSegmentationRequest) -> GeometricSegmentationJson:
+    async def get_geometric_segmentation(self, req: GeometricSegmentationRequest) -> GeometricSegmentationData:
         with self.db.read(req.source, req.structure_id) as context:
             try:
                 gs = await context.read_geometric_segmentation(

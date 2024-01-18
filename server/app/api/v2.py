@@ -7,7 +7,7 @@ from cellstar_query.core.service import VolumeServerService
 from cellstar_query.serialization.json_numpy_response import JSONNumpyResponse
 from server.app.settings import settings
 from cellstar_query.requests import GeometricSegmentationRequest
-from cellstar_query.query import HTTP_CODE_UNPROCESSABLE_ENTITY, get_list_entries_query, get_meshes_bcif_query, get_meshes_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query, get_list_entries_keyword_query
+from cellstar_query.query import HTTP_CODE_UNPROCESSABLE_ENTITY, get_geometric_segmentation_query, get_list_entries_query, get_meshes_bcif_query, get_meshes_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query, get_list_entries_keyword_query
 
 
 def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
@@ -150,12 +150,19 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         
     @app.get("/v2/{source}/{id}/geometric_segmentation/{segmentation_id}")
     async def get_geometric_segmentation(source: str, id: str, segmentation_id: str):
-        request = GeometricSegmentationRequest(source=source, structure_id=id, segmentation_id=segmentation_id)
-        try:
-            geometric_segmentation = await volume_server.get_geometric_segmentation(request)
-            return JSONNumpyResponse(geometric_segmentation)
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
+        response = await get_geometric_segmentation_query(
+            volume_server=volume_server,
+            source=source,
+            id=id,
+            segmentation_id=segmentation_id
+        )
+        return response
+        # request = GeometricSegmentationRequest(source=source, structure_id=id, segmentation_id=segmentation_id)
+        # try:
+        #     geometric_segmentation = await volume_server.get_geometric_segmentation(request)
+        #     return JSONNumpyResponse(geometric_segmentation)
+        # except Exception as e:
+        #     return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
 
     @app.get("/v2/{source}/{id}/volume_info")
     async def get_volume_info(
