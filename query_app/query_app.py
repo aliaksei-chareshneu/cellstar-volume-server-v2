@@ -14,8 +14,8 @@ from cellstar_query.helper_methods.create_in_memory_zip import create_in_memory_
 from cellstar_query.requests import VolumeRequestBox, VolumeRequestDataKind, VolumeRequestInfo
 
 from cellstar_query.core.service import VolumeServerService
-from cellstar_query.query import get_list_entries_keyword_query, get_list_entries_query, get_meshes_bcif_query, get_meshes_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
-from cellstar_query.serialization.json_numpy_response import _NumpyJsonEncoder, JSONNumpyResponse
+from cellstar_query.query import get_geometric_segmentation_query, get_list_entries_keyword_query, get_list_entries_query, get_meshes_bcif_query, get_meshes_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query
+from cellstar_query.serialization.json_numpy_response import _NumpyJsonEncoder
 
 # VOLUME SERVER AND DB
 
@@ -285,6 +285,24 @@ class MeshDataQueryTask(DataQueryTask):
             )
         return QueryResponse(response=response, type=self.query_type)
 
+# class GeometricSegmentationQueryTask(DataQueryTask):
+#     def __init__(self, params: QueryTaskParams):
+#         args, volume_server, query_specific_params = params.values()
+#         super().__init__(params)
+#         self.segmentation_id = args.segmentation_id
+#     async def execute(self):
+#         response = await get_geometric_segmentation_query(
+#                 volume_server=self.volume_server,
+#                 segmentation_id=self.segmentation_id,
+#                 source=self.source_db,
+#                 id=self.entry_id,
+#                 time=self.time,
+#                 segment_id=self.segment_id,
+#                 detail_lvl=self.detail_lvl
+#             )
+#         return QueryResponse(response=response, type=self.query_type)
+
+
 class EntryInfoQueryTask(EntryDataRequiredQueryTask):
     def __init__(self, params: QueryTaskParams):
         args, volume_server, query_specific_params = params.values()
@@ -415,7 +433,7 @@ def _create_parsers(common_subparsers, query_types: list[BaseQuery]):
 
 def _write_to_file(args: argparse.Namespace, response: Union[QueryResponse, CompositeQueryTaskResponse]):
     r = response.response
-    if isinstance(r, bytes) or isinstance(response, CompositeQueryTaskResponse) or isinstance(r, JSONNumpyResponse):
+    if isinstance(r, bytes) or isinstance(response, CompositeQueryTaskResponse):
         file_writing_mode = 'wb'
     elif isinstance(r, str) or isinstance(r, list) or isinstance(r, dict):
         file_writing_mode = 'w'
@@ -426,7 +444,7 @@ def _write_to_file(args: argparse.Namespace, response: Union[QueryResponse, Comp
         if args.query_type in QUERY_TYPES_WITH_JSON_RESPONSE:
             json.dump(r, f, indent=4)
         elif args.query_type == QueryTypes.mesh:
-            json_dump = json.dumps(r.body.decode('utf-8'), 
+            json_dump = json.dumps(r, 
                        cls=_NumpyJsonEncoder)
             json.dump(json_dump, f, indent=4)
         elif args.query_type in COMPOSITE_QUERY_TYPES:
@@ -479,9 +497,10 @@ def _create_task(args):
         }
         task = MeshDataQueryTask(params=query_params)
 
-    elif args.query_type == QueryTypes.geometric_segmentation:
-        print(f'{args.query_type}')
-        task = MeshDataQueryTask(params=query_params)
+    # # TODO: geometric segmentation query task
+    # elif args.query_type == QueryTypes.geometric_segmentation:
+    #     print(f'{args.query_type}')
+    #     task = Geom(params=query_params)
 
     elif args.query_type in [QueryTypes.metadata, QueryTypes.volume_info, QueryTypes.annotations]:
         print(f'{args.query_type} query')
