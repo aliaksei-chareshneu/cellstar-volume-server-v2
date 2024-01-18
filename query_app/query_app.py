@@ -124,7 +124,7 @@ QUERY_TYPES: list[BaseQuery] = [
 ]
 
 COMPOSITE_QUERY_TYPES = [QueryTypes.composite]
-QUERY_TYPES_WITH_JSON_RESPONSE = [QueryTypes.annotations, QueryTypes.metadata, QueryTypes.list_entries, QueryTypes.list_entries_keyword]
+QUERY_TYPES_WITH_JSON_RESPONSE = [QueryTypes.annotations, QueryTypes.metadata, QueryTypes.list_entries, QueryTypes.list_entries_keyword, QueryTypes.geometric_segmentation]
 
 @dataclass
 # NOTE: for now just for volume + segmentation response
@@ -139,7 +139,7 @@ class QueryResponse:
     type: str
 
 class QuerySpecificParams(TypedDict):
-    data_type: Optional[Literal['volume', 'segmentation']]
+    data_type: Optional[Literal['volume', 'segmentation', 'geometric-segmentation']]
     mesh_query_type: Optional[Literal[QueryTypes.mesh, QueryTypes.mesh_bcif]]
     entry_info_query_type: Optional[Literal[QueryTypes.metadata, QueryTypes.volume_info, QueryTypes.annotations]]
     global_info_query_type: Optional[Literal[QueryTypes.list_entries, QueryTypes.list_entries_keyword]]
@@ -285,22 +285,20 @@ class MeshDataQueryTask(DataQueryTask):
             )
         return QueryResponse(response=response, type=self.query_type)
 
-# class GeometricSegmentationQueryTask(DataQueryTask):
-#     def __init__(self, params: QueryTaskParams):
-#         args, volume_server, query_specific_params = params.values()
-#         super().__init__(params)
-#         self.segmentation_id = args.segmentation_id
-#     async def execute(self):
-#         response = await get_geometric_segmentation_query(
-#                 volume_server=self.volume_server,
-#                 segmentation_id=self.segmentation_id,
-#                 source=self.source_db,
-#                 id=self.entry_id,
-#                 time=self.time,
-#                 segment_id=self.segment_id,
-#                 detail_lvl=self.detail_lvl
-#             )
-#         return QueryResponse(response=response, type=self.query_type)
+class GeometricSegmentationQueryTask(DataQueryTask):
+    def __init__(self, params: QueryTaskParams):
+        args, volume_server, query_specific_params = params.values()
+        super().__init__(params)
+        self.segmentation_id = args.segmentation_id
+    async def execute(self):
+        response = await get_geometric_segmentation_query(
+                volume_server=self.volume_server,
+                segmentation_id=self.segmentation_id,
+                source=self.source_db,
+                id=self.entry_id,
+                # time=self.time
+            )
+        return QueryResponse(response=response, type=self.query_type)
 
 
 class EntryInfoQueryTask(EntryDataRequiredQueryTask):
@@ -310,7 +308,8 @@ class EntryInfoQueryTask(EntryDataRequiredQueryTask):
         self.entry_info_query_type = query_specific_params['entry_info_query_type']
     async def execute(self):
         if self.entry_info_query_type == QueryTypes.metadata:
-            response = await get_metadata_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
+            metadata_response = await get_metadata_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
+            response = metadata_response['grid']
         elif self.entry_info_query_type == QueryTypes.volume_info:
             response = await get_volume_info_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
         elif self.entry_info_query_type == QueryTypes.annotations:
@@ -496,10 +495,13 @@ def _create_task(args):
         }
         task = MeshDataQueryTask(params=query_params)
 
-    # # TODO: geometric segmentation query task
-    # elif args.query_type == QueryTypes.geometric_segmentation:
-    #     print(f'{args.query_type}')
-    #     task = Geom(params=query_params)
+    # TODO: geometric segmentation query task
+    elif args.query_type == QueryTypes.geometric_segmentation:
+        print(f'{args.query_type}')
+        query_params['custom_params'] = {
+            'data_type': 'geometric-segmentation'
+        }
+        task = GeometricSegmentationQueryTask(params=query_params)
 
     elif args.query_type in [QueryTypes.metadata, QueryTypes.volume_info, QueryTypes.annotations]:
         print(f'{args.query_type} query')
