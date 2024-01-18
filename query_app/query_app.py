@@ -444,9 +444,8 @@ def _write_to_file(args: argparse.Namespace, response: Union[QueryResponse, Comp
         if args.query_type in QUERY_TYPES_WITH_JSON_RESPONSE:
             json.dump(r, f, indent=4)
         elif args.query_type == QueryTypes.mesh:
-            json_dump = json.dumps(r, 
-                       cls=_NumpyJsonEncoder)
-            json.dump(json_dump, f, indent=4)
+            json.dump(r, f, indent=4, cls=_NumpyJsonEncoder)
+
         elif args.query_type in COMPOSITE_QUERY_TYPES:
             zip_data = create_in_memory_zip(r)
             f.write(zip_data)

@@ -137,16 +137,19 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
                           time: int,
                           segment_id: int,
                           detail_lvl: int):
-        response = await get_meshes_query(
-            volume_server=volume_server,
-            source=source,
-            id=id,
-            segmentation_id=segmentation_id,
-            time=time,
-            segment_id=segment_id,
-            detail_lvl=detail_lvl
-        )
-        return response
+        try:
+            response = await get_meshes_query(
+                volume_server=volume_server,
+                source=source,
+                id=id,
+                segmentation_id=segmentation_id,
+                time=time,
+                segment_id=segment_id,
+                detail_lvl=detail_lvl
+            )
+            return JSONNumpyResponse(response)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
         
     @app.get("/v2/{source}/{id}/geometric_segmentation/{segmentation_id}")
     async def get_geometric_segmentation(source: str, id: str, segmentation_id: str):
@@ -157,13 +160,7 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
             segmentation_id=segmentation_id
         )
         return response
-        # request = GeometricSegmentationRequest(source=source, structure_id=id, segmentation_id=segmentation_id)
-        # try:
-        #     geometric_segmentation = await volume_server.get_geometric_segmentation(request)
-        #     return JSONNumpyResponse(geometric_segmentation)
-        # except Exception as e:
-        #     return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
-
+        
     @app.get("/v2/{source}/{id}/volume_info")
     async def get_volume_info(
         source: str,
@@ -178,13 +175,21 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
                           time: int,
                           segment_id: int,
                           detail_lvl: int):
-        response = await get_meshes_bcif_query(
-            volume_server=volume_server,
-            source=source,
-            id=id,
-            segmentation_id=segmentation_id,
-            time=time,
-            segment_id=segment_id,
-            detail_lvl=detail_lvl
-        )
-        return response
+    
+        try:
+            response_bytes = await get_meshes_bcif_query(
+                volume_server=volume_server,
+                source=source,
+                id=id,
+                segmentation_id=segmentation_id,
+                time=time,
+                segment_id=segment_id,
+                detail_lvl=detail_lvl
+            )
+            return Response(
+                response_bytes, headers={"Content-Disposition": f'attachment;filename="{id}-volume_info.bcif"'}
+            )
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
+        finally:
+            pass
