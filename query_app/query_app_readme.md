@@ -17,24 +17,26 @@ To run the CLI tool and produce the static files suitable for visualization at t
             - `--entry-id`        Entry ID in the database (e.g. "emd-1832")
             - `--source-db`       Source database (e.g. "emdb")
             - `--time`            Timeframe (e.g. 0)
-            - `--channel-id`      Channel ID (e.g 0)
+            - `--channel-id`      Channel ID (e.g "0")
             - `--max-points`      *(optional)* Maximum number of points
         - `segmentation-cell`     Segmentation cell query
-            - ... same arguments as for `volume-cell`
-            - `--lattice-id`      Lattice ID (e.g. 0)
+            - ... same arguments as for `volume-cell`, but no `--channel-id` argument 
+            - `--segmentation-id` Segmentation ID (e.g. "0")
         - `volume-box`            Volume box query
             - ... same arguments as for `volume-cell`
             - `--box-coords`      XYZ coordinates of bottom left and top right of query box in Angstroms
         - `segmentation-box`      Segmentation box query
-            - ... same arguments as for `volume-box`
-            - `--lattice-id`      Lattice ID (e.g. 0)
-        - `mesh`                  Mesh query (response is .json file)
-            - `--entry-id`        Entry ID in the database (e.g. "emd-1832")
-            - `--source-db`       Source database (e.g. "emdb")
+            - ... same arguments as for `volume-box`, but no `--channel-id` argument
+            - `--segmentation-id` Segmentation ID (e.g. "0")
+        - `mesh`                  Mesh query (response is `.json` file)
+            - `--entry-id`        Entry ID in the database (e.g. "empiar-10070")
+            - `--source-db`       Source database (e.g. "empiar")
             - `--time`            Timeframe (e.g. 0)
-            - `--channel-id`      Channel ID (e.g 0)
+            - `--segmentation-id` Segmentation ID (e.g "0")
             - `--segment-id`      Segment ID of mesh (e.g 1)
             - `--detail-lvl`      Required detail level (1 is the highest resolution)
+        - `geometric-segmentation`Geometric segmentation query
+            - `--segmentation-id` Segmentation ID, typically UUID (e.g "a9083c61-78f2-4a76-9ecd-1745facaf63e")
         - `mesh-bcif`             Mesh bcif query (response is .bcif file)
             - ... same arguments as for mesh query
         - `metadata`              Metadata query
@@ -52,7 +54,7 @@ To run the CLI tool and produce the static files suitable for visualization at t
             - `--limit`           Maximum number of entries
             - `--keyword`         Keyword
         - `composite`             Composite query, consisting of several simple queries listed above (i.e. `subqueries`).
-            - `--json-params-path` Path to `.json` file with query parameters.
+            - `--json-params-path` Path to `.json` file with query parameters.List of query parameters should be exhaustive, i.e. there should be sufficient arguments for all subqueries to be executed. 
                 File should be structured as follows:
                 ```json
                 {
@@ -77,20 +79,23 @@ To run the CLI tool and produce the static files suitable for visualization at t
                         "annotations"
                     ],
                     "args": {
-                        "db_path": "temp/test_db",
-                        "out": "result.zip",
                         "entry_id": "emd-1832",
                         "source_db": "emdb",
                         "time": 0,
-                        "channel_id": 0,
-                        "lattice_id": 0
+                        "channel_id": "0",
+                        "segmentation_id": "0"
                     }
                 }
                 ```
+                Then use the following command:
+                ```
+                python query_app.py --db_path temp/test_db --out results.zip composite --json-params-path json_with_query_params.json
+                ```
+                
                 This will produce `results.zip` containing the results of `volume-cell`, `segmentation-cell`, and `annotations` queries
 
 # Example of usage
 ```
-python local_api_query.py --db_path temp/test_db --out segm.bcif segmentation-cell --entry-id emd-1832 --source-db emdb --time 0 --channel-id 0 --lattice-id 0
+python query_app.py --db_path temp/test_db --out segm.bcif segmentation-cell --entry-id emd-1832 --source-db emdb --time 0 --channel-id 0 --segmentation-id 0
 ```
-This will produce `segm.bcif` file with the results of `segmentation-cell` query for `emd-1832` entry (with `time`, `channel-id`, and `lattice-id` parameters equal to 0) from the database located in `temp/test_db`
+This will produce `segm.bcif` file with the results of `segmentation-cell` query for `emd-1832` entry (with `time`, `channel-id`, and `segmentation-id` parameters equal to 0) from the database located in `temp/test_db`
