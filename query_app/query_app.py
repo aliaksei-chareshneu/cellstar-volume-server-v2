@@ -106,7 +106,7 @@ QUERY_TYPES: list[BaseQuery] = [
     VolumetricDataQuery(name=QueryTypes.segmentation_cell.value, isSegmentation=True, isBox=False),
     MeshDataQuery(name=QueryTypes.mesh.value),
     MeshDataQuery(name=QueryTypes.mesh_bcif.value),
-    GeometricSegmentationQuery(name=QueryTypes.geometric_segmentation),
+    GeometricSegmentationQuery(name=QueryTypes.geometric_segmentation.value),
     EntryInfoQuery(name=QueryTypes.metadata.value),
     EntryInfoQuery(name=QueryTypes.annotations.value),
     EntryInfoQuery(name=QueryTypes.volume_info.value),
@@ -379,7 +379,7 @@ def _add_arguments(parser, query: BaseQuery):
         if query.isSegmentation:
             required_query_args.add_argument('--segmentation-id', type=str, required=True, help='Segmentation ID (e.g. 0)', default='0')
         else:
-            required_query_args.add_argument('--channel-id', required=True, type=int, help='Channel ID (e.g 0)', default=0)
+            required_query_args.add_argument('--channel-id', required=True, type=str, help='Channel ID (e.g 0)', default='0')
 
         if query.isBox:
             required_query_args.add_argument('--box-coords', nargs=6, required=True, type=float, help='XYZ coordinates of bottom left and top right of query box in Angstroms')
@@ -547,6 +547,9 @@ async def _query(args):
         task = _create_task(args)
     else:
         raw_json, argparse_args, subquery_types = _parse_json_with_query_params(Path(args.json_params_path))
+        # print(args)
+        argparse_args.db_path = args.db_path
+        argparse_args.out = args.out
         subtasks = []
         # TODO: create args separately for each subquery type?
         for subquery_type in subquery_types:
