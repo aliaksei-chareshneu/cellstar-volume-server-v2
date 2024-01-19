@@ -21,14 +21,6 @@ from cellstar_query.serialization.json_numpy_response import _NumpyJsonEncoder
 
 DEFAULT_MAX_POINTS = 1000000000000
 
-
-# NOTE: now for mesh, geometric segmentation, lattice segmentation queries
-# channel id is not required
-# so we need to make this parameter not obligatory
-# for sure we need to remove it from DataQuery
-
-# NOTE: what is 
-
 class Arguments(TypedDict):
     required: list[str]
     optional: list[str]
