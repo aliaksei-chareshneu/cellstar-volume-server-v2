@@ -183,8 +183,7 @@ def store_segmentation_data_in_zarr_structure(
         levels,
         lattice_data_group,
         params_for_storing=params_for_storing,
-        time_frame="0",
-        channel="0",
+        time_frame="0"
     )
 
 
