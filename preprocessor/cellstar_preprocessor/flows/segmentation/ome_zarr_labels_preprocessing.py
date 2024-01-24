@@ -46,7 +46,7 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                     time_group: zarr.Group = our_resolution_gr.create_group(str(i))
                     channel_dimension = arr.shape[1]
                     assert channel_dimension == 1, 'NGFFs with labels having more than one channel are not supported'
-                    corrected_arr_data = arr[...][arr.shape[0] - 1][channel_dimension - 1].swapaxes(0, 2)
+                    corrected_arr_data = arr[...][i][channel_dimension - 1].swapaxes(0, 2)
                     # i8 is not supported by CIFTools
                     if corrected_arr_data.dtype == "i8":
                         corrected_arr_data = corrected_arr_data.astype("i4")
