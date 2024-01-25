@@ -41,12 +41,37 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
             if len(axes) == 5 and axes[0]["name"] == "t":
 
                 # NOTE: hack to support NGFFs where image has time dimension > 1 and label has time dimension = 1
-                time_dimension = ome_zarr_root[first_available_resolution].shape[0]
+                # there are two cases
+                # 1. Label has time dimension 1, image 18
+                # 2. Label has time dimension 40, image 40
+                # 1. => iterate over 18, but the data should be taken
+                # 2. => iterate over time dimension of label normally
+                # we can do a hack
+                # if time dimension of label is < that of image, we do not
+                # check anything, but just copy the first frame for all frames
+                # of label
+                image_time_dimension = ome_zarr_root[first_available_resolution].shape[0]
+                label_time_dimension = arr.shape[0]
+
+                wrong_time_dimension = False
+                if label_time_dimension < image_time_dimension:
+                    print(f'Time dimension of label {label_time_dimension} is lower than time dimension of image {image_time_dimension}')
+                    print('Label data is artificially expanded to time dimension of image using the data of the first label timeframe')
+                    time_dimension = image_time_dimension
+                    wrong_time_dimension = True
+                else:
+                    time_dimension = label_time_dimension
                 for i in range(time_dimension):
                     time_group: zarr.Group = our_resolution_gr.create_group(str(i))
                     channel_dimension = arr.shape[1]
                     assert channel_dimension == 1, 'NGFFs with labels having more than one channel are not supported'
-                    corrected_arr_data = arr[...][i][channel_dimension - 1].swapaxes(0, 2)
+                    # before it was
+                    # corrected_arr_data = arr[...][arr.shape[0] - 1][channel_dimension - 1].swapaxes(0, 2)
+                    if wrong_time_dimension:
+                        time_index = arr.shape[0] - 1
+                    else:
+                        time_index = i
+                    corrected_arr_data = arr[...][time_index][channel_dimension - 1].swapaxes(0, 2)
                     # i8 is not supported by CIFTools
                     if corrected_arr_data.dtype == "i8":
                         corrected_arr_data = corrected_arr_data.astype("i4")
