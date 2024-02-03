@@ -55,7 +55,7 @@ def extract_annotations_from_geometric_segmentation(
                     'is_hidden': None,
                     'metadata': None,
                     'time': time,
-                    'name': None,
+                    'name': sp['id'],
                     'external_references': None,
                     'target_id': target_id
                 }
