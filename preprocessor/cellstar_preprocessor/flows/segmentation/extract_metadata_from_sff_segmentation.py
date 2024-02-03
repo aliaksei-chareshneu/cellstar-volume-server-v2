@@ -84,9 +84,16 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
         
         mesh_segmentation_sets_metadata: MeshSegmentationSetsMetadata = metadata_dict["segmentation_meshes"]
 
-        # NOTE: mesh has no time and channel (both equal zero)
+        time_info_for_all_mesh_sets: TimeInfo = {
+            'end': 0,
+            'kind': 'range',
+            'start': 0,
+            'units': 'millisecond'
+        }
         # order: segment_ids, detail_lvls, time, channel, mesh_ids
         for set_id, set_gr in root[MESH_SEGMENTATION_DATA_GROUPNAME].groups():
+            # NOTE: mesh has no time
+            mesh_segmentation_sets_metadata["time_info"][str(set_id)] = time_info_for_all_mesh_sets
             mesh_segmentation_sets_metadata['segmentation_ids'].append(set_id)
             mesh_set_metadata: MeshesMetadata = {
                 'detail_lvl_to_fraction': internal_segmentation.simplification_curve,
