@@ -3,33 +3,30 @@ from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, Se
 from PIL import ImageColor
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 import numpy as np
 import zarr
 
-def _get_label_time(label_value: int, label_gr: zarr.Group):
+def _get_label_time(label_value: int, our_label_gr: zarr.Group):
     timeframes_with_present_label = []
     # PLAN:
     # take first available resolution
-    available_resolutions = sorted(label_gr.array_keys())
+    available_resolutions = sorted(our_label_gr.group_keys())
     first_resolution = available_resolutions[0]
     # loop over timeframes
-    data = label_gr[first_resolution]
-    time_dimension = data.shape[0]
-    for time in range(time_dimension):
-        # data has channel dimensions
-        timeframe_data = data[time]
-        assert timeframe_data.shape[0] == 1, 'NGFFs with labels having more than one channel are not supported'
-        channel_data = timeframe_data[0]
-        assert len(channel_data.shape) == 3
-
-        present_labels = np.unique(channel_data[...])
+    first_resolution_gr = our_label_gr[first_resolution]
+    for timeframe_index, timeframe_gr in first_resolution_gr.groups():
+        set_table: dict = timeframe_gr.set_table[...][0]
+        
+        # present_labels = np.unique(data[...])
+        present_labels = [int(i) for i in sorted(set_table.keys())]
 
         # if label is in present_labels
         # push timeframe index to timeframes_with_present_label
         if label_value in present_labels:
-            timeframes_with_present_label.append(time)
+            timeframes_with_present_label.append(int(timeframe_index))
 
     # at the end, if len(timeframes_with_present_label) == 1
     # => return timeframes_with_present_label[0]
@@ -110,7 +107,8 @@ def extract_omezarr_annotations(internal_volume: InternalVolume):
                     'segmentation_id': str(label_gr_name)
                 }
 
-                time = _get_label_time(label_value=label_value, label_gr=label_gr)
+                our_label_gr = root[LATTICE_SEGMENTATION_DATA_GROUPNAME][label_gr_name]
+                time = _get_label_time(label_value=label_value, our_label_gr=our_label_gr)
                 description: DescriptionData = {
                     'id': description_id,
                     'target_kind': "lattice",
