@@ -49,7 +49,7 @@ def extract_metadata_geometric_segmentation(internal_segmentation: InternalSegme
             time_info['end'] = time
         
 
-        time_info_for_all_sets[time] = time_info
+        time_info_for_all_sets[set_id] = time_info
 
     geometric_segmentation_sets_metadata['time_info'] = time_info_for_all_sets
 
