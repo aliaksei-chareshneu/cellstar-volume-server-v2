@@ -151,13 +151,14 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=HTTP_CODE_UNPROCESSABLE_ENTITY)
         
-    @app.get("/v2/{source}/{id}/geometric_segmentation/{segmentation_id}")
-    async def get_geometric_segmentation(source: str, id: str, segmentation_id: str):
+    @app.get("/v2/{source}/{id}/geometric_segmentation/{segmentation_id}/{time}")
+    async def get_geometric_segmentation(source: str, id: str, segmentation_id: str, time: int):
         response = await get_geometric_segmentation_query(
             volume_server=volume_server,
             source=source,
             id=id,
-            segmentation_id=segmentation_id
+            segmentation_id=segmentation_id,
+            time=time
         )
         return response
         

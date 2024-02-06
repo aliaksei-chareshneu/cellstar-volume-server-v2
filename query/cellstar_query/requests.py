@@ -51,6 +51,7 @@ class GeometricSegmentationRequest(BaseModel):
     source: str
     structure_id: str
     segmentation_id: str
+    time: int
     
 class MeshRequest(BaseModel):
     source: str

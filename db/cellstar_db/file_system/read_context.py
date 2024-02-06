@@ -157,7 +157,7 @@ class FileSystemDBReadContext(DBReadContext):
 
         return mesh_list
 
-    async def read_geometric_segmentation(self, segmentation_id: str) -> GeometricSegmentationData:
+    async def read_geometric_segmentation(self, segmentation_id: str, time: int) -> GeometricSegmentationData:
         try:
             # GeometricSegmentationJson = list[GeometricSegmentationData]
             path: Path = Path(self.store.path).parent / GEOMETRIC_SEGMENTATION_FILENAME
@@ -167,11 +167,12 @@ class FileSystemDBReadContext(DBReadContext):
                 filter_results = list(filter(lambda i: i['segmentation_id'] == segmentation_id, read_json))
                 assert len(filter_results) == 1
                 target_segmentation: GeometricSegmentationData = filter_results[0]
+                target_timeframe_data = target_segmentation["primitives"][str(time)]
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
             raise e
 
-        return target_segmentation
+        return target_timeframe_data
     
     async def read_volume_slice(
         self,

@@ -33,7 +33,7 @@ class DBReadContext(Protocol):
         """
         ...
 
-    async def read_geometric_segmentation(self) -> GeometricSegmentationData:
+    async def read_geometric_segmentation(self, segmentation_id: str, time: int) -> GeometricSegmentationData:
         """
         Returns list of shape primitives for geometric segmentation
         """

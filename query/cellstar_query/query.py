@@ -171,7 +171,7 @@ async def get_meshes_bcif_query(
     response_bytes = await volume_server.get_meshes_bcif(request)
     return response_bytes
 
-async def get_geometric_segmentation_query(volume_server: VolumeServerService, source: str, id: str, segmentation_id: str):
-        request = GeometricSegmentationRequest(source=source, structure_id=id, segmentation_id=segmentation_id)
+async def get_geometric_segmentation_query(volume_server: VolumeServerService, source: str, id: str, segmentation_id: str, time: int):
+        request = GeometricSegmentationRequest(source=source, structure_id=id, segmentation_id=segmentation_id, time=time)
         geometric_segmentation = await volume_server.get_geometric_segmentation(request)
         return geometric_segmentation
