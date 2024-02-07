@@ -19,7 +19,10 @@ from cellstar_preprocessor.flows.segmentation.mask_segmentation_preprocessing im
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_downsampling import nii_segmentation_downsampling
 from cellstar_preprocessor.flows.segmentation.nii_segmentation_preprocessing import nii_segmentation_preprocessing
 from cellstar_preprocessor.flows.volume.extract_nii_metadata import extract_nii_metadata
+from cellstar_preprocessor.flows.volume.extract_ometiff_metadata import extract_ometiff_metadata
 from cellstar_preprocessor.flows.volume.nii_preprocessing import nii_preprocessing
+from cellstar_preprocessor.flows.volume.ometiff_image_processing import ometiff_image_processing
+from cellstar_preprocessor.flows.volume.process_allencel_metadata_csv import process_allencell_metadata_csv
 from cellstar_preprocessor.tools.convert_app_specific_segm_to_sff.convert_app_specific_segm_to_sff import convert_app_specific_segm_to_sff
 
 import typer
@@ -108,6 +111,14 @@ class PreprocessorMode(str, Enum):
 class InputT(BaseModel):
     input_path: Path
 
+class OMETIFFImageInput(InputT):
+    pass
+
+class OMETIFFSegmentationInput(InputT):
+    pass
+
+class AllencellMetadataCSVInput(InputT):
+    pass
 
 class MAPInput(InputT):
     pass
@@ -327,6 +338,30 @@ class NIIProcessVolumeTask(TaskBase):
         # in processing part do
         volume_downsampling(volume)
 
+class OMETIFFImageProcessingTask(TaskBase):
+    def __init__(self, internal_volume: InternalVolume):
+        self.internal_volume = internal_volume
+
+    def execute(self) -> None:
+        volume = self.internal_volume
+        ometiff_image_processing(internal_volume=volume)
+
+class OMETIFFMetadataExtractionTask(TaskBase):
+    def __init__(self, internal_volume: InternalVolume):
+        self.internal_volume = internal_volume
+
+    def execute(self) -> None:
+        volume = self.internal_volume
+        extract_ometiff_metadata(internal_volume=volume)
+
+class AllencellMetadataCSVProcessingTask(TaskBase):
+    def __init__(self, path: Path, cell_id: int, intermediate_zarr_structure_path: Path):
+        self.path = path
+        self.cell_id = cell_id
+        self.intermediate_zarr_structure = intermediate_zarr_structure_path
+    def execute(self) -> None:
+        process_allencell_metadata_csv(self.path, self.cell_id, self.intermediate_zarr_structure)
+
 class NIIProcessSegmentationTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
         self.internal_segmentation = internal_segmentation
@@ -526,6 +561,31 @@ class Preprocessor:
                 tasks.append(
                     ProcessGeometricSegmentationTask(self.get_internal_segmentation())
                 )
+            elif isinstance(input, AllencellMetadataCSVInput):
+                tasks.append(AllencellMetadataCSVProcessingTask(
+                    path=input.input_path,
+                    cell_id=int(self.preprocessor_input.entry_data.entry_id.split('-')[1]),
+                    intermediate_zarr_structure_path=self.intermediate_zarr_structure
+                ))
+            elif isinstance(input, OMETIFFImageInput):
+                self.store_internal_volume(
+                    internal_volume=InternalVolume(
+                        intermediate_zarr_structure_path=self.intermediate_zarr_structure,
+                        volume_input_path=input.input_path,
+                        params_for_storing=self.preprocessor_input.storing_params,
+                        volume_force_dtype=self.preprocessor_input.volume.force_volume_dtype,
+                        quantize_dtype_str=self.preprocessor_input.volume.quantize_dtype_str,
+                        downsampling_parameters=self.preprocessor_input.downsampling,
+                        entry_data=self.preprocessor_input.entry_data,
+                        quantize_downsampling_levels=self.preprocessor_input.volume.quantize_downsampling_levels,
+                    )
+                )
+                tasks.append(OMETIFFImageProcessingTask(
+                    internal_volume=self.get_internal_volume()
+                ))
+                tasks.append(OMETIFFMetadataExtractionTask(
+                    internal_volume=self.get_internal_volume()
+                ))
 
             elif isinstance(input, NIIVolumeInput):
                 self.store_internal_volume(
@@ -570,7 +630,6 @@ class Preprocessor:
                 #         internal_segmentation=self.get_internal_segmentation()
                 #     )
                 # )
-                
             elif isinstance(input, CustomAnnotationsInput):
                 tasks.append(CustomAnnotationsCollectionTask(
                     input_path=input.input_path,
@@ -676,6 +735,11 @@ class Preprocessor:
                 analyzed_inputs.append(NIIVolumeInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.nii_segmentation:
                 analyzed_inputs.append(NIISegmentationInput(input_path=input_item[0]))
+            elif input_item[1] == InputKind.allencell_metadata_csv:
+                analyzed_inputs.append(AllencellMetadataCSVInput(input_path=input_item[0]))
+            elif input_item[1] == InputKind.ometiff_image:
+                analyzed_inputs.append(OMETIFFImageInput(input_path=input_item[0]))
+
         return analyzed_inputs
 
     async def entry_exists(self):
