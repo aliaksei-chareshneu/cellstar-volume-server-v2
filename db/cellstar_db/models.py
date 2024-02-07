@@ -22,7 +22,7 @@ class SamplingInfo(TypedDict):
     spatial_downsampling_levels: list[int]
     # the only thing which changes with SPATIAL downsampling is box!
     boxes: dict[int, SamplingBox]
-    time_transformations: list[TimeTransformation]
+    time_transformations: Optional[list[TimeTransformation]]
     source_axes_units: dict[str, str]
     # e.g. (0, 1, 2) as standard
     original_axis_order: list[int, int, int]
