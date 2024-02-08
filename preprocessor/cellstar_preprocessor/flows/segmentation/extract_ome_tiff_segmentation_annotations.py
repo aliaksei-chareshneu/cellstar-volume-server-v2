@@ -71,7 +71,7 @@ def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSeg
             'is_hidden': None,
             'metadata': None,
             'time': time,
-            'name': f"segment {label_value}",
+            'name': label_gr_name,
             'external_references': [],
             'target_id': target_id
         }
