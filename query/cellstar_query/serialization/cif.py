@@ -30,8 +30,9 @@ def serialize_volume_slice(slice: VolumeSliceData, metadata: VolumeMetadata, box
     # TODO: create new category with request and responce info (e.g. query region, timing info, etc.)
     # writer.write_category(volume_info_category, [volume_info])
 
+    channel_id = slice["channel_id"] if "channel_id" in slice else metadata.json_metadata()["volumes"]["channel_ids"][0]
     volume_info = VolumeInfo(name="volume", metadata=metadata, box=box, time=slice['time'],
-                            channel_id=slice["channel_id"] if "channel_id" in slice else '0')
+                            channel_id=channel_id)
 
 
     # TODO: volume info should be provided only for volume block?
