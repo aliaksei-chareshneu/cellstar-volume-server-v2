@@ -1,4 +1,7 @@
 from typing import Optional
+from cellstar_db.file_system.annotations_context import AnnnotationsEditContext
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.models import DescriptionData
 
 from fastapi import FastAPI, Query, Response
 from starlette.responses import JSONResponse
@@ -11,6 +14,17 @@ from cellstar_query.query import HTTP_CODE_UNPROCESSABLE_ENTITY, get_geometric_s
 
 
 def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
+    # TODO: make it pydantic model for validation purposes
+    @app.post("/v2/{source}/{id}/descriptions/edit")
+    async def edit_descriptions_endpoint(source: str, id: str,
+        # TODO: body?
+        descriptions: list[DescriptionData]# = Body(..., embed=True)
+    ) -> None:
+        db: FileSystemVolumeServerDB = volume_server.db
+        with db.edit_annotations(source, id) as ctx:
+            ctx: AnnnotationsEditContext
+            await ctx.add_or_modify_descriptions(descriptions)
+    
     @app.get("/v2/version")
     async def get_version():
         # settings = app.settings
