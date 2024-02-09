@@ -11,6 +11,46 @@
             "console": "integratedTerminal",
         },
         {
+            "name": "preprocess_ome_tiff",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "preprocess",
+                "--mode",
+                "add",
+                "--input-path",
+                "preprocessor/temp/allencel_datasets/metadata/metadata.csv",
+                "--input-kind",
+                "allencell_metadata_csv",
+                "--input-path",
+                // seg, works
+                // "preprocessor/temp/allencel_datasets/CellId_230741/crop_seg/a9a2aa179450b1819f0dfc4d22411e6226f22e3c88f7a6c3f593d0c2599c2529_segmentation.ome.tif",
+                // works
+                "preprocessor/temp/allencel_datasets/CellId_230741/crop_raw/7922e74b69b77d6b51ea5f1627418397ab6007105a780913663ce1344905db5c_raw.ome.tif",
+                // does not work
+                // "preprocessor/temp/allencel_datasets/CellId_230741/fov_path/6677e50cfb7370eb6dbbcee4865563d5604a7dc52806933059602a87c4bb3b3b_3500001004_100X_20170623_5-Scene-1-P24-E06.ome.tiff",
+                "--input-kind",
+                "ometiff_image",
+                "--input-path",
+                // seg, works
+                "preprocessor/temp/allencel_datasets/CellId_230741/crop_seg/a9a2aa179450b1819f0dfc4d22411e6226f22e3c88f7a6c3f593d0c2599c2529_segmentation.ome.tif",
+                // works
+                "--input-kind",
+                "ometiff_segmentation",
+                "--entry-id",
+                "custom-230741",
+                "--source-db",
+                "custom",
+                "--source-db-id", "custom-230741",
+                "--source-db-name", "custom",
+                "--working-folder", "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path", "preprocessor/temp/test_db",
+                // "--force-volume-dtype", "u1"
+            ]
+        },
+        {
             "justMyCode": false,
             "name": "query_app_segmentation_cell",
             "type": "python",
@@ -972,6 +1012,9 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
+                "preprocess",
+                "--mode",
+                "add",
                 "--input-path",
                 "temp/v2_temp_static_entry_files_dir/idr/idr-13457537/13457537.zarr",
                 "--input-kind",
@@ -1302,6 +1345,9 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
+                "preprocess",
+                "--mode",
+                "add",
                 "--input-path",
                 "test-data/preprocessor/sample_volumes/empiar/b3talongmusc20130301.mrc",
                 "--input-kind",
