@@ -1,9 +1,9 @@
 from typing import Optional
 from cellstar_db.file_system.annotations_context import AnnnotationsEditContext
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
-from cellstar_db.models import DescriptionData
+from cellstar_db.models import DescriptionData, SegmentAnnotationData
 
-from fastapi import FastAPI, Query, Response
+from fastapi import Body, FastAPI, Query, Response
 from starlette.responses import JSONResponse
 
 from cellstar_query.core.service import VolumeServerService
@@ -17,14 +17,40 @@ def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
     # TODO: make it pydantic model for validation purposes
     @app.post("/v2/{source}/{id}/descriptions/edit")
     async def edit_descriptions_endpoint(source: str, id: str,
-        # TODO: body?
-        descriptions: list[DescriptionData]# = Body(..., embed=True)
+        descriptions: list[DescriptionData] = Body(..., embed=True)
     ) -> None:
         db: FileSystemVolumeServerDB = volume_server.db
         with db.edit_annotations(source, id) as ctx:
             ctx: AnnnotationsEditContext
             await ctx.add_or_modify_descriptions(descriptions)
     
+    @app.post("/v2/{source}/{id}/segment_annotations/edit")
+    async def edit_segment_annotations_endpoint(source: str, id: str,
+        segment_annotations: list[SegmentAnnotationData] = Body(..., embed=True)
+    ) -> None:
+        db: FileSystemVolumeServerDB = volume_server.db
+        with db.edit_annotations(source, id) as ctx:
+            ctx: AnnnotationsEditContext
+            await ctx.add_or_modify_segment_annotations(segment_annotations)
+
+    @app.post("/v2/{source}/{id}/descriptions/remove")
+    async def remove_descriptions_endpoint(source: str, id: str,
+        description_ids: list[str] = Body(..., embed=True)
+    ) -> None:
+        db: FileSystemVolumeServerDB = volume_server.db
+        with db.edit_annotations(source, id) as ctx:
+            ctx: AnnnotationsEditContext
+            await ctx.remove_descriptions(description_ids)
+    
+    @app.post("/v2/{source}/{id}/segment_annotations/remove")
+    async def remove_segment_annotations_endpoint(source: str, id: str,
+        annotation_ids: list[str] = Body(..., embed=True)
+    ) -> None:
+        db: FileSystemVolumeServerDB = volume_server.db
+        with db.edit_annotations(source, id) as ctx:
+            ctx: AnnnotationsEditContext
+            await ctx.remove_segment_annotations(annotation_ids)
+
     @app.get("/v2/version")
     async def get_version():
         # settings = app.settings
