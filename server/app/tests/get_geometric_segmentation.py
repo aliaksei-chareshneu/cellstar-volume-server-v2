@@ -32,7 +32,7 @@ class FetchGeometricSegmentationTest(ServerTestBase):
         
         test_configs = {
             "pdbe": {"pdbe-1.rec-geometric_segmentation": {
-                segmentation_id: {"segmentation_id": segmentation_id}
+                segmentation_id: {"segmentation_id": segmentation_id, "time": 0},
                 }}
         }
 
@@ -41,7 +41,7 @@ class FetchGeometricSegmentationTest(ServerTestBase):
     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
         r = requests.get(
             # @app.get("/v2/{source}/{id}/geometric_segmentation/{segmentation_id}")
-            f'{self.serverUrl()}/v2/{db}/{entry}/geometric_segmentation/{params.get("segmentation_id")}'
+            f'{self.serverUrl()}/v2/{db}/{entry}/geometric_segmentation/{params.get("segmentation_id")}/{params.get("time")}'
         )
         self.assertEqual(r.status_code, 200)
         body = r.text
