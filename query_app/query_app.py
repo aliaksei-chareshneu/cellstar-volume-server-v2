@@ -288,7 +288,7 @@ class GeometricSegmentationQueryTask(DataQueryTask):
                 segmentation_id=self.segmentation_id,
                 source=self.source_db,
                 id=self.entry_id,
-                # time=self.time
+                time=self.time
             )
         return QueryResponse(response=response, type=self.query_type)
 

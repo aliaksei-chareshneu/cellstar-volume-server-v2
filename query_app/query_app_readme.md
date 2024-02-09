@@ -36,6 +36,7 @@ To run the CLI tool and produce the static files suitable for visualization at t
             - `--segment-id`      Segment ID of mesh (e.g 1)
             - `--detail-lvl`      Required detail level (1 is the highest resolution)
         - `geometric-segmentation`Geometric segmentation query
+            - `--time`            Timeframe (e.g. 0)
             - `--segmentation-id` Segmentation ID, typically UUID (e.g "a9083c61-78f2-4a76-9ecd-1745facaf63e")
         - `mesh-bcif`             Mesh bcif query (response is .bcif file)
             - ... same arguments as for mesh query
