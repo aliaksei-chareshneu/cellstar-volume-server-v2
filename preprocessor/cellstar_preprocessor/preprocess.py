@@ -28,9 +28,10 @@ import zarr
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
 from pydantic import BaseModel
 from typing_extensions import Annotated
-from cellstar_db.models import AnnotationsMetadata, GeometricSegmentationData, Metadata
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, GeometricSegmentationData, Metadata, SegmentAnnotationData
 
 from cellstar_preprocessor.flows.common import (
+    open_json_file,
     open_zarr_structure_from_path,
     save_dict_to_json_file,
     update_dict,
@@ -1014,6 +1015,59 @@ def remove_descriptions(
         asyncio.run(
             db_edit_annotations_context.remove_descriptions(ids=id)
         )
+
+@app.command("edit-segment-annotations")
+def edit_segment_annotations(
+    entry_id: str = typer.Option(default=...),
+    source_db: str = typer.Option(default=...),
+    # id: list[str] = typer.Option(default=...),
+    data_json_path: Path = typer.Option(default=...),
+    db_path: Path = typer.Option(default=...),
+    ):
+    # print(f"Deleting descriptions for entry: {entry_id} {source_db}")
+    new_db_path = Path(db_path)
+    if new_db_path.is_dir() == False:
+        new_db_path.mkdir()
+
+    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+
+    parsedSegmentAnnotations: list[SegmentAnnotationData] = open_json_file(data_json_path)
+
+    with db.edit_annotations(
+        namespace=source_db,
+        key=entry_id
+    ) as db_edit_annotations_context:
+        db_edit_annotations_context: AnnnotationsEditContext
+        asyncio.run(
+            db_edit_annotations_context.add_or_modify_segment_annotations(parsedSegmentAnnotations)
+        )
+
+@app.command("edit-descriptions")
+def edit_descriptions(
+    entry_id: str = typer.Option(default=...),
+    source_db: str = typer.Option(default=...),
+    # id: list[str] = typer.Option(default=...),
+    data_json_path: Path = typer.Option(default=...),
+    db_path: Path = typer.Option(default=...),
+    ):
+    # print(f"Deleting descriptions for entry: {entry_id} {source_db}")
+    new_db_path = Path(db_path)
+    if new_db_path.is_dir() == False:
+        new_db_path.mkdir()
+
+    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+
+    parsedDescriptionData: list[DescriptionData] = open_json_file(data_json_path)
+
+    with db.edit_annotations(
+        namespace=source_db,
+        key=entry_id
+    ) as db_edit_annotations_context:
+        db_edit_annotations_context: AnnnotationsEditContext
+        asyncio.run(
+            db_edit_annotations_context.add_or_modify_descriptions(parsedDescriptionData)
+        )
+
 
 if __name__ == "__main__":
     # solutions how to run it async - two last https://github.com/tiangolo/typer/issues/85
