@@ -85,7 +85,7 @@ def compute_downsamplings_to_be_stored(
         lst = [x for x in lst if x >= 2**n]
         if len(lst) == 0:
             raise Exception(
-                f"No downsamplings will be saved: max size per channel {int_vol_or_seg.downsampling_parameters.max_size_per_channel_mb} is too high"
+                f"No downsamplings will be saved: max size per channel {int_vol_or_seg.downsampling_parameters.max_size_per_channel_mb} is too low"
             )
 
     return lst
