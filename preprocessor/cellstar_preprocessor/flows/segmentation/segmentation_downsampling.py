@@ -79,6 +79,11 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
                 time_frame=0
             )
 
+            # NOTE: removes original level resolution data
+            if internal_segmentation.downsampling_parameters.remove_original_resolution:
+                del lattice_gr[1]
+                print("Original resolution data removed for segmentation")
+
     elif (
         internal_segmentation.primary_descriptor
         == SegmentationPrimaryDescriptor.mesh_list
@@ -130,6 +135,15 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
                             detail_level=level,
                             params_for_storing=internal_segmentation.params_for_storing,
                         )
+
+                    # segment[1]
+                    # NOTE: removes original level resolution data
+                    if internal_segmentation.downsampling_parameters.remove_original_resolution:
+                        del segment[1]
+                        # print("Original resolution data removed for segmentation")
+        if internal_segmentation.downsampling_parameters.remove_original_resolution:
+            # del internal_segmentation.simplification_curve[1]
+            internal_segmentation.simplification_curve.pop(1, None)
 
     print("Segmentation downsampled")
 

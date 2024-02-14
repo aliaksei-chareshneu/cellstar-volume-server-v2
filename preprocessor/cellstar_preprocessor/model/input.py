@@ -58,6 +58,7 @@ class DownsamplingParams(BaseModel):
     min_size_per_channel_mb: Optional[float] = 5
     min_downsampling_level: Optional[int]
     max_downsampling_level: Optional[int]
+    remove_original_resolution: Optional[bool] = False
 
 
 class StoringParams(BaseModel):

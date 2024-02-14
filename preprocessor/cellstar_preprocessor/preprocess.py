@@ -797,6 +797,7 @@ async def main_preprocessor(
     max_size_per_channel_mb: typing.Optional[float],
     min_downsampling_level: typing.Optional[int],
     max_downsampling_level: typing.Optional[int],
+    remove_original_resolution: bool,
     entry_id: str,
     source_db: str,
     source_db_id: str,
@@ -824,7 +825,8 @@ async def main_preprocessor(
             min_size_per_channel_mb=min_size_per_channel_mb,
             max_size_per_channel_mb=max_size_per_channel_mb,
             min_downsampling_level=min_downsampling_level,
-            max_downsampling_level=max_downsampling_level
+            max_downsampling_level=max_downsampling_level,
+            remove_original_resolution=remove_original_resolution
         ),
         entry_data=EntryData(
             entry_id=entry_id,
@@ -874,6 +876,7 @@ def main(
     min_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5,
     min_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
     max_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
+    remove_original_resolution: Annotated[typing.Optional[bool], typer.Option(None)] = False,
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
     source_db_id: str = typer.Option(default=...),
@@ -903,6 +906,7 @@ def main(
             min_size_per_channel_mb=min_size_per_channel_mb,
             min_downsampling_level=min_downsampling_level,
             max_downsampling_level=max_downsampling_level,
+            remove_original_resolution=remove_original_resolution,
             # add_segmentation_to_entry=add_segmentation_to_entry,
             # add_custom_annotations=add_custom_annotations
         )
