@@ -1,3 +1,5 @@
+from cellstar_preprocessor.flows import segmentation
+from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import numpy as np
 import zarr
 from cellstar_db.file_system.constants import VOLUME_DATA_GROUPNAME
@@ -33,6 +35,9 @@ def get_origins(ome_zarr_attrs, boxes_dict: dict):
     axes = multiscales[0]["axes"]
     datasets_meta = multiscales[0]["datasets"]
     for index, level in enumerate(datasets_meta):
+        # check index is not in boxes dict for the case of removing original res
+        if level["path"] not in boxes_dict:
+            continue
         if (
             # NOTE: checks if there is translation in the list, since if present it is always 2nd
             len(level["coordinateTransformations"]) == 2
@@ -121,6 +126,10 @@ def get_voxel_sizes_in_downsamplings(ome_zarr_attrs, boxes_dict):
     axes = multiscales[0]["axes"]
 
     for index, level in enumerate(datasets_meta):
+        # check index is not in boxes dict for the case of removing original res
+        if level["path"] not in boxes_dict:
+            continue
+
         scale_arr = level["coordinateTransformations"][0]["scale"]
         if len(scale_arr) == 5:
             scale_arr = scale_arr[2:]
@@ -318,9 +327,10 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
     ome_zarr_root.attrs.put(new_volume_attrs_dict)
 
     volume_downsamplings = get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
-    channel_ids = _get_channel_ids(time_data_group=root[VOLUME_DATA_GROUPNAME][0][0])
+    first_available_image_resolution = sorted(volume_downsamplings)[0]
+    channel_ids = _get_channel_ids(time_data_group=root[VOLUME_DATA_GROUPNAME][first_available_image_resolution][0])
     start_time, end_time = _get_start_end_time(
-        resolution_data_group=root[VOLUME_DATA_GROUPNAME][0]
+        resolution_data_group=root[VOLUME_DATA_GROUPNAME][first_available_image_resolution]
     )
 
     # 1. Collect common metadata
@@ -401,6 +411,8 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
                 data_group=label_gr
                 )
             
+            first_available_segm_resolution = sorted(segmentation_downsamplings)[0]
+            
             metadata_dict["segmentation_lattices"]["segmentation_sampling_info"][
                 str(lattice_id)
             ] = {
@@ -443,7 +455,7 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
             )
 
             segm_start_time, segm_end_time = _get_start_end_time(
-                resolution_data_group=label_gr[0]
+                resolution_data_group=label_gr[first_available_segm_resolution]
             )
             metadata_dict["segmentation_lattices"]["time_info"][label_gr_name] = {
                 "kind": "range",

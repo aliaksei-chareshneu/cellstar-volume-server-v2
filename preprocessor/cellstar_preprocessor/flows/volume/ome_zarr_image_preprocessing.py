@@ -24,7 +24,7 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
     )
 
     # PROCESSING VOLUME
-    volume_data_gr = our_zarr_structure.create_group(VOLUME_DATA_GROUPNAME)
+    volume_data_gr: zarr.Group = our_zarr_structure.create_group(VOLUME_DATA_GROUPNAME)
     root_zattrs = ome_zarr_root.attrs
     multiscales = root_zattrs["multiscales"]
     # NOTE: can be multiple multiscales, here picking just 1st
@@ -108,6 +108,11 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
         #     else:
         #         pass
         else:
-            raise Exception("Axes number/order is not supported")
-
+            raise Exception("Axes number/order is not supported")    
     print("Volume processed")
+
+    if internal_volume.downsampling_parameters.remove_original_resolution:
+        all_resolutions = sorted(volume_data_gr.group_keys())
+        first_available_resolution = all_resolutions[0]
+        del volume_data_gr[first_available_resolution]
+        print('Original resolution data removed for volume')

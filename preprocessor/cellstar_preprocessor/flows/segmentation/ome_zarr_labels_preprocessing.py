@@ -34,7 +34,7 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
         label_gr_multiscales = label_gr_zattrs["multiscales"]
         # NOTE: can be multiple multiscales, here picking just 1st
         axes = label_gr_multiscales[0]["axes"]
-        lattice_id_gr = segmentation_data_gr.create_group(label_gr_name)
+        lattice_id_gr: zarr.Group = segmentation_data_gr.create_group(label_gr_name)
         # arr_name is resolution
         for arr_name, arr in label_gr.arrays():
             our_resolution_gr = lattice_id_gr.create_group(arr_name)
@@ -164,5 +164,12 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
             else:
                 raise Exception("Axes number/order is not supported")
             
+        if internal_segmentation.downsampling_parameters.remove_original_resolution:
+            all_resolutions = sorted(lattice_id_gr.group_keys())
+            first_available_resolution = all_resolutions[0]
+            del lattice_id_gr[first_available_resolution]
+            print('Original resolution data removed for segmentation')
 
     print('Labels processed')
+
+    
