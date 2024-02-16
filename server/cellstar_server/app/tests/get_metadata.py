@@ -3,7 +3,7 @@ import unittest
 
 import requests
 
-from server.app.tests._test_server_runner import ServerTestBase
+from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 class VolumeDescriptiveStatisticsIndicators(TypedDict):
     mean: list[float]

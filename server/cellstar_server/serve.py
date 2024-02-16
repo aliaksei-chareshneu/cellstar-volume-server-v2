@@ -1,6 +1,6 @@
 import uvicorn
 
-from server.app.settings import settings
+from cellstar_server.app.settings import settings
 
 if __name__ == "__main__":
     print("Mol* Volume Server")

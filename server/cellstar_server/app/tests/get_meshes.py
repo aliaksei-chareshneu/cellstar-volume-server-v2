@@ -2,7 +2,7 @@ import unittest
 
 import requests
 
-from server.app.tests._test_server_runner import ServerTestBase
+from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 # test_configs = {
 #     "empiar": {"empiar-10070": {"2": {"segmentation": 1, "detail_lvl": 2}, "1": {"segmentation": 1, "detail_lvl": 1}}}

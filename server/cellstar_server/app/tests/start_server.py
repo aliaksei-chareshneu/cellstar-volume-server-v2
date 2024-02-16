@@ -1,6 +1,6 @@
 import unittest
 
-from server.app.tests._test_server_runner import ServerTestBase
+from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 
 class StartServer(ServerTestBase):

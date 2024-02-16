@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse
 
 from cellstar_query.core.service import VolumeServerService
 from cellstar_query.serialization.json_numpy_response import JSONNumpyResponse
-from server.app.settings import settings
+from cellstar_server.app.settings import settings
 from cellstar_query.requests import GeometricSegmentationRequest
 from cellstar_query.query import HTTP_CODE_UNPROCESSABLE_ENTITY, get_geometric_segmentation_query, get_list_entries_query, get_meshes_bcif_query, get_meshes_query, get_metadata_query, get_segmentation_box_query, get_segmentation_cell_query, get_volume_box_query, get_volume_cell_query, get_volume_info_query, get_list_entries_keyword_query
 

@@ -4,9 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 # import app.api.v1 as api_v1
-import server.app.api.v2 as api_v2
+import cellstar_server.app.api.v2 as api_v2
 from cellstar_query.core.service import VolumeServerService
-from server.app.settings import settings
+from cellstar_server.app.settings import settings
 
 print("Server Settings: ", settings.dict())
 

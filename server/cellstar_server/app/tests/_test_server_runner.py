@@ -7,7 +7,7 @@ from abc import ABC
 import uvicorn
 from uvicorn import Config
 
-from server.main import app
+from cellstar_server.main import app
 
 
 class TestServerRunner(uvicorn.Server):
