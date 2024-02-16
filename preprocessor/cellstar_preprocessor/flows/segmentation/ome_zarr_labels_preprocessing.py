@@ -181,16 +181,22 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                 print(f'Data for resolution {arr_name} removed for segmentation')
                 del lattice_id_gr[arr_name]
 
+        all_resolutions = sorted(label_gr.array_keys())
+        original_resolution = all_resolutions[0]
         if internal_segmentation.downsampling_parameters.remove_original_resolution:
-            all_resolutions = sorted(label_gr.array_keys())
-            original_resolution = all_resolutions[0]
             del lattice_id_gr[original_resolution]
             print('Original resolution data removed for segmentation')
 
-        if internal_segmentation.downsampling_parameters.max_downsampling_level >= 0:
+        if internal_segmentation.downsampling_parameters.max_downsampling_level is not None:
             for downsampling, downsampling_gr in lattice_id_gr.groups():
-                downsampling = int(downsampling)
-                if downsampling > internal_segmentation.downsampling_parameters.max_downsampling_level:
+                if int(downsampling) > internal_segmentation.downsampling_parameters.max_downsampling_level:
+                    del lattice_id_gr[downsampling]
+                    print(f'Data for downsampling {downsampling} removed for segmentation')
+
+        if internal_segmentation.downsampling_parameters.min_downsampling_level is not None:
+            for downsampling, downsampling_gr in lattice_id_gr.groups():
+                if int(downsampling) < internal_segmentation.downsampling_parameters.min_downsampling_level and \
+                downsampling != original_resolution:
                     del lattice_id_gr[downsampling]
                     print(f'Data for downsampling {downsampling} removed for segmentation')
 

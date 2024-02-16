@@ -119,20 +119,27 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
             del volume_data_gr[volume_arr_resolution]
 
     print("Volume processed")
-
-    if internal_volume.downsampling_parameters.remove_original_resolution:
-        all_resolutions = sorted(ome_zarr_root.array_keys())
-        original_resolution = all_resolutions[0]
+    
+    all_resolutions = sorted(ome_zarr_root.array_keys())
+    original_resolution = all_resolutions[0]
+    if internal_volume.downsampling_parameters.remove_original_resolution:    
         if original_resolution in volume_data_gr:
             del volume_data_gr[original_resolution]
             print('Original resolution data removed for volume')
     
-    if internal_volume.downsampling_parameters.max_downsampling_level >= 0:
+    if internal_volume.downsampling_parameters.max_downsampling_level is not None:
         for downsampling, downsampling_gr in volume_data_gr.groups():
-            downsampling = int(downsampling)
-            if downsampling > internal_volume.downsampling_parameters.max_downsampling_level:
+            if int(downsampling) > internal_volume.downsampling_parameters.max_downsampling_level:
                 del volume_data_gr[downsampling]
                 print(f'Data for downsampling {downsampling} removed for volume')
+
+    if internal_volume.downsampling_parameters.min_downsampling_level is not None:
+        for downsampling, downsampling_gr in volume_data_gr.groups():
+            if int(downsampling) < internal_volume.downsampling_parameters.min_downsampling_level and \
+                downsampling != original_resolution:
+                del volume_data_gr[downsampling]
+                print(f'Data for downsampling {downsampling} removed for volume')
+
 
     if len(sorted(volume_data_gr.group_keys())) == 0:
         raise Exception(
