@@ -127,3 +127,8 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
             del volume_data_gr[original_resolution]
             print('Original resolution data removed for volume')
     
+    if len(sorted(volume_data_gr.group_keys())) == 0:
+        raise Exception(
+                f"No downsamplings will be saved: max_size_per_downsampling_lvl_mb {internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb} is too low"
+            )
+    

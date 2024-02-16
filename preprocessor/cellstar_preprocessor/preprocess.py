@@ -794,7 +794,7 @@ async def main_preprocessor(
     quantize_dtype_str: typing.Optional[QuantizationDtype],
     quantize_downsampling_levels: typing.Optional[str],
     force_volume_dtype: typing.Optional[str],
-    max_size_per_channel_mb: typing.Optional[float],
+    max_size_per_downsampling_lvl_mb: typing.Optional[float],
     min_downsampling_level: typing.Optional[int],
     max_downsampling_level: typing.Optional[int],
     remove_original_resolution: bool,
@@ -823,7 +823,7 @@ async def main_preprocessor(
         ),
         downsampling=DownsamplingParams(
             min_size_per_channel_mb=min_size_per_channel_mb,
-            max_size_per_downsampling_lvl_mb=max_size_per_channel_mb,
+            max_size_per_downsampling_lvl_mb=max_size_per_downsampling_lvl_mb,
             min_downsampling_level=min_downsampling_level,
             max_downsampling_level=max_downsampling_level,
             remove_original_resolution=remove_original_resolution
@@ -872,7 +872,7 @@ def main(
         typing.Optional[str], typer.Option(None, help="Space-separated list of numbers")
     ] = None,
     force_volume_dtype: Annotated[typing.Optional[str], typer.Option(None)] = None,
-    max_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = None,
+    max_size_per_downsampling_lvl_mb: Annotated[typing.Optional[float], typer.Option(None)] = None,
     min_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5,
     min_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
     max_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
@@ -902,7 +902,7 @@ def main(
             quantize_dtype_str=quantize_dtype_str,
             quantize_downsampling_levels=quantize_downsampling_levels,
             force_volume_dtype=force_volume_dtype,
-            max_size_per_channel_mb=max_size_per_channel_mb,
+            max_size_per_downsampling_lvl_mb=max_size_per_downsampling_lvl_mb,
             min_size_per_channel_mb=min_size_per_channel_mb,
             min_downsampling_level=min_downsampling_level,
             max_downsampling_level=max_downsampling_level,
