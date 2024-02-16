@@ -187,6 +187,13 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
             del lattice_id_gr[original_resolution]
             print('Original resolution data removed for segmentation')
 
+        if internal_segmentation.downsampling_parameters.max_downsampling_level >= 0:
+            for downsampling, downsampling_gr in lattice_id_gr.groups():
+                downsampling = int(downsampling)
+                if downsampling > internal_segmentation.downsampling_parameters.max_downsampling_level:
+                    del lattice_id_gr[downsampling]
+                    print(f'Data for downsampling {downsampling} removed for segmentation')
+
         if len(sorted(lattice_id_gr.group_keys())) == 0:
             raise Exception(
                     f"No downsamplings will be saved: max_size_per_downsampling_lvl_mb {internal_segmentation.downsampling_parameters.max_size_per_downsampling_lvl_mb} is too low"
