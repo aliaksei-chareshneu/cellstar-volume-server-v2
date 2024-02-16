@@ -27,7 +27,7 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
     # axes = multiscales[0]["axes"]
 
     # NOTE: hack to support NGFFs where image has time dimension > 1 and label has time dimension = 1
-    first_available_resolution = ome_zarr_root.attrs["multiscales"][0]["datasets"][0]["path"]
+    original_resolution = ome_zarr_root.attrs["multiscales"][0]["datasets"][0]["path"]
     
     for label_gr_name, label_gr in ome_zarr_root.labels.groups():
         label_gr_zattrs = label_gr.attrs
@@ -37,6 +37,7 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
         lattice_id_gr: zarr.Group = segmentation_data_gr.create_group(label_gr_name)
         # arr_name is resolution
         for arr_name, arr in label_gr.arrays():
+            size_of_data_for_lvl = 0
             our_resolution_gr = lattice_id_gr.create_group(arr_name)
             if len(axes) == 5 and axes[0]["name"] == "t":
 
@@ -50,7 +51,7 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                 # if time dimension of label is < that of image, we do not
                 # check anything, but just copy the first frame for all frames
                 # of label
-                image_time_dimension = ome_zarr_root[first_available_resolution].shape[0]
+                image_time_dimension = ome_zarr_root[original_resolution].shape[0]
                 label_time_dimension = arr.shape[0]
 
                 wrong_time_dimension = False
@@ -94,6 +95,11 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
 
                     our_set_table[...] = [d]
                     
+                    # NOTE: here check size of both arr and set_table
+                    size_of_data_for_lvl = size_of_data_for_lvl + \
+                        our_zarr_structure.store.getsize(our_set_table.path) + \
+                        our_zarr_structure.store.getsize(our_arr.path)
+
                     del corrected_arr_data
                     gc.collect()
 
@@ -122,6 +128,11 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
                     d[str(value)] = [int(value)]
 
                 our_set_table[...] = [d]
+
+                # NOTE: here check size of both arr and set_table
+                size_of_data_for_lvl = size_of_data_for_lvl + \
+                    our_zarr_structure.store.getsize(our_set_table.path) + \
+                    our_zarr_structure.store.getsize(our_arr.path)
 
                 del corrected_arr_data
                 gc.collect()
@@ -164,10 +175,16 @@ def ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
             else:
                 raise Exception("Axes number/order is not supported")
             
+            size_of_data_for_lvl_mb = size_of_data_for_lvl / 1024 ** 2
+            print(f'size of data for lvl in mb: {size_of_data_for_lvl_mb}')
+            if internal_segmentation.downsampling_parameters.max_size_per_downsampling_lvl_mb and size_of_data_for_lvl_mb > internal_segmentation.downsampling_parameters.max_size_per_downsampling_lvl_mb:
+                print(f'Data for resolution {arr_name} removed for segmentation')
+                del lattice_id_gr[arr_name]
+
         if internal_segmentation.downsampling_parameters.remove_original_resolution:
-            all_resolutions = sorted(lattice_id_gr.group_keys())
-            first_available_resolution = all_resolutions[0]
-            del lattice_id_gr[first_available_resolution]
+            all_resolutions = sorted(label_gr.array_keys())
+            original_resolution = all_resolutions[0]
+            del lattice_id_gr[original_resolution]
             print('Original resolution data removed for segmentation')
 
     print('Labels processed')

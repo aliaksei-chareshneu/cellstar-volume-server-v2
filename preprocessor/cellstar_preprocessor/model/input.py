@@ -54,7 +54,7 @@ class VolumeParams(BaseModel):
 
 
 class DownsamplingParams(BaseModel):
-    max_size_per_channel_mb: Optional[float]
+    max_size_per_downsampling_lvl_mb: Optional[float]
     min_size_per_channel_mb: Optional[float] = 5
     min_downsampling_level: Optional[int]
     max_downsampling_level: Optional[int]
@@ -126,7 +126,7 @@ DEFAULT_PREPROCESSOR_INPUT = PreprocessorInput(
     volume=VolumeParams(
         quantize_dtype_str=QuantizationDtype.u1, quantize_downsampling_levels=(1,)
     ),
-    downsampling=DownsamplingParams(max_size_per_channel_mb=250),
+    downsampling=DownsamplingParams(max_size_per_downsampling_lvl_mb=250),
     entry_data=EntryData(
         entry_id="emd-1832",
         source_db="emdb",
@@ -152,7 +152,7 @@ OME_ZARR_PREPROCESSOR_INPUT = PreprocessorInput(
     volume=VolumeParams(
         quantize_dtype_str=QuantizationDtype.u1, quantize_downsampling_levels=(2,)
     ),
-    downsampling=DownsamplingParams(max_size_per_channel_mb=250),
+    downsampling=DownsamplingParams(max_size_per_downsampling_lvl_mb=250),
     entry_data=EntryData(
         entry_id="idr-6001247",
         source_db="idr",

@@ -15,7 +15,6 @@ from cellstar_preprocessor.model.volume import InternalVolume
 
 # TODO: support 3 axes case?
 
-
 def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
     ome_zarr_root = zarr.open_group(internal_volume.volume_input_path)
 
@@ -43,6 +42,7 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
         # if internal_volume.volume_force_dtype is None:
         #     internal_volume.volume_force_dtype = volume_arr.dtype
 
+        size_of_data_for_lvl = 0
         resolution_group = volume_data_gr.create_group(volume_arr_resolution)
         if len(axes) == 5 and axes[0]["name"] == "t":
             for i in range(volume_arr.shape[0]):
@@ -63,9 +63,11 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                         params_for_storing=internal_volume.params_for_storing,
                     )
 
+                    size_of_data_for_lvl = size_of_data_for_lvl + our_zarr_structure.store.getsize(our_channel_arr.path)
                     del corrected_volume_arr_data
                     gc.collect()
                     
+
         elif len(axes) == 4 and axes[0]["name"] == "c":
             time_group = resolution_group.create_group("0")
             for j in range(volume_arr.shape[0]):
@@ -78,7 +80,7 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                     dtype=corrected_volume_arr_data.dtype,
                     params_for_storing=internal_volume.params_for_storing,
                 )
-                # TODO: add this to case of 5 axes and to labels processing
+                size_of_data_for_lvl = size_of_data_for_lvl + our_zarr_structure.store.getsize(our_channel_arr.path)
                 del corrected_volume_arr_data
                 gc.collect()
         # TODO: later
@@ -108,11 +110,20 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
         #     else:
         #         pass
         else:
-            raise Exception("Axes number/order is not supported")    
+            raise Exception("Axes number/order is not supported")
+        
+        size_of_data_for_lvl_mb = size_of_data_for_lvl / 1024 ** 2
+        print(f'size of data for lvl in mb: {size_of_data_for_lvl_mb}')
+        if internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb and size_of_data_for_lvl_mb > internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb:
+            print(f'Data for resolution {volume_arr_resolution} removed for volume')
+            del volume_data_gr[volume_arr_resolution]
+
     print("Volume processed")
 
     if internal_volume.downsampling_parameters.remove_original_resolution:
-        all_resolutions = sorted(volume_data_gr.group_keys())
-        first_available_resolution = all_resolutions[0]
-        del volume_data_gr[first_available_resolution]
-        print('Original resolution data removed for volume')
+        all_resolutions = sorted(ome_zarr_root.array_keys())
+        original_resolution = all_resolutions[0]
+        if original_resolution in volume_data_gr:
+            del volume_data_gr[original_resolution]
+            print('Original resolution data removed for volume')
+    
