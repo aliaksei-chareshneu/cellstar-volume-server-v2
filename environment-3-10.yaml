@@ -48,5 +48,6 @@ dependencies:
     - -e ./preprocessor
     - -e ./db
     - -e ./query
+    - -e ./server
     - h5py
     - vedo
