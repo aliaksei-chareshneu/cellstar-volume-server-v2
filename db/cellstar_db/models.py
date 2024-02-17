@@ -127,6 +127,7 @@ class ExternalReference(TypedDict):
     accession: Optional[str]
     label: Optional[str]
     description: Optional[str]
+    url: Optional[str]
 
 class TargetId(TypedDict):
     segmentation_id: str
