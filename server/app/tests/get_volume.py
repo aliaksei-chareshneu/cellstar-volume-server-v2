@@ -65,8 +65,8 @@ test_configs = {
 class FetchVolumeTest(ServerTestBase):
     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
         r = requests.get(
-            # @app.get("/v2/{source}/{id}/volume/box/{time}/{channel_id}/{a1}/{a2}/{a3}/{b1}/{b2}/{b3}")
-            f'{self.serverUrl()}/v2/{db}/{entry}/volume/box/0/0'
+            # @app.get("/v1/{source}/{id}/volume/box/{time}/{channel_id}/{a1}/{a2}/{a3}/{b1}/{b2}/{b3}")
+            f'{self.serverUrl()}/v1/{db}/{entry}/volume/box/0/0'
             f'/{params.get("x_min")}/{params.get("y_min")}/{params.get("z_min")}'
             f'/{params.get("x_max")}/{params.get("y_max")}/{params.get("z_max")}'
             f'?max_points={params.get("max_points")}'

@@ -19,11 +19,11 @@ test_configs = {
     }
 }
 
-# @app.get("/v2/{source}/{id}/volume/cell/{time}/{channel_id}")
+# @app.get("/v1/{source}/{id}/volume/cell/{time}/{channel_id}")
 class FetchVolumeTest(ServerTestBase):
     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
         r = requests.get(
-            f'{self.serverUrl()}/v2/{db}/{entry}/volume/cell/{params.get("time")}/{params.get("channel_id")}?max_points={params.get("max_points")}'
+            f'{self.serverUrl()}/v1/{db}/{entry}/volume/cell/{params.get("time")}/{params.get("channel_id")}?max_points={params.get("max_points")}'
         )
         self.assertEqual(r.status_code, 200)
         body = r.text
@@ -53,8 +53,8 @@ class FetchVolumeTest(ServerTestBase):
 # class FetchSegmentationTest(ServerTestBase):
 #     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
 #         r = requests.get(
-#             # @app.get("/v2/{source}/{id}/segmentation/cell/{segmentation}/{time}")
-#             f'{self.serverUrl()}/v2/{db}/{entry}/segmentation/cell/{params.get("segmentation")}/{params.get("time")}?max_points={params.get("max_points")}'
+#             # @app.get("/v1/{source}/{id}/segmentation/cell/{segmentation}/{time}")
+#             f'{self.serverUrl()}/v1/{db}/{entry}/segmentation/cell/{params.get("segmentation")}/{params.get("time")}?max_points={params.get("max_points")}'
 #         )
 #         self.assertEqual(r.status_code, 200)
 #         body = r.text

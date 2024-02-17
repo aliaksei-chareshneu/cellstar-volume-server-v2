@@ -18,7 +18,7 @@ from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 class FetchGeometricSegmentationTest(ServerTestBase):
     def __create_test_configs(self):
-        r = requests.get(f"{self.serverUrl()}/v2/pdbe/pdbe-1.rec-geometric_segmentation/metadata/")
+        r = requests.get(f"{self.serverUrl()}/v1/pdbe/pdbe-1.rec-geometric_segmentation/metadata/")
         self.assertEqual(r.status_code, 200)
         body: dict = dict(r.json())
         self.assertIsNotNone(body)
@@ -40,8 +40,8 @@ class FetchGeometricSegmentationTest(ServerTestBase):
 
     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
         r = requests.get(
-            # @app.get("/v2/{source}/{id}/geometric_segmentation/{segmentation_id}")
-            f'{self.serverUrl()}/v2/{db}/{entry}/geometric_segmentation/{params.get("segmentation_id")}/{params.get("time")}'
+            # @app.get("/v1/{source}/{id}/geometric_segmentation/{segmentation_id}")
+            f'{self.serverUrl()}/v1/{db}/{entry}/geometric_segmentation/{params.get("segmentation_id")}/{params.get("time")}'
         )
         self.assertEqual(r.status_code, 200)
         body = r.text

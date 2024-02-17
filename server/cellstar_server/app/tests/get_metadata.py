@@ -16,8 +16,8 @@ class FetchMetadataTest(ServerTestBase):
         try:
             with self.server.run_in_thread():
                 # idr/idr-6001247
-                # r = requests.get(f"{self.serverUrl()}/v2/emdb/emd-1832/metadata/")
-                r = requests.get(f"{self.serverUrl()}/v2/idr/idr-6001247/metadata/")
+                # r = requests.get(f"{self.serverUrl()}/v1/emdb/emd-1832/metadata/")
+                r = requests.get(f"{self.serverUrl()}/v1/idr/idr-6001247/metadata/")
                 self.assertEqual(r.status_code, 200)
                 body: dict = dict(r.json())
                 self.assertIsNotNone(body)

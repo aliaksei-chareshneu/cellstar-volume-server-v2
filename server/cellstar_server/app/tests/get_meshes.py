@@ -15,12 +15,12 @@ test_configs = {
         "1": {"segmentation_id": "0", "segment_id": 1, "detail_lvl": 1, "time": 0}}}
 }
 
-# @app.get("/v2/{source}/{id}/mesh/{segmentation_id}/{time}/{segment_id}/{detail_lvl}")
+# @app.get("/v1/{source}/{id}/mesh/{segmentation_id}/{time}/{segment_id}/{detail_lvl}")
 class FetchMeshesTest(ServerTestBase):
     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
         r = requests.get(
-            # f'{self.serverUrl()}/v2/{db}/{entry}/mesh/{params.get("segmentation")}/{params.get("detail_lvl")}'
-            f'{self.serverUrl()}/v2/{db}/{entry}/mesh/{params.get("segmentation_id")}/{params.get("time")}/{params.get("segment_id")}/{params.get("detail_lvl")}'
+            # f'{self.serverUrl()}/v1/{db}/{entry}/mesh/{params.get("segmentation")}/{params.get("detail_lvl")}'
+            f'{self.serverUrl()}/v1/{db}/{entry}/mesh/{params.get("segmentation_id")}/{params.get("time")}/{params.get("segment_id")}/{params.get("detail_lvl")}'
         )
         self.assertEqual(r.status_code, 200)
         body = r.text
@@ -56,8 +56,8 @@ class FetchMeshesTest(ServerTestBase):
 class FetchMeshesBcifTest(ServerTestBase):
     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
         r = requests.get(
-            # f'{self.serverUrl()}/v2/{db}/{entry}/mesh_bcif/{params.get("segmentation")}/{params.get("detail_lvl")}'
-            f'{self.serverUrl()}/v2/{db}/{entry}/mesh_bcif/{params.get("segmentation_id")}/{params.get("time")}/{params.get("segment_id")}/{params.get("detail_lvl")}'
+            # f'{self.serverUrl()}/v1/{db}/{entry}/mesh_bcif/{params.get("segmentation")}/{params.get("detail_lvl")}'
+            f'{self.serverUrl()}/v1/{db}/{entry}/mesh_bcif/{params.get("segmentation_id")}/{params.get("time")}/{params.get("segment_id")}/{params.get("detail_lvl")}'
         )
         self.assertEqual(r.status_code, 200)
         body = r.text

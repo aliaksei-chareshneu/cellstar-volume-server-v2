@@ -3,8 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-# import app.api.v1 as api_v1
-import cellstar_server.app.api.v2 as api_v2
+import server.cellstar_server.app.api.v1 as api_v1
 from cellstar_query.core.service import VolumeServerService
 from cellstar_server.app.settings import settings
 
@@ -38,4 +37,4 @@ db = FileSystemVolumeServerDB(folder=settings.DB_PATH)
 volume_server = VolumeServerService(db)
 
 # api_v1.configure_endpoints(app, volume_server)
-api_v2.configure_endpoints(app, volume_server)
+api_v1.configure_endpoints(app, volume_server)
