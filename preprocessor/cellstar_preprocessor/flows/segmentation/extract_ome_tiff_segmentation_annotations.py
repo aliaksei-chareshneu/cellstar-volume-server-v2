@@ -1,6 +1,6 @@
 from decimal import Decimal
 from uuid import uuid4
-from cellstar_db.models import AnnotationsMetadata, DescriptionData, SegmentAnnotationData, TargetId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, DescriptionText, SegmentAnnotationData, TargetId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
@@ -11,6 +11,9 @@ import dask.array as da
 import numpy as np
 import zarr
 import seaborn as sns
+
+def _get_allencell_cell_stage(root: zarr.Group):
+    return root.attrs['allencell_metadata_csv']['cell_stage']
 
 
 def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSegmentation):
@@ -64,10 +67,15 @@ def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSeg
         }
 
         time = 0
+        cell_stage = _get_allencell_cell_stage(root)
+        description_text: DescriptionText = {
+            'text': f'Cell stage: {cell_stage}',
+            'format': 'text'
+        }
         description: DescriptionData = {
             'id': description_id,
             'target_kind': "lattice",
-            'description': None,
+            'description': description_text,
             'is_hidden': None,
             'metadata': None,
             'time': time,

@@ -28,9 +28,12 @@ def process_allencell_metadata_csv(path: Path, cell_id: int, intermediate_zarr_s
     scale_micron_str = target_row['scale_micron'][0]
     scale_micron = ast.literal_eval(scale_micron_str)
 
+    cell_stage = target_row['cell_stage'][0]
+
     zarr_structure.attrs['allencell_metadata_csv'] = {
         'name_dict': name_dict,
         # list with 3 float numbers in micrometers
-        'scale_micron': scale_micron
+        'scale_micron': scale_micron,
+        'cell_stage': cell_stage
     }
     print('Allencell metadata processed')
