@@ -40,7 +40,8 @@ def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSeg
     # create palette
 
     palette = sns.color_palette(None, len(ometiff_metadata['Channels'].keys()))
-    
+    cell_stage = _get_allencell_cell_stage(root)
+    d['name'] = f'Cell stage: {cell_stage}'
     count = 0
     for label_gr_name, label_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
         # each label group is lattice id
@@ -67,15 +68,10 @@ def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSeg
         }
 
         time = 0
-        cell_stage = _get_allencell_cell_stage(root)
-        description_text: DescriptionText = {
-            'text': f'Cell stage: {cell_stage}',
-            'format': 'text'
-        }
         description: DescriptionData = {
             'id': description_id,
             'target_kind': "lattice",
-            'description': description_text,
+            'description': None,
             'is_hidden': None,
             'metadata': None,
             'time': time,
