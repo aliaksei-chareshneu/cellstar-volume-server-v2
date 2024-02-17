@@ -23,8 +23,14 @@ def process_allencell_metadata_csv(path: Path, cell_id: int, intermediate_zarr_s
     target_row = df[df['CellId'] == cell_id]
     name_dict_str = target_row['name_dict'][0]
     name_dict = ast.literal_eval(name_dict_str)
-    
+    # size of voxel in micrometers
+    # taken not from ometiff, but from csv
+    scale_micron_str = target_row['scale_micron'][0]
+    scale_micron = ast.literal_eval(scale_micron_str)
+
     zarr_structure.attrs['allencell_metadata_csv'] = {
-        'name_dict': name_dict
+        'name_dict': name_dict,
+        # list with 3 float numbers in micrometers
+        'scale_micron': scale_micron
     }
     print('Allencell metadata processed')

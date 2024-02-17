@@ -16,7 +16,7 @@ SHORT_UNIT_NAMES_TO_LONG = {
 
 def _get_source_axes_units():
     # NOTE: hardcoding this for now
-    spatial_units = 'angstrom'
+    spatial_units = 'micrometer'
     d = {
         "x": spatial_units,
         "y": spatial_units,
@@ -86,31 +86,23 @@ def _get_ometiff_axes_units(ome_tiff_metadata):
     return axes_units
     
 
-def _get_ome_tiff_voxel_sizes_in_downsamplings(boxes_dict, downsamplings, ometiff_metadata):
-    # original voxel size - in XML metadata (PhysicalSizeX,Y,Z)
-    # downsampling voxel size - constructed based on how many downsamplings there are
-    # plan:
-    # 1. for 0th downsampling - get from metadata
-    # 2. TODO: for other levels - iterate over volume_downsamplings
-    # axis order? XYZ? we change it to XYZ when processing volume
-
-    ometiff_axes_units_dict = _get_ometiff_axes_units(ometiff_metadata)
-    ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
-
+def _get_allencell_voxel_sizes_in_downsamplings(boxes_dict, downsamplings, original_voxel_size_in_micrometers: list[float, float, float]):
+    v = original_voxel_size_in_micrometers
+    units = 'micrometer'
     for level in downsamplings:
         downsampling_level = str(level)
         if downsampling_level == '1':
             boxes_dict[downsampling_level]['voxel_size'] = [
-                _convert_to_angstroms(ometiff_physical_size_dict['x'], ometiff_axes_units_dict['x']),
-                _convert_to_angstroms(ometiff_physical_size_dict['y'], ometiff_axes_units_dict['y']),
-                _convert_to_angstroms(ometiff_physical_size_dict['z'], ometiff_axes_units_dict['z'])
+                _convert_to_angstroms(v[0], units),
+                _convert_to_angstroms(v[1], units),
+                _convert_to_angstroms(v[2], units)
             ]
         else:
             # NOTE: rounding error - if one of dimensions in original data is odd
             boxes_dict[downsampling_level]['voxel_size'] = [
-                _convert_to_angstroms(ometiff_physical_size_dict['x'] * int(downsampling_level), ometiff_axes_units_dict['x']),
-                _convert_to_angstroms(ometiff_physical_size_dict['y'] * int(downsampling_level), ometiff_axes_units_dict['y']),
-                _convert_to_angstroms(ometiff_physical_size_dict['z'] * int(downsampling_level), ometiff_axes_units_dict['z'])
+                _convert_to_angstroms(v[0] * int(downsampling_level), units),
+                _convert_to_angstroms(v[1] * int(downsampling_level), units),
+                _convert_to_angstroms(v[2] * int(downsampling_level), units)
             ]
 
 def _get_ome_tiff_origins(boxes_dict: dict, downsamplings):
@@ -172,6 +164,9 @@ def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
 def _get_allencell_image_channel_ids(root: zarr.Group):
     return root.attrs['allencell_metadata_csv']['name_dict']['crop_raw']
 
+def _get_allencell_voxel_size(root: zarr.Group) -> list[float, float, float]:
+    return root.attrs['allencell_metadata_csv']['scale_micron']
+
 def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     root = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
@@ -183,6 +178,8 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     
     # NOTE: sample ometiff has no time
     channel_ids = _get_allencell_image_channel_ids(root)
+    original_voxel_size_in_micrometers = _get_allencell_voxel_size(root)
+
     start_time = 0
     end_time = 0
     time_units = "millisecond"
@@ -213,10 +210,10 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
         sampling_info_dict=metadata_dict["volumes"]["volume_sampling_info"]
     )
 
-    _get_ome_tiff_voxel_sizes_in_downsamplings(
+    _get_allencell_voxel_sizes_in_downsamplings(
         boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
         downsamplings=volume_downsamplings,
-        ometiff_metadata=ometiff_metadata
+        original_voxel_size_in_micrometers=original_voxel_size_in_micrometers
     )
 
     _get_ome_tiff_origins(
