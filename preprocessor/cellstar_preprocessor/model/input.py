@@ -32,6 +32,9 @@ class InputKind(str, Enum):
     nii_segmentation = 'nii_segmentation'
     geometric_segmentation = 'geometric_segmentation'
     star_file_geometric_segmentation = 'star_file_geometric_segmentation'
+    ometiff_image = 'ometiff_image'
+    ometiff_segmentation = 'ometiff_segmentation'
+    allencell_metadata_csv = 'allencell_metadata_csv'
 
 
 class QuantizationDtype(str, Enum):

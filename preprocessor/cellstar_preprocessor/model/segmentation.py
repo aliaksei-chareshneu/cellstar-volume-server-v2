@@ -15,7 +15,8 @@ class InternalSegmentation:
         sphere_radius: Optional[float] = None,
         color: Optional[float] = None,
         pixel_size: Optional[float] = None,
-        star_file_coordinate_divisor: Optional[float] = None
+        star_file_coordinate_divisor: Optional[float] = None,
+        custom_data: Optional[object] = None
     ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.segmentation_input_path = segmentation_input_path
@@ -30,3 +31,4 @@ class InternalSegmentation:
         self.color = color
         self.pixel_size = pixel_size
         self.star_file_coordinate_divisor = star_file_coordinate_divisor
+        self.custom_data = custom_data

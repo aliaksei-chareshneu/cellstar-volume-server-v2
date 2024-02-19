@@ -84,8 +84,8 @@ def store_volume_data_in_zarr_stucture(
     channel: str,
     # quantize_dtype_str: Union[QuantizationDtype, None] = None
 ):
-    resolution_data_group = volume_data_group.create_group(resolution)
-    time_frame_data_group = resolution_data_group.create_group(time_frame)
+    resolution_data_group: zarr.Group = volume_data_group.require_group(resolution)
+    time_frame_data_group = resolution_data_group.require_group(time_frame)
 
     # if quantize_dtype_str:
     #     force_dtype = quantize_dtype_str.value
