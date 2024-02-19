@@ -11,6 +11,13 @@ from cellstar_preprocessor.model.volume import InternalVolume
 
 import collections.abc
 
+def process_extra_data(path: Path, intermediate_zarr_structure: Path):
+    data = open_json_file(path)
+    zarr_structure: zarr.Group = open_zarr_structure_from_path(
+        intermediate_zarr_structure
+    )
+    zarr_structure.attrs['extra_data'] = data
+
 def update_dict(orig_dict, new_dict: dict):
     for key, val in new_dict.items():
         if isinstance(val, collections.abc.Mapping):

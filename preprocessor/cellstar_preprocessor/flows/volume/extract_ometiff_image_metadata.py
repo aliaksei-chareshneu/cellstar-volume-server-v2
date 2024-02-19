@@ -1,4 +1,5 @@
 from decimal import Decimal
+import re
 from cellstar_db.models import SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
@@ -86,23 +87,39 @@ def _get_ometiff_axes_units(ome_tiff_metadata):
     return axes_units
     
 
-def _get_allencell_voxel_sizes_in_downsamplings(boxes_dict, downsamplings, original_voxel_size_in_micrometers: list[float, float, float]):
-    v = original_voxel_size_in_micrometers
-    units = 'micrometer'
+def _get_ome_tiff_voxel_sizes_in_downsamplings(root: zarr.Group, boxes_dict, downsamplings, ometiff_metadata):
+    
+    ometiff_physical_size_dict: dict[str, str] = {}
+    if root.attrs['extra_data']:
+        # TODO: this is in micrometers
+        # we anyway do not support other units
+        l = root.attrs['extra_data']['scale_micron']
+        ometiff_physical_size_dict['x'] = l[0]
+        ometiff_physical_size_dict['y'] = l[1]
+        ometiff_physical_size_dict['z'] = l[2]
+    else:
+        # TODO: try to get from ometiff itself
+        ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
+
+
+
+    ometiff_axes_units_dict = _get_ometiff_axes_units(ometiff_metadata)
+    # ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
+
     for level in downsamplings:
         downsampling_level = str(level)
         if downsampling_level == '1':
             boxes_dict[downsampling_level]['voxel_size'] = [
-                _convert_to_angstroms(v[0], units),
-                _convert_to_angstroms(v[1], units),
-                _convert_to_angstroms(v[2], units)
+                _convert_to_angstroms(ometiff_physical_size_dict['x'], ometiff_axes_units_dict['x']),
+                _convert_to_angstroms(ometiff_physical_size_dict['y'], ometiff_axes_units_dict['y']),
+                _convert_to_angstroms(ometiff_physical_size_dict['z'], ometiff_axes_units_dict['z'])
             ]
         else:
             # NOTE: rounding error - if one of dimensions in original data is odd
             boxes_dict[downsampling_level]['voxel_size'] = [
-                _convert_to_angstroms(v[0] * int(downsampling_level), units),
-                _convert_to_angstroms(v[1] * int(downsampling_level), units),
-                _convert_to_angstroms(v[2] * int(downsampling_level), units)
+                _convert_to_angstroms(ometiff_physical_size_dict['x'] * int(downsampling_level), ometiff_axes_units_dict['x']),
+                _convert_to_angstroms(ometiff_physical_size_dict['y'] * int(downsampling_level), ometiff_axes_units_dict['y']),
+                _convert_to_angstroms(ometiff_physical_size_dict['z'] * int(downsampling_level), ometiff_axes_units_dict['z'])
             ]
 
 def _get_ome_tiff_origins(boxes_dict: dict, downsamplings):
@@ -162,24 +179,45 @@ def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
                 }
 
 def _get_allencell_image_channel_ids(root: zarr.Group):
-    return root.attrs['allencell_metadata_csv']['name_dict']['crop_raw']
+    return root.attrs['extra_data']['name_dict']['crop_raw']
 
 def _get_allencell_voxel_size(root: zarr.Group) -> list[float, float, float]:
-    return root.attrs['allencell_metadata_csv']['scale_micron']
+    return root.attrs['extra_data']['scale_micron']
+
+def _parse_ome_tiff_channel_id(ometiff_channel_id: str):
+    channel_id = re.sub(r'\W+', '', ometiff_channel_id)
+    return channel_id
+
+def _get_ome_tiff_channel_ids(root: zarr.Group, ome_tiff_metadata):
+    # TODO: if custom data = get it from custom_data
+    if root.attrs['extra_data']:
+        return root.attrs['extra_data']['name_dict']['crop_raw']
+    else:
+        channels = ome_tiff_metadata['Channels']
+        # for now just return 0
+        # return [0]
+        channel_ids = []
+        for key in channels:
+            channel = channels[key]
+            channel_id = _parse_ome_tiff_channel_id(channel['ID'])
+            channel_ids.append(channel_id)
+
+        return channel_ids
 
 def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     root = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
     )
-    ometiff_metadata = internal_volume.map_header
+    ometiff_metadata = internal_volume.custom_data['ometiff_metadata']
 
     source_db_name = internal_volume.entry_data.source_db_name
     source_db_id = internal_volume.entry_data.source_db_id
     
     # NOTE: sample ometiff has no time
-    channel_ids = _get_allencell_image_channel_ids(root)
-    original_voxel_size_in_micrometers = _get_allencell_voxel_size(root)
-
+    # TODO: get channel ids same way as in preprocessor_old
+    # channel_ids = _get_allencell_image_channel_ids(root)
+    channel_ids = _get_ome_tiff_channel_ids(root, ometiff_metadata)
+    
     start_time = 0
     end_time = 0
     time_units = "millisecond"
@@ -210,11 +248,17 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
         sampling_info_dict=metadata_dict["volumes"]["volume_sampling_info"]
     )
 
-    _get_allencell_voxel_sizes_in_downsamplings(
+    _get_ome_tiff_voxel_sizes_in_downsamplings(
+        root=root,
         boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
         downsamplings=volume_downsamplings,
-        original_voxel_size_in_micrometers=original_voxel_size_in_micrometers
+        ometiff_metadata=ometiff_metadata
     )
+    # _get_allencell_voxel_sizes_in_downsamplings(
+    #     boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
+    #     downsamplings=volume_downsamplings,
+    #     original_voxel_size_in_micrometers=original_voxel_size_in_micrometers
+    # )
 
     _get_ome_tiff_origins(
         boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],

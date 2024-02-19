@@ -2,7 +2,7 @@ from decimal import Decimal
 from cellstar_db.models import SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
-from cellstar_preprocessor.flows.volume.extract_ometiff_image_metadata import _get_allencell_voxel_sizes_in_downsamplings
+from cellstar_preprocessor.flows.volume.extract_ometiff_image_metadata import _get_ome_tiff_voxel_sizes_in_downsamplings
 from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
@@ -18,7 +18,7 @@ import zarr
 
 def _get_source_axes_units():
     # NOTE: hardcoding this for now
-    spatial_units = 'angstrom'
+    spatial_units = 'micrometer'
     d = {
         "x": spatial_units,
         "y": spatial_units,
@@ -122,7 +122,7 @@ def _get_ome_tiff_origins(boxes_dict: dict, downsamplings):
         boxes_dict[downsampling_level]['origin'] = [0, 0, 0]
 
 def _get_allencell_voxel_size(root: zarr.Group) -> list[float, float, float]:
-    return root.attrs['allencell_metadata_csv']['scale_micron']
+    return root.attrs['extra_data']['scale_micron']
 
 
 def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
@@ -180,7 +180,7 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
     )
     
     metadata_dict = root.attrs["metadata_dict"]
-    ometiff_metadata = internal_segmentation.custom_data
+    ometiff_metadata = internal_segmentation.custom_data['ometiff_metadata']
     # NOTE: sample ometiff has no time
     # channel_ids = _get_allencell_segmentation_channel_ids(root)
     start_time = 0
@@ -239,12 +239,13 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
                 downsamplings=segmentation_downsamplings
             )
 
-            _get_allencell_voxel_sizes_in_downsamplings(
+            _get_ome_tiff_voxel_sizes_in_downsamplings(
+                root=root,
                 boxes_dict=metadata_dict["segmentation_lattices"][
                     "segmentation_sampling_info"
                 ][str(lattice_id)]["boxes"],
                 downsamplings=segmentation_downsamplings,
-                original_voxel_size_in_micrometers=original_voxel_size_in_micrometers
+                ometiff_metadata=ometiff_metadata
             )
 
             # NOTE: for now time 0

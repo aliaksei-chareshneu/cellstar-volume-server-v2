@@ -13,7 +13,7 @@ import seaborn as sns
 def _get_ome_tiff_channel_annotations(ome_tiff_metadata, volume_channel_annotations, zarr_structure):
     palette = sns.color_palette(None, len(ome_tiff_metadata['Channels'].keys()))
     # TODO: check if label is used anywhere
-    channel_names_from_csv = zarr_structure.attrs['allencell_metadata_csv']['name_dict']['crop_raw']
+    channel_names_from_csv = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
     for channel_id_in_ometiff_metadata, channel_key in enumerate(ome_tiff_metadata['Channels']):
         channel = ome_tiff_metadata['Channels'][channel_key]
         # for now FFFFFFF
@@ -55,7 +55,7 @@ def extract_ome_tiff_image_annotations(internal_volume: InternalVolume):
         internal_volume.intermediate_zarr_structure_path
     )
     
-    ometiff_metadata = internal_volume.map_header
+    ometiff_metadata = internal_volume.custom_data['ometiff_metadata']
     d: AnnotationsMetadata = root.attrs["annotations_dict"]
     _get_ome_tiff_channel_annotations(ome_tiff_metadata=ometiff_metadata,
         volume_channel_annotations=d['volume_channels_annotations'],

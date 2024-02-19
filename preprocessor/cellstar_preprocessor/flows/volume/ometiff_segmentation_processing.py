@@ -28,7 +28,8 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
     reader = OMETIFFReader(fpath=internal_segmentation.segmentation_input_path)
     img_array, metadata, xml_metadata = reader.read()
     # set map header to metadata to use it in metadata extraction
-    internal_segmentation.custom_data = metadata
+    internal_segmentation.custom_data = {}
+    internal_segmentation.custom_data['ometiff_metadata'] = metadata
 
     print(f"Processing segmentation file {internal_segmentation.segmentation_input_path}")
     # TODO: reorder later if necessary according to metadata
@@ -59,7 +60,7 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
         # pass them 
         # {'crop_raw': ['dna', 'membrane', 'structure'] for crop_raw
         # channel_names = ['dna', 'membrane', 'structure']
-        channel_names = zarr_structure.attrs['allencell_metadata_csv']['name_dict']['crop_seg']
+        channel_names = zarr_structure.attrs['extra_data']['name_dict']['crop_seg']
         print(f'Channel names: {channel_names}')
         
         for channel in range(corrected_arr_data_with_channel.shape[0]):

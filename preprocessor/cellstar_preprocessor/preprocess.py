@@ -40,6 +40,7 @@ from cellstar_db.models import AnnotationsMetadata, DescriptionData, GeometricSe
 from cellstar_preprocessor.flows.common import (
     open_json_file,
     open_zarr_structure_from_path,
+    process_extra_data,
     save_dict_to_json_file,
     update_dict,
 )
@@ -122,7 +123,7 @@ class OMETIFFImageInput(InputT):
 class OMETIFFSegmentationInput(InputT):
     pass
 
-class AllencellMetadataCSVInput(InputT):
+class ExtraDataInput(InputT):
     pass
 
 class MAPInput(InputT):
@@ -391,6 +392,12 @@ class OMETIFFSegmentationAnnotationsExtractionTask(TaskBase):
         internal_segmentation = self.internal_segmentation
         extract_ome_tiff_segmentation_annotations(internal_segmentation=internal_segmentation)
 
+class ProcessExtraDataTask(TaskBase):
+    def __init__(self, path: Path, intermediate_zarr_structure_path: Path):
+        self.path = path
+        self.intermediate_zarr_structure = intermediate_zarr_structure_path
+    def execute(self) -> None:
+        process_extra_data(self.path, self.intermediate_zarr_structure)
 
 class AllencellMetadataCSVProcessingTask(TaskBase):
     def __init__(self, path: Path, cell_id: int, intermediate_zarr_structure_path: Path):
@@ -476,7 +483,12 @@ class Preprocessor:
         nii_segmentation_inputs: list[NIISegmentationInput] = []
         mask_segmentation_inputs: list[MaskInput] = []
         for input in inputs:
-            if isinstance(input, MAPInput):
+            if isinstance(input, ExtraDataInput):
+                tasks.append(ProcessExtraDataTask(
+                    path=input.input_path,
+                    intermediate_zarr_structure_path=self.intermediate_zarr_structure
+                ))
+            elif isinstance(input, MAPInput):
                 self.store_internal_volume(
                     internal_volume=InternalVolume(
                         intermediate_zarr_structure_path=self.intermediate_zarr_structure,
@@ -599,12 +611,6 @@ class Preprocessor:
                 tasks.append(
                     ProcessGeometricSegmentationTask(self.get_internal_segmentation())
                 )
-            elif isinstance(input, AllencellMetadataCSVInput):
-                tasks.append(AllencellMetadataCSVProcessingTask(
-                    path=input.input_path,
-                    cell_id=int(self.preprocessor_input.entry_data.entry_id.split('-')[1]),
-                    intermediate_zarr_structure_path=self.intermediate_zarr_structure
-                ))
             elif isinstance(input, OMETIFFImageInput):
                 self.store_internal_volume(
                     internal_volume=InternalVolume(
@@ -775,7 +781,9 @@ class Preprocessor:
         analyzed_inputs: list[InputT] = []
 
         for input_item in raw_inputs_list:
-            if input_item[1] == InputKind.map:
+            if input_item[1] == InputKind.extra_data:
+                analyzed_inputs.append(ExtraDataInput(input_path=input_item[0]))
+            elif input_item[1] == InputKind.map:
                 analyzed_inputs.append(MAPInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.sff:
                 analyzed_inputs.append(SFFInput(input_path=input_item[0]))
@@ -795,8 +803,6 @@ class Preprocessor:
                 analyzed_inputs.append(NIIVolumeInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.nii_segmentation:
                 analyzed_inputs.append(NIISegmentationInput(input_path=input_item[0]))
-            elif input_item[1] == InputKind.allencell_metadata_csv:
-                analyzed_inputs.append(AllencellMetadataCSVInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.ometiff_image:
                 analyzed_inputs.append(OMETIFFImageInput(input_path=input_item[0]))
             elif input_item[1] == InputKind.ometiff_segmentation:

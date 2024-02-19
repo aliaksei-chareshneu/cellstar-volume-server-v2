@@ -13,7 +13,7 @@ import zarr
 import seaborn as sns
 
 def _get_allencell_cell_stage(root: zarr.Group):
-    return root.attrs['allencell_metadata_csv']['cell_stage']
+    return root.attrs['extra_data']['cell_stage']
 
 
 def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSegmentation):
@@ -30,7 +30,7 @@ def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSeg
     root = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
-    ometiff_metadata = internal_segmentation.custom_data
+    ometiff_metadata = internal_segmentation.custom_data['ometiff_metadata']
     d: AnnotationsMetadata = root.attrs["annotations_dict"]
 
     # PLAN: iterate over lattices

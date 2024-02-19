@@ -9,7 +9,7 @@ import zarr
 # find raw with that cellId
 # get channel names
 # all necessary info
-# put to .attrs ['allencell_metadata_csv']
+# put to .attrs ['extra_data']
 # access those attrs in extract_ometiff_metadata
 
 # pandas.read_csv
@@ -30,7 +30,7 @@ def process_allencell_metadata_csv(path: Path, cell_id: int, intermediate_zarr_s
 
     cell_stage = target_row['cell_stage'][0]
 
-    zarr_structure.attrs['allencell_metadata_csv'] = {
+    zarr_structure.attrs['extra_data'] = {
         'name_dict': name_dict,
         # list with 3 float numbers in micrometers
         'scale_micron': scale_micron,
