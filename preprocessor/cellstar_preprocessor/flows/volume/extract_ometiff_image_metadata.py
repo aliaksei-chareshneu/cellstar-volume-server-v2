@@ -90,7 +90,7 @@ def _get_ometiff_axes_units(ome_tiff_metadata):
 def _get_ome_tiff_voxel_sizes_in_downsamplings(root: zarr.Group, boxes_dict, downsamplings, ometiff_metadata):
     
     ometiff_physical_size_dict: dict[str, str] = {}
-    if root.attrs['extra_data']:
+    if 'extra_data' in root.attrs:
         # TODO: this is in micrometers
         # we anyway do not support other units
         l = root.attrs['extra_data']['scale_micron']

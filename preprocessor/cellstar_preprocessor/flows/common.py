@@ -14,7 +14,7 @@ import collections.abc
 
 def _get_ome_tiff_channel_ids(root: zarr.Group, ome_tiff_metadata):
     # TODO: if custom data = get it from custom_data
-    if root.attrs['extra_data']:
+    if 'extra_data' in root.attrs:
         return root.attrs['extra_data']['name_dict']['crop_raw']
     else:
         channels = ome_tiff_metadata['Channels']

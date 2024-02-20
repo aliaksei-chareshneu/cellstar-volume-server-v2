@@ -28,48 +28,36 @@ def ometiff_image_processing(internal_volume: InternalVolume):
     internal_volume.custom_data['ometiff_metadata'] = metadata
 
     print(f"Processing volume file {internal_volume.volume_input_path}")
-    # TODO: reorder later if necessary according to metadata
-    # (metadata['DimOrder'] == 'TZCYX')
-    # need to swap axes
-    # shape
     if (metadata['DimOrder'] == 'TZCYX'):
-        # TODO: check dim length, no time dimension actually
-        # so actually ZCYX
-        # (119, 3, 281, 268)
         # need to make it CZYX
         # CXYZ order now
         corrected_volume_arr_data = img_array[...].swapaxes(0,1).swapaxes(1,3)
-        dask_arr = da.from_array(corrected_volume_arr_data)
-        # create volume data group
-        volume_data_group: zarr.Group = zarr_structure.create_group(
-            VOLUME_DATA_GROUPNAME
-        )
-
-        # TODO: account for channels
-        # TODO: later get channel names from metadata.csv, now from metadata variable
-        # so need to first preprocess csv to get channel 
-        # first it should preprocess metadata.csv
-        # get channel names
-        # pass them 
-        # {'crop_raw': ['dna', 'membrane', 'structure'] for crop_raw
-        # channel_names = ['dna', 'membrane', 'structure']
-
-        channel_ids = _get_ome_tiff_channel_ids(zarr_structure, metadata)
-        # channel_names = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
-        # print(f'Channel names: {channel_names}')
-        
-        for channel in range(dask_arr.shape[0]):
-            store_volume_data_in_zarr_stucture(
-                data=dask_arr[channel],
-                volume_data_group=volume_data_group,
-                params_for_storing=internal_volume.params_for_storing,
-                force_dtype=internal_volume.volume_force_dtype,
-                resolution="1",
-                time_frame="0",
-                channel=channel_ids[channel],
-                # quantize_dtype_str=internal_volume.quantize_dtype_str
-            )
+    elif (metadata['DimOrder'] == 'CTZYX' or metadata['DimOrder'] == 'TCZYX'):
+        corrected_volume_arr_data = img_array[...].swapaxes(0,2)
+        # corrected_volume_arr_data = img_array[...].swapaxes(0,1).swapaxes(1,3)
     else:
         raise Exception('DimOrder is not supported')
+    
+    dask_arr = da.from_array(corrected_volume_arr_data)
+    # create volume data group
+    volume_data_group: zarr.Group = zarr_structure.create_group(
+        VOLUME_DATA_GROUPNAME
+    )
+
+    channel_ids = _get_ome_tiff_channel_ids(zarr_structure, metadata)
+    # channel_names = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
+    # print(f'Channel names: {channel_names}')
+    
+    for channel in range(dask_arr.shape[0]):
+        store_volume_data_in_zarr_stucture(
+            data=dask_arr[channel],
+            volume_data_group=volume_data_group,
+            params_for_storing=internal_volume.params_for_storing,
+            force_dtype=internal_volume.volume_force_dtype,
+            resolution="1",
+            time_frame="0",
+            channel=channel_ids[channel],
+            # quantize_dtype_str=internal_volume.quantize_dtype_str
+        )
 
     print("Volume processed")
