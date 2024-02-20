@@ -31,5 +31,5 @@ class InternalVolume:
         self.entry_data = entry_data
         self.map_header = None
         self.quantize_downsampling_levels = quantize_downsampling_levels
-        self.pixel_size = pixel_size,
+        self.pixel_size = pixel_size
         self.custom_data = custom_data
