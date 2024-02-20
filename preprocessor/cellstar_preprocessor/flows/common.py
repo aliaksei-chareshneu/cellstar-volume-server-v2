@@ -1,6 +1,7 @@
 import json
 import math
 from pathlib import Path
+import re
 from typing import Union
 
 import numpy as np
@@ -10,6 +11,27 @@ from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 
 import collections.abc
+
+def _get_ome_tiff_channel_ids(root: zarr.Group, ome_tiff_metadata):
+    # TODO: if custom data = get it from custom_data
+    if root.attrs['extra_data']:
+        return root.attrs['extra_data']['name_dict']['crop_raw']
+    else:
+        channels = ome_tiff_metadata['Channels']
+        # for now just return 0
+        # return [0]
+        channel_ids = []
+        for key in channels:
+            channel = channels[key]
+            channel_id = _parse_ome_tiff_channel_id(channel['ID'])
+            channel_ids.append(channel_id)
+
+        return channel_ids
+
+def _parse_ome_tiff_channel_id(ometiff_channel_id: str):
+    channel_id = re.sub(r'\W+', '', ometiff_channel_id)
+    return channel_id
+
 
 def process_extra_data(path: Path, intermediate_zarr_structure: Path):
     data = open_json_file(path)

@@ -4,7 +4,7 @@ import numpy as np
 import zarr
 import nibabel as nib
 
-from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.helper_methods import (
     normalize_axis_order_mrcfile,
@@ -53,8 +53,10 @@ def ometiff_image_processing(internal_volume: InternalVolume):
         # pass them 
         # {'crop_raw': ['dna', 'membrane', 'structure'] for crop_raw
         # channel_names = ['dna', 'membrane', 'structure']
-        channel_names = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
-        print(f'Channel names: {channel_names}')
+
+        channel_ids = _get_ome_tiff_channel_ids(zarr_structure, metadata)
+        # channel_names = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
+        # print(f'Channel names: {channel_names}')
         
         for channel in range(dask_arr.shape[0]):
             store_volume_data_in_zarr_stucture(
@@ -64,7 +66,7 @@ def ometiff_image_processing(internal_volume: InternalVolume):
                 force_dtype=internal_volume.volume_force_dtype,
                 resolution="1",
                 time_frame="0",
-                channel=channel_names[channel],
+                channel=channel_ids[channel],
                 # quantize_dtype_str=internal_volume.quantize_dtype_str
             )
     else:

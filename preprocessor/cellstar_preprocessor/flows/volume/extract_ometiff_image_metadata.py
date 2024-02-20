@@ -1,7 +1,7 @@
 from decimal import Decimal
 import re
 from cellstar_db.models import SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-from cellstar_preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids, get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
 from cellstar_preprocessor.model.volume import InternalVolume
@@ -183,26 +183,6 @@ def _get_allencell_image_channel_ids(root: zarr.Group):
 
 def _get_allencell_voxel_size(root: zarr.Group) -> list[float, float, float]:
     return root.attrs['extra_data']['scale_micron']
-
-def _parse_ome_tiff_channel_id(ometiff_channel_id: str):
-    channel_id = re.sub(r'\W+', '', ometiff_channel_id)
-    return channel_id
-
-def _get_ome_tiff_channel_ids(root: zarr.Group, ome_tiff_metadata):
-    # TODO: if custom data = get it from custom_data
-    if root.attrs['extra_data']:
-        return root.attrs['extra_data']['name_dict']['crop_raw']
-    else:
-        channels = ome_tiff_metadata['Channels']
-        # for now just return 0
-        # return [0]
-        channel_ids = []
-        for key in channels:
-            channel = channels[key]
-            channel_id = _parse_ome_tiff_channel_id(channel['ID'])
-            channel_ids.append(channel_id)
-
-        return channel_ids
 
 def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     root = open_zarr_structure_from_path(
