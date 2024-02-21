@@ -12,6 +12,7 @@ import seaborn as sns
 
 def _get_ome_tiff_channel_annotations(ome_tiff_metadata, volume_channel_annotations, zarr_structure):
     palette = sns.color_palette(None, len(ome_tiff_metadata['Channels'].keys()))
+    channel_names_from_csv = []
     if 'extra_data' in zarr_structure.attrs:
         channel_names_from_csv = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
     
