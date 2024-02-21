@@ -12,8 +12,9 @@ import seaborn as sns
 
 def _get_ome_tiff_channel_annotations(ome_tiff_metadata, volume_channel_annotations, zarr_structure):
     palette = sns.color_palette(None, len(ome_tiff_metadata['Channels'].keys()))
-    # TODO: check if label is used anywhere
-    channel_names_from_csv = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
+    if 'extra_data' in zarr_structure.attrs:
+        channel_names_from_csv = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
+    
     for channel_id_in_ometiff_metadata, channel_key in enumerate(ome_tiff_metadata['Channels']):
         channel = ome_tiff_metadata['Channels'][channel_key]
         # for now FFFFFFF
@@ -32,13 +33,22 @@ def _get_ome_tiff_channel_annotations(ome_tiff_metadata, volume_channel_annotati
         if 'Name' in channel:
             label = channel['Name']
 
-        volume_channel_annotations.append(
-            {
-                'channel_id': channel_names_from_csv[channel_id_in_ometiff_metadata],
-                'color': color,
-                'label': channel_names_from_csv[channel_id_in_ometiff_metadata]
-            }
-        )
+        if channel_names_from_csv:
+            volume_channel_annotations.append(
+                {
+                    'channel_id': channel_names_from_csv[channel_id_in_ometiff_metadata],
+                    'color': color,
+                    'label': channel_names_from_csv[channel_id_in_ometiff_metadata]
+                }
+            )
+        else:
+            volume_channel_annotations.append(
+                {
+                    'channel_id': str(channel_id_in_ometiff_metadata),
+                    'color': color,
+                    'label': label
+                }
+            )
 
 def extract_ome_tiff_image_annotations(internal_volume: InternalVolume):
     # d = {
