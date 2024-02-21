@@ -28,11 +28,19 @@ def ometiff_image_processing(internal_volume: InternalVolume):
     internal_volume.custom_data['ometiff_metadata'] = metadata
 
     print(f"Processing volume file {internal_volume.volume_input_path}")
+    # TODO: this assumes array is 4D
+    # could try to use metadata['SizeC'] for example
+    # need to hardcode this such that it accepts only 'SizeT' == 1
+    if metadata['SizeT'] > 1:
+        raise Exception('SizeT > 1 is not supported')
     if (metadata['DimOrder'] == 'TZCYX'):
         # need to make it CZYX
         # CXYZ order now
         corrected_volume_arr_data = img_array[...].swapaxes(0,1).swapaxes(1,3)
     elif (metadata['DimOrder'] == 'CTZYX' or metadata['DimOrder'] == 'TCZYX'):
+        # TODO: check dimensionality of array
+        # metadata does not tells us dimensionality of array
+        # TODO: need to do the same for segmentation?
         corrected_volume_arr_data = img_array[...].swapaxes(0,2)
         # corrected_volume_arr_data = img_array[...].swapaxes(0,1).swapaxes(1,3)
     else:
@@ -48,7 +56,8 @@ def ometiff_image_processing(internal_volume: InternalVolume):
     # channel_names = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
     # print(f'Channel names: {channel_names}')
     
-    for channel in range(dask_arr.shape[0]):
+    # TODO: use metadata['SizeC']
+    for channel in range(metadata['SizeC']):
         store_volume_data_in_zarr_stucture(
             data=dask_arr[channel],
             volume_data_group=volume_data_group,
