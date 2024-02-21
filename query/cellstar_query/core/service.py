@@ -163,7 +163,7 @@ class VolumeServerService:
                 except KeyError as e:
                     print("Exception in get_meshes: " + str(e))
                     meta = await self.db.read_metadata(req.source, req.structure_id)
-                    segments_levels = self._extract_segments_detail_levels(meta)
+                    segments_levels = self._extract_segments_detail_levels(meta, timeframe=req.time, segmentation_id=req.segmentation_id)
                     error_msg = f"Invalid segment_id={req.segment_id} or detail_lvl={req.detail_lvl} (available segment_ids and detail_lvls: {segments_levels})"
                     raise KeyError(error_msg)
         with Timing("serialize meshes"):
@@ -182,18 +182,25 @@ class VolumeServerService:
             except KeyError as e:
                 print("Exception in get_meshes: " + str(e))
                 meta = await self.db.read_metadata(req.source, req.structure_id)
-                segments_levels = self._extract_segments_detail_levels(meta)
+                segments_levels = self._extract_segments_detail_levels(meta, timeframe=req.time, segmentation_id=req.segmentation_id)
                 error_msg = f"Invalid segment_id={req.segment_id} or detail_lvl={req.detail_lvl} (available segment_ids and detail_lvls: {segments_levels})"
                 raise KeyError(error_msg)
 
         return meshes
         # cif = convert_meshes(meshes, metadata, req.detail_lvl(), [10, 10, 10])  # TODO: replace 10,10,10 with cell size
 
-    def _extract_segments_detail_levels(self, meta: VolumeMetadata) -> dict[int, list[int]]:
+    def _extract_segments_detail_levels(self, meta: VolumeMetadata, timeframe: int, segmentation_id: str) -> dict[int, list[int]]:
         """Extract available segment_ids and detail_lvls for each segment_id"""
         meta_js = meta.json_metadata()
+        # should accept timeframe parameter and segmentation id
+
         segments_levels = (
-            meta_js.get("segmentation_meshes", {}).get("mesh_component_numbers", {}).get("segment_ids", {})
+            meta_js.get("segmentation_meshes", {})
+            .get("segmentation_metadata", {})
+            .get(segmentation_id, {})
+            .get("mesh_timeframes", {})
+            .get(str(timeframe), {})
+            .get("segment_ids", {})
         )
         result: dict[int, list[int]] = defaultdict(list)
         for seg, obj in segments_levels.items():
