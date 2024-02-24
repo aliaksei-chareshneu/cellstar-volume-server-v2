@@ -1,7 +1,7 @@
 from typing import Optional
 from cellstar_db.file_system.annotations_context import AnnnotationsEditContext
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
-from cellstar_db.models import DescriptionData, SegmentAnnotationData
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, SegmentAnnotationData
 
 from fastapi import Body, FastAPI, Query, Response
 from starlette.responses import JSONResponse
@@ -15,6 +15,18 @@ from cellstar_query.query import HTTP_CODE_UNPROCESSABLE_ENTITY, get_geometric_s
 
 def configure_endpoints(app: FastAPI, volume_server: VolumeServerService):
     # TODO: make it pydantic model for validation purposes
+    @app.post("/v1/{source}/{id}/annotations_json/update")
+    async def annotations_json_update(source: str, id: str,
+        annotations_json: AnnotationsMetadata = Body(..., embed=True)
+    ) -> None:
+        db: FileSystemVolumeServerDB = volume_server.db
+        # TODO: how to post entire json?
+        # TODO: can annotations context be used for that?
+
+        with db.edit_annotations(source, id) as ctx:
+            ctx: AnnnotationsEditContext
+            await ctx.update_annotations_json(annotations_json)
+
     @app.post("/v1/{source}/{id}/descriptions/edit")
     async def edit_descriptions_endpoint(source: str, id: str,
         descriptions: list[DescriptionData] = Body(..., embed=True)

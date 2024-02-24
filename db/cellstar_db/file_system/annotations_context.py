@@ -1,10 +1,14 @@
 from uuid import uuid4
 from cellstar_db.file_system.constants import ANNOTATION_METADATA_FILENAME
 from cellstar_db.protocol import VolumeServerDB
-from cellstar_db.models import DescriptionData, EntryId, SegmentAnnotationData
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData
 from cellstar_preprocessor.flows.common import save_dict_to_json_file
 
 class AnnnotationsEditContext:
+    async def update_annotations_json(self, annotations_json: AnnotationsMetadata):
+        path = self.db._path_to_object(namespace=self.namespace, key=self.key)
+        save_dict_to_json_file(annotations_json, ANNOTATION_METADATA_FILENAME, path)
+
     async def remove_descriptions(self, ids: list[str]):
         # 1. read annotations.json file using existing read_annotations function to AnnotationsMetadata TypedDict in d variable
         d = await self.db.read_annotations(namespace=self.namespace, key=self.key)
