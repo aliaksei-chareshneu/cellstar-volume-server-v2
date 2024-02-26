@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-import server.cellstar_server.app.api.v1 as api_v1
+import cellstar_server.app.api.v1 as api_v1
 from cellstar_query.core.service import VolumeServerService
 from cellstar_server.app.settings import settings
 
