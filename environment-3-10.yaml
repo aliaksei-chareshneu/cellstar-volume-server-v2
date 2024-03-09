@@ -22,6 +22,7 @@ dependencies:
   - scipy
   - starlette==0.17.1
   - uvicorn==0.17.6
+  - numba
   # there were issues with version of this package
   # uncomment if without it it would not work
   # - vtk==9.0.3
