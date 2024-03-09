@@ -254,7 +254,7 @@ class MeshDataQueryTask(DataQueryTask):
         super().__init__(params)
         self.mesh_query_type = query_specific_params['mesh_query_type']
         # self.segment_id = args.segment_id
-        # self.detail_lvl = args.detail_lvl
+        self.detail_lvl = args.detail_lvl
         self.segmentation_id = args.segmentation_id
     async def execute(self):
         if self.mesh_query_type == QueryTypes.mesh:
@@ -289,7 +289,7 @@ class MeshDataQueryTask(DataQueryTask):
                     id=self.entry_id,
                     time=self.time,
                     segment_id=segment_id,
-                    detail_lvl=1
+                    detail_lvl=self.detail_lvl
                 )
                 response.append((segment_id, r))
             # 3. change Query
@@ -408,7 +408,7 @@ def _add_arguments(parser, query: BaseQuery):
     if isinstance(query, MeshDataQuery):
         required_query_args.add_argument('--segmentation-id', type=str, required=True, help='Segmentation ID (e.g. 0)', default='0')
         # required_query_args.add_argument('--segment-id', required=True, type=int, help='Segment ID of mesh (e.g 1)')
-        # required_query_args.add_argument('--detail-lvl', required=True, type=int, help='Required detail level (1 is highest resolution)', default=1)
+        required_query_args.add_argument('--detail-lvl', required=True, type=int, help='Required detail level (1 is highest resolution)', default=1)
     
     if isinstance(query, GeometricSegmentationQuery):
         required_query_args.add_argument('--segmentation-id', type=str, required=True, help='Segmentation ID (e.g. 0)', default='0')
