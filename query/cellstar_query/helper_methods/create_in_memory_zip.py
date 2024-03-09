@@ -5,7 +5,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 # zip with bytes in memory
-def create_in_memory_zip(files_data: list[tuple[str, Union[bytes, dict]]]) -> bytes:
+def create_in_memory_zip(files_data: list[tuple[str | list[str], Union[bytes, dict]]]) -> bytes:
 
     file = io.BytesIO()
     with ZipFile(file, 'w', ZIP_DEFLATED) as zip_file:
@@ -15,6 +15,13 @@ def create_in_memory_zip(files_data: list[tuple[str, Union[bytes, dict]]]) -> by
         for name, content in files_data:
             if isinstance(content, bytes):
                 zip_file.writestr(name, content)
+            elif isinstance(content, list):
+                # names could be list as well
+                # e.g. list of segment-ids as names
+                # write in archive in a loop
+                for n, c in content:
+                # for index, n in enumerate(name):
+                    zip_file.writestr(f'{n}.bcif', c)
             elif isinstance(content, dict):
                 dumped_JSON: str = json.dumps(content, ensure_ascii=False, indent=4)
                 zip_file.writestr(name, data=dumped_JSON)

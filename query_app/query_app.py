@@ -8,6 +8,7 @@ from typing import Any, Coroutine, Literal, Optional, Protocol, Type, TypedDict,
 from attr import dataclass
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.models import Metadata
 from cellstar_query.helper_methods.create_in_memory_zip import create_in_memory_zip
 # from cellstar_query.json_numpy_response import _NumpyJsonEncoder, JSONNumpyResponse
 # from fastapi import Query
@@ -127,7 +128,8 @@ class CompositeQueryTaskResponse:
 
 @dataclass
 class QueryResponse:
-    response: Union[bytes, str, CompositeQueryTaskResponse]
+    # NOTE: list[tuple[str, bytes]] - list of tuples where str = segment_id, bytes - bcif
+    response: Union[bytes, list[tuple[str, bytes]], str, CompositeQueryTaskResponse]
     type: str
 
 class QuerySpecificParams(TypedDict):
@@ -251,30 +253,46 @@ class MeshDataQueryTask(DataQueryTask):
         args, volume_server, query_specific_params = params.values()
         super().__init__(params)
         self.mesh_query_type = query_specific_params['mesh_query_type']
-        self.segment_id = args.segment_id
-        self.detail_lvl = args.detail_lvl
+        # self.segment_id = args.segment_id
+        # self.detail_lvl = args.detail_lvl
         self.segmentation_id = args.segmentation_id
     async def execute(self):
         if self.mesh_query_type == QueryTypes.mesh:
-            response = await get_meshes_query(
-                volume_server=self.volume_server,
-                segmentation_id=self.segmentation_id,
-                source=self.source_db,
-                id=self.entry_id,
-                time=self.time,
-                segment_id=self.segment_id,
-                detail_lvl=self.detail_lvl
-            )
+            # TODO: later do this
+            # response = await get_meshes_query(
+            #     volume_server=self.volume_server,
+            #     segmentation_id=self.segmentation_id,
+            #     source=self.source_db,
+            #     id=self.entry_id,
+            #     time=self.time,
+            #     segment_id=self.segment_id,
+            #     detail_lvl=self.detail_lvl
+            # )
+            pass
         elif self.mesh_query_type == QueryTypes.mesh_bcif:
-            response = await get_meshes_bcif_query(
-                volume_server=self.volume_server,
-                segmentation_id=self.segmentation_id,
-                source=self.source_db,
-                id=self.entry_id,
-                time=self.time,
-                segment_id=self.segment_id,
-                detail_lvl=self.detail_lvl
-            )
+            # aggregate responses
+            # PLAN: get all mesh segment_ids
+            # TODO: get all mesh segment_ids
+            # from metadata?
+            metadata_response = await get_metadata_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
+            mr: Metadata = metadata_response['grid']
+            # TODO: get all segment ids from segmentation metadata
+            # mesh_timeframes
+            segment_ids = list(mr['segmentation_meshes']['segmentation_metadata'][self.segmentation_id]['mesh_timeframes'][str(self.time)]['segment_ids'].keys())
+            # 2. do get_meshes_bcif_query in a loop
+            response = []
+            for segment_id in segment_ids:
+                r = await get_meshes_bcif_query(
+                    volume_server=self.volume_server,
+                    segmentation_id=self.segmentation_id,
+                    source=self.source_db,
+                    id=self.entry_id,
+                    time=self.time,
+                    segment_id=segment_id,
+                    detail_lvl=1
+                )
+                response.append((segment_id, r))
+            # 3. change Query
         return QueryResponse(response=response, type=self.query_type)
 
 class GeometricSegmentationQueryTask(DataQueryTask):
@@ -336,10 +354,12 @@ class CompositeQueryTask(QueryTask):
         for subtask in self.subtasks:
             response = await subtask.execute()
             # TODO: how to get extension?
+            # TODO: how extension is determined for volume and segmentation?
             if isinstance(response.response, bytes):
                 extension = '.bcif'
             elif isinstance(response.response, dict):
                 extension = '.json'
+            # elif isinstance(response.response, list[bytes]):
 
             composite_response.append(
                 (f'{response.type}{extension}', response.response)
@@ -387,8 +407,8 @@ def _add_arguments(parser, query: BaseQuery):
 
     if isinstance(query, MeshDataQuery):
         required_query_args.add_argument('--segmentation-id', type=str, required=True, help='Segmentation ID (e.g. 0)', default='0')
-        required_query_args.add_argument('--segment-id', required=True, type=int, help='Segment ID of mesh (e.g 1)')
-        required_query_args.add_argument('--detail-lvl', required=True, type=int, help='Required detail level (1 is highest resolution)', default=1)
+        # required_query_args.add_argument('--segment-id', required=True, type=int, help='Segment ID of mesh (e.g 1)')
+        # required_query_args.add_argument('--detail-lvl', required=True, type=int, help='Required detail level (1 is highest resolution)', default=1)
     
     if isinstance(query, GeometricSegmentationQuery):
         required_query_args.add_argument('--segmentation-id', type=str, required=True, help='Segmentation ID (e.g. 0)', default='0')
@@ -424,7 +444,9 @@ def _create_parsers(common_subparsers, query_types: list[BaseQuery]):
 
 def _write_to_file(args: argparse.Namespace, response: Union[QueryResponse, CompositeQueryTaskResponse]):
     r = response.response
-    if isinstance(r, bytes) or isinstance(response, CompositeQueryTaskResponse):
+    # TODO: add here case for list[bytes]
+    # s
+    if isinstance(r, bytes) or isinstance (r, list) or isinstance(response, CompositeQueryTaskResponse):
         file_writing_mode = 'wb'
     elif isinstance(r, str) or isinstance(r, list) or isinstance(r, dict):
         file_writing_mode = 'w'
@@ -435,11 +457,20 @@ def _write_to_file(args: argparse.Namespace, response: Union[QueryResponse, Comp
         if args.query_type in QUERY_TYPES_WITH_JSON_RESPONSE:
             json.dump(r, f, indent=4)
         elif args.query_type == QueryTypes.mesh:
+            # TODO: later json
             json.dump(r, f, indent=4, cls=_NumpyJsonEncoder)
 
         elif args.query_type in COMPOSITE_QUERY_TYPES:
             zip_data = create_in_memory_zip(r)
             f.write(zip_data)
+        elif args.query_type == QueryTypes.mesh_bcif:
+            pass
+            # TODO: make it work later
+            # TODO: r would be list[bytes]
+            # produce list of zip files
+            #  
+            # pack all mesh bcifs into a single zip?
+            # 
         else: 
             f.write(r)
 
