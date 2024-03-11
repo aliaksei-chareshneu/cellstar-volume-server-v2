@@ -20,7 +20,7 @@ def test_mesh_bcif_query():
         "--source-db", "empiar",
         "--time", "0",
         "--segmentation-id", "0",
-        "--segment-id", "1", "--detail-lvl", "2"
+        "--detail-lvl", "2"
     ]
     subprocess.run(
         commands_lst
