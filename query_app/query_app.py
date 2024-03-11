@@ -31,7 +31,7 @@ class QueryTypes(str, Enum):
     segmentation_box = "segmentation-box"
     volume_cell = "volume-cell"
     segmentation_cell = "segmentation-cell"
-    mesh = "mesh"
+    # mesh = "mesh"
     mesh_bcif = "mesh-bcif"
     geometric_segmentation = "geometric-segmentation"
     metadata = "metadata"
@@ -105,7 +105,6 @@ QUERY_TYPES: list[BaseQuery] = [
     VolumetricDataQuery(name=QueryTypes.segmentation_box.value, isSegmentation=True, isBox=True),
     VolumetricDataQuery(name=QueryTypes.volume_cell.value, isSegmentation=False, isBox=False),
     VolumetricDataQuery(name=QueryTypes.segmentation_cell.value, isSegmentation=True, isBox=False),
-    MeshDataQuery(name=QueryTypes.mesh.value),
     MeshDataQuery(name=QueryTypes.mesh_bcif.value),
     GeometricSegmentationQuery(name=QueryTypes.geometric_segmentation.value),
     EntryInfoQuery(name=QueryTypes.metadata.value),
@@ -134,7 +133,7 @@ class QueryResponse:
 
 class QuerySpecificParams(TypedDict):
     data_type: Optional[Literal['volume', 'segmentation', 'geometric-segmentation']]
-    mesh_query_type: Optional[Literal[QueryTypes.mesh, QueryTypes.mesh_bcif]]
+    mesh_query_type: Optional[Literal[QueryTypes.mesh_bcif]]
     entry_info_query_type: Optional[Literal[QueryTypes.metadata, QueryTypes.volume_info, QueryTypes.annotations]]
     global_info_query_type: Optional[Literal[QueryTypes.list_entries, QueryTypes.list_entries_keyword]]
 
@@ -257,19 +256,7 @@ class MeshDataQueryTask(DataQueryTask):
         self.detail_lvl = args.detail_lvl
         self.segmentation_id = args.segmentation_id
     async def execute(self):
-        if self.mesh_query_type == QueryTypes.mesh:
-            # TODO: later do this
-            # response = await get_meshes_query(
-            #     volume_server=self.volume_server,
-            #     segmentation_id=self.segmentation_id,
-            #     source=self.source_db,
-            #     id=self.entry_id,
-            #     time=self.time,
-            #     segment_id=self.segment_id,
-            #     detail_lvl=self.detail_lvl
-            # )
-            pass
-        elif self.mesh_query_type == QueryTypes.mesh_bcif:
+        if self.mesh_query_type == QueryTypes.mesh_bcif:
             # aggregate responses
             # PLAN: get all mesh segment_ids
             # TODO: get all mesh segment_ids
@@ -456,21 +443,12 @@ def _write_to_file(args: argparse.Namespace, response: Union[QueryResponse, Comp
     with open(str(Path(args.out).resolve()), file_writing_mode) as f:
         if args.query_type in QUERY_TYPES_WITH_JSON_RESPONSE:
             json.dump(r, f, indent=4)
-        elif args.query_type == QueryTypes.mesh:
-            # TODO: later json
-            json.dump(r, f, indent=4, cls=_NumpyJsonEncoder)
-
         elif args.query_type in COMPOSITE_QUERY_TYPES:
             zip_data = create_in_memory_zip(r)
             f.write(zip_data)
         elif args.query_type == QueryTypes.mesh_bcif:
-            pass
-            # TODO: make it work later
-            # TODO: r would be list[bytes]
-            # produce list of zip files
-            #  
-            # pack all mesh bcifs into a single zip?
-            # 
+            zip_data = create_in_memory_zip(r)
+            f.write(zip_data)
         else: 
             f.write(r)
 
@@ -511,14 +489,13 @@ def _create_task(args):
         }
         task = CellDataQueryTask(params=query_params)
 
-    elif args.query_type in [QueryTypes.mesh, QueryTypes.mesh_bcif]:
+    elif args.query_type in [QueryTypes.mesh_bcif]:
         print(f'{args.query_type}')
         query_params['custom_params'] = {
             'mesh_query_type': args.query_type
         }
         task = MeshDataQueryTask(params=query_params)
 
-    # TODO: geometric segmentation query task
     elif args.query_type == QueryTypes.geometric_segmentation:
         print(f'{args.query_type}')
         query_params['custom_params'] = {
