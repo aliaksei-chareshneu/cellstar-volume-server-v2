@@ -28,18 +28,16 @@ To run the CLI tool and produce the static files suitable for visualization at t
         - `segmentation-box`      Segmentation box query
             - ... same arguments as for `volume-box`, but no `--channel-id` argument
             - `--segmentation-id` Segmentation ID (e.g. "0")
-        - `mesh`                  Mesh query (response is `.json` file)
+        - `mesh-bcif`             Mesh bcif query (response is `.bcif` file)
             - `--entry-id`        Entry ID in the database (e.g. "empiar-10070")
             - `--source-db`       Source database (e.g. "empiar")
             - `--time`            Timeframe (e.g. 0)
             - `--segmentation-id` Segmentation ID (e.g "0")
-            - `--segment-id`      Segment ID of mesh (e.g 1)
+            <!-- - `--segment-id`      Segment ID of mesh (e.g 1) -->
             - `--detail-lvl`      Required detail level (1 is the highest resolution)
         - `geometric-segmentation`Geometric segmentation query
             - `--time`            Timeframe (e.g. 0)
             - `--segmentation-id` Segmentation ID, typically UUID (e.g "a9083c61-78f2-4a76-9ecd-1745facaf63e")
-        - `mesh-bcif`             Mesh bcif query (response is .bcif file)
-            - ... same arguments as for mesh query
         - `metadata`              Metadata query
             - `--entry-id`        Entry ID in the database (e.g. "emd-1832")
             - `--source-db`       Source database (e.g. "emdb")
