@@ -142,7 +142,7 @@ def compute_number_of_downsampling_steps(
             math.log(
                 x1_filesize_bytes
                 / (
-                    int_vol_or_seg.downsampling_parameters.min_size_per_channel_mb
+                    int_vol_or_seg.downsampling_parameters.min_size_per_downsampling_lvl_mb
                     * 10**6
                 ),
                 factor,

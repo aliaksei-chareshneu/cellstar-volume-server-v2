@@ -59,7 +59,7 @@ class VolumeParams(BaseModel):
 
 class DownsamplingParams(BaseModel):
     max_size_per_downsampling_lvl_mb: Optional[float]
-    min_size_per_channel_mb: Optional[float] = 5
+    min_size_per_downsampling_lvl_mb: Optional[float] = 5
     min_downsampling_level: Optional[int]
     max_downsampling_level: Optional[int]
     remove_original_resolution: Optional[bool] = False

@@ -953,7 +953,7 @@ async def main_preprocessor(
             force_volume_dtype=force_volume_dtype,
         ),
         downsampling=DownsamplingParams(
-            min_size_per_channel_mb=min_size_per_channel_mb,
+            min_size_per_downsampling_lvl_mb=min_size_per_channel_mb,
             max_size_per_downsampling_lvl_mb=max_size_per_downsampling_lvl_mb,
             min_downsampling_level=min_downsampling_level,
             max_downsampling_level=max_downsampling_level,
