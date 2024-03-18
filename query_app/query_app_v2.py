@@ -8,9 +8,9 @@ from typing import Coroutine, Literal, Optional, Protocol, TypedDict, Union
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
-from cellstar_db.models import Metadata
+from cellstar_db.models import Metadata, TimeInfo
 from cellstar_query.core.service import VolumeServerService
-from cellstar_query.query import get_meshes_bcif_query, get_metadata_query, get_segmentation_cell_query, get_volume_cell_query
+from cellstar_query.query import get_geometric_segmentation_query, get_meshes_bcif_query, get_metadata_query, get_segmentation_cell_query, get_volume_cell_query
 from cellstar_query.requests import MetadataRequest
 
 DEFAULT_MAX_POINTS = 1000000000000
@@ -134,6 +134,23 @@ class MeshSegmentationQueryTask(QueryTask):
             response.append((str(segment_id), r))
         return QueryResponse(response=response, type='mesh', input_data=self.__dict__)
 
+class GeometricSegmentationQueryTask(QueryTask):
+    def __init__(self, volume_server: VolumeServerService, time: int, segmentation_id: str, source_db: str, entry_id: str):
+        self.volume_server = volume_server
+        self.time = time
+        self.segmentation_id = segmentation_id
+        self.source_db = source_db
+        self.entry_id = entry_id
+    async def execute(self):
+        response = await get_geometric_segmentation_query(
+                volume_server=self.volume_server,
+                segmentation_id=self.segmentation_id,
+                source=self.source_db,
+                id=self.entry_id,
+                time=self.time
+            )
+        return QueryResponse(response=response, type='primitive', input_data=self.__dict__)
+
 def _get_channel_ids_from_metadata(grid_metadata: Metadata):
     return grid_metadata['volumes']['channel_ids']
 
@@ -177,7 +194,13 @@ def _write_to_file(responses: list[QueryResponse], out_path: Path):
                 dumped_JSON: str = json.dumps(response, ensure_ascii=False, indent=4)
                 zip_file.writestr(name, data=dumped_JSON)
             # TODO: geometric segmentation
-            # elif 
+            elif type == 'primitive':
+                segmentation_id = input_data['segmentation_id']
+                time = input_data['time']
+                name = f'{type}_{segmentation_id}_{time}.json'
+                dumped_JSON: str = json.dumps(response, ensure_ascii=False, indent=4)
+                zip_file.writestr(name, data=dumped_JSON)
+
             # TODO: other types
             # elif type == ''
 
@@ -187,26 +210,62 @@ def _write_to_file(responses: list[QueryResponse], out_path: Path):
     with open(str(out_path.resolve()), 'wb') as f:
         f.write(zip_data)
 
-def _get_mesh_segmentation_ids_from_metadata(grid_metadata: Metadata):
-    if grid_metadata['segmentation_meshes'] and grid_metadata['segmentation_meshes']['segmentation_ids']:
-        return grid_metadata['segmentation_meshes']['segmentation_ids']
+def _get_timeframes_from_timeinfo(t: TimeInfo, segmentation_id: str):
+    return list(range(t[segmentation_id]['start'], t[segmentation_id]['end'] + 1))
+
+def _get_segmentation_timeinfo(grid_metadata: Metadata, kind: Literal['geometric_segmentation', 'segmentation_meshes', 'segmentation_lattices']):
+    if kind in grid_metadata and grid_metadata[kind]['segmentation_ids']:
+        return grid_metadata[kind]['time_info']
     else:
         return []
 
-def _get_lattice_segmentation_ids_from_metadata(grid_metadata: Metadata):
-    if grid_metadata['segmentation_lattices'] and grid_metadata['segmentation_lattices']['segmentation_ids']:
-        return grid_metadata['segmentation_lattices']['segmentation_ids']
+def _get_segmentation_ids(grid_metadata: Metadata, kind: Literal['geometric_segmentation', 'segmentation_meshes', 'segmentation_lattices']):
+    if kind in grid_metadata and 'segmentation_ids' in grid_metadata[kind]:
+        return grid_metadata[kind]['segmentation_ids']
     else:
         return []
-# TODO: other segmentation types
-# def _get_lattice_segmentation_timeframes_from_metadata(grid_metadata: Metadata, segmentation_id: str):
-    # if grid_metadata['segmentation_lattices'] and grid_metadata['segmentation_lattices']['segmentation_ids']:
-    #     start = grid_metadata['segmentation_lattices']['time_info'][segmentation_id]['start']
-    #     end = grid_metadata['segmentation_lattices']['time_info'][segmentation_id]['end']
-    
-    #     return list(range(start, end + 1))
-    # else:
-    #     return []
+
+def _query_segmentation_data(kind: Literal['geometric_segmentation', 'segmentation_meshes', 'segmentation_lattices'], parsed_params: JsonQueryParams, metadata: Metadata, volume_server: VolumeServerService):
+    entry_id = parsed_params['entry_id']
+    source_db = parsed_params['source_db']
+
+    queries_list = []
+    max_points = DEFAULT_MAX_POINTS
+    if 'max_points' in parsed_params:
+        max_points = parsed_params['max_points']
+
+    segmentation_ids = _get_segmentation_ids(metadata, kind)
+
+    if kind == 'segmentation_lattices':
+        task = LatticeSegmentationQueryTask
+    elif kind == 'geometric_segmentation':
+        task = GeometricSegmentationQueryTask
+    elif kind == 'segmentation_meshes':
+        task = MeshSegmentationQueryTask
+
+    for segmentation_id in segmentation_ids:
+        timeinfo = _get_segmentation_timeinfo(metadata, kind)
+        timeframes = _get_timeframes_from_timeinfo(timeinfo, segmentation_id)
+        if 'time' in parsed_params:
+            timeframes = [parsed_params['time']]
+
+        for timeframe in timeframes:
+            if kind == 'segmentation_lattices':
+                queries_list.append(task(
+                    volume_server=volume_server,
+                    time=timeframe,
+                    segmentation_id=segmentation_id,
+                    source_db=source_db,
+                    entry_id=entry_id,
+                    max_points=max_points))
+            else:
+                queries_list.append(task(
+                    volume_server=volume_server,
+                    time=timeframe,
+                    segmentation_id=segmentation_id,
+                    source_db=source_db,
+                    entry_id=entry_id))
+    return queries_list
 
 async def query(args: argparse.Namespace):
     # 1. Parse argparse args
@@ -227,11 +286,6 @@ async def query(args: argparse.Namespace):
     grid_metadata = metadata['grid']
     annotations = metadata['annotation']
 
-    # depending on what is in query params, decide the list of 'subqueries'
-    # to be send
-    # each should be a class instance, similar to query_app
-    # e.g. 
-    # 
     queries_list: list[QueryTaskBase] = []
     channel_ids = _get_channel_ids_from_metadata(grid_metadata)
     if 'channel_id' in parsed_params:
@@ -239,11 +293,11 @@ async def query(args: argparse.Namespace):
 
     max_points = DEFAULT_MAX_POINTS
     timeframes = _get_volume_timeframes_from_metadata(grid_metadata)
-    lattice_segmentation_ids = _get_lattice_segmentation_ids_from_metadata(grid_metadata)
-    mesh_segmentation_ids = _get_mesh_segmentation_ids_from_metadata(grid_metadata)
     if 'max_points' in parsed_params:
         max_points = parsed_params['max_points']
 
+    # TODO: set all timeframes to this
+    # for segmentations as well
     if 'time' in parsed_params:
         timeframes = [parsed_params['time']]
         # ... mesh, shape primitive
@@ -258,32 +312,10 @@ async def query(args: argparse.Namespace):
                 entry_id=entry_id,
                 max_points=max_points))
     
-    for segmentation_id in lattice_segmentation_ids:
-        for timeframe in timeframes:
-            queries_list.append(LatticeSegmentationQueryTask(
-                volume_server=volume_server,
-                time=timeframe,
-                segmentation_id=segmentation_id,
-                source_db=source_db,
-                entry_id=entry_id,
-                max_points=max_points))
-            
-    # meshes
-    for segmentation_id in mesh_segmentation_ids:
-        for timeframe in timeframes:
-            queries_list.append(MeshSegmentationQueryTask(
-                volume_server=volume_server,
-                time=timeframe,
-                segmentation_id=segmentation_id,
-                source_db=source_db,
-                entry_id=entry_id))
-
-    # primitives
-
-    # for segmentation_id in metadata..... lattice_segmentations segmentation ids
-        # for timeframe in metadata...segmentations ...timeinfo
-            # queries_list.append(SegmentationLatticeQuery(segmentation_id, timeframe))
-
+    lat = _query_segmentation_data('segmentation_lattices', parsed_params, grid_metadata, volume_server)
+    mesh = _query_segmentation_data('segmentation_meshes', parsed_params, grid_metadata, volume_server)
+    gs = _query_segmentation_data('geometric_segmentation', parsed_params, grid_metadata, volume_server)
+    queries_list = queries_list + lat + mesh + gs
 
     # NOTE: afterwards, do:
     responses: list[QueryResponse] = []
