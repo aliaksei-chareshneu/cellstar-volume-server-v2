@@ -24,13 +24,12 @@ class QueryResponse:
     input_data: dict
 
 class JsonQueryParams(TypedDict):
-    # TODO: 'all'?
     segmentation_kind: Optional[Literal['mesh', 'lattice', 'primitive']]
     entry_id: str
     source_db: str
-    time: int
-    channel_id: str
-    segmentation_id: str
+    time: Optional[int]
+    channel_id: Optional[str]
+    segmentation_id: Optional[str]
     # TODO: maybe drop it at all and get the first available mesh resolution?
     # detail_lvl: Optional[int]
     max_points: Optional[int]
@@ -321,7 +320,6 @@ async def query(args: argparse.Namespace):
     responses: list[QueryResponse] = []
     responses.append(QueryResponse(response=grid_metadata, type='metadata', input_data={}))
     responses.append(QueryResponse(response=annotations, type='annotations', input_data={}))
-    # TODO: add query.json
     responses.append(QueryResponse(response=parsed_params, type='query', input_data={}))
 
     for query in queries_list:
