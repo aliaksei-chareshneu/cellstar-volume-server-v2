@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
+from cellstar_db.models import VolumeExtraData
 from cellstar_preprocessor.model.input import (
     DownsamplingParams,
     EntryData,
@@ -20,7 +21,7 @@ class InternalVolume:
         quantize_dtype_str: QuantizationDtype,
         quantize_downsampling_levels: tuple,
         pixel_size: Optional[float] = None,
-        custom_data: Optional[object] = None
+        custom_data: Optional[VolumeExtraData] = None
     ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.volume_input_path = volume_input_path

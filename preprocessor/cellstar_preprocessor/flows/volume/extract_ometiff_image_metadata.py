@@ -1,9 +1,10 @@
 from decimal import Decimal
 import re
-from cellstar_db.models import SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids, get_downsamplings, open_zarr_structure_from_path
+from cellstar_db.models import OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids_dict, get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
+from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
 import dask.array as da
@@ -87,13 +88,18 @@ def _get_ometiff_axes_units(ome_tiff_metadata):
     return axes_units
     
 
-def _get_ome_tiff_voxel_sizes_in_downsamplings(root: zarr.Group, boxes_dict, downsamplings, ometiff_metadata):
-    
+# TODO: move to common?
+def _get_ome_tiff_voxel_sizes_in_downsamplings(internal_volume_or_segmentation: InternalVolume | InternalSegmentation, boxes_dict, downsamplings, ometiff_metadata):
+
     ometiff_physical_size_dict: dict[str, str] = {}
-    if 'extra_data' in root.attrs:
-        # TODO: this is in micrometers
-        # we anyway do not support other units
-        l = root.attrs['extra_data']['scale_micron']
+
+    # TODO: here check if internal_volume contains voxel_sizes
+    if 'voxel_size' in internal_volume_or_segmentation.custom_data:
+        l = internal_volume_or_segmentation.custom_data['voxel_size']
+    # if 'extra_data' in root.attrs:
+    #     # TODO: this is in micrometers
+    #     # we anyway do not support other units
+    #     l = root.attrs['extra_data']['scale_micron']
         ometiff_physical_size_dict['x'] = l[0]
         ometiff_physical_size_dict['y'] = l[1]
         ometiff_physical_size_dict['z'] = l[2]
@@ -188,7 +194,8 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     root = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
     )
-    ometiff_metadata = internal_volume.custom_data['ometiff_metadata']
+    ometiff_custom_data: OMETIFFSpecificExtraData = internal_volume.custom_data['dataset_specific_data']['ometiff']
+    ometiff_metadata = ometiff_custom_data['ometiff_source_metadata']
 
     source_db_name = internal_volume.entry_data.source_db_name
     source_db_id = internal_volume.entry_data.source_db_id
@@ -196,10 +203,14 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     # NOTE: sample ometiff has no time
     # TODO: get channel ids same way as in preprocessor_old
     # channel_ids = _get_allencell_image_channel_ids(root)
-    channel_ids = _get_ome_tiff_channel_ids(root, ometiff_metadata)
-    
+    channel_ids_dict = _get_ome_tiff_channel_ids_dict(root, internal_volume)
+    # channel_ids = channel_ids
+    # time and and should be determined correctly based on zarr structure
+    # could add attributes to custom_data
+    # or do metadata sizeT
+
     start_time = 0
-    end_time = 0
+    end_time = ometiff_metadata['SizeT'] - 1
     time_units = "millisecond"
 
     volume_downsamplings = get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
@@ -208,6 +219,7 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     metadata_dict = root.attrs["metadata_dict"]
     metadata_dict["entry_id"]["source_db_name"] = source_db_name
     metadata_dict["entry_id"]["source_db_id"] = source_db_id
+    channel_ids = list(channel_ids_dict.values())
     metadata_dict["volumes"] = VolumesMetadata(
         channel_ids=channel_ids,
         time_info=TimeInfo(
@@ -229,7 +241,7 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     )
 
     _get_ome_tiff_voxel_sizes_in_downsamplings(
-        root=root,
+        internal_volume_or_segmentation=internal_volume,
         boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
         downsamplings=volume_downsamplings,
         ometiff_metadata=ometiff_metadata
