@@ -5,6 +5,34 @@ import numpy as np
 from pydantic import BaseModel, validator
 import zarr
 
+
+class OMETIFFSpecificExtraData(TypedDict):
+    # missing_dimension: str
+    cell_stage: Optional[str]
+    ometiff_source_metadata: Optional[dict]
+
+class VolumeExtraData(TypedDict):
+    voxel_size: list[float, float, float]
+    # map channel number (dimension) to channel id (string)
+    channel_ids_mapping: dict[int, str]
+    dataset_specific_data: Optional[object]
+
+class SegmentationExtraData(TypedDict):
+    voxel_size: list[float, float, float]
+    # map segmentation number (dimension) in case of >3D array (e.g. OMETIFF)
+    # or in case segmentation ids are given as numbers by default
+    # to segmentation id (string)
+    segmentation_ids_mapping: dict[int, str]
+    # could have key = "ometiff"
+    dataset_specific_data: Optional[object]
+
+class ExtraData(TypedDict):
+    volume: Optional[VolumeExtraData]
+    segmentation: Optional[SegmentationExtraData]
+    # for custom things
+    metadata: Optional[object]
+    dataset_specific_data: Optional[object]
+
 # METADATA DATA MODEL
 
 class SamplingBox(TypedDict):

@@ -1,7 +1,7 @@
 from decimal import Decimal
 from uuid import uuid4
 from cellstar_db.models import AnnotationsMetadata, DescriptionData, DescriptionText, SegmentAnnotationData, TargetId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-from cellstar_preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import get_downsamplings, get_ometiff_source_metadata, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
@@ -17,20 +17,13 @@ def _get_allencell_cell_stage(root: zarr.Group):
 
 
 def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSegmentation):
-    # d = {
-    #     'entry_id': {
-    #         'source_db_name': source_db_name,
-    #         'source_db_id': source_db_id
-    #     },
-    #     # 'segment_list': [],
-    #     'segmentation_lattices': [],
-    #     'details': None,
-    #     'volume_channels_annotations': []
-    # }
     root = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
-    ometiff_metadata = internal_segmentation.custom_data['ometiff_metadata']
+    # this is based on Channels which is wrong in many cases
+
+
+    ometiff_metadata = get_ometiff_source_metadata(internal_segmentation)
     d: AnnotationsMetadata = root.attrs["annotations_dict"]
 
     # PLAN: iterate over lattices
@@ -39,10 +32,24 @@ def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSeg
     # that is it
     # create palette
 
-    palette = sns.color_palette(None, len(ometiff_metadata['Channels'].keys()))
-    cell_stage = _get_allencell_cell_stage(root)
-    d['name'] = f'Cell stage: {cell_stage}'
+    # NOTE: in general case assume that Channels are wrong
+    # create palette based on custom_data?
+    # artificial channel ids are there?
+    # now they are
+
+
+    palette = sns.color_palette(None, len(list(internal_segmentation.custom_data['segmentation_ids_mapping'].keys())))
+
+    # palette = sns.color_palette(None, len(ometiff_metadata['Channels'].keys()))
+    
+    # TODO: handle cell stage based on custom data
+    # cell_stage = _get_allencell_cell_stage(root)
+    # d['name'] = f'Cell stage: {cell_stage}'
+    
+    # each has its own color from palette
+    # does not matter which
     count = 0
+
     for label_gr_name, label_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
         # each label group is lattice id
         lattice_id = label_gr_name

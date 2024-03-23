@@ -1,10 +1,13 @@
+from typing import TypedDict
+from cellstar_db.models import OMETIFFSpecificExtraData, VolumeExtraData
+from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import dask.array as da
 import mrcfile
 import numpy as np
 import zarr
 import nibabel as nib
 
-from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids, open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids_dict, _is_channels_correct, open_zarr_structure_from_path, set_ometiff_source_metadata, set_volume_custom_data
 from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.helper_methods import (
     normalize_axis_order_mrcfile,
@@ -14,59 +17,124 @@ from cellstar_preprocessor.model.volume import InternalVolume
 
 from pyometiff import OMETIFFReader
 
+class PreparedOMETIFFData(TypedDict):
+    time: int
+    # channel would be int
+    # TODO: get its name later on
+    channel_number: int
+    data: np.ndarray
+
+def _create_reorder_tuple(d: dict, correct_order: str):
+    reorder_tuple = tuple([d[l] for l in correct_order])
+    return reorder_tuple
+
+def _get_missing_dims(sizesBF: list[int]):
+    sizesBFcorrected = sizesBF[1:]
+    missing = []
+    order = 'TZCYX'
+    for idx, dim in enumerate(sizesBFcorrected):
+        if dim == 1:
+            missing.append(order[idx])
+    print(f'Missing dims: {missing}')
+    return missing 
+
+def prepare_ometiff_for_writing(img_array: np.ndarray, metadata, int_vol_or_seg: InternalVolume | InternalSegmentation):
+    prepared_data: list[PreparedOMETIFFData] = []
+
+    d = {}
+    order = metadata['DimOrder BF Array']
+    for letter in order:
+        d[str(letter)] = order.index(str(letter))
+
+
+    missing_dims = []
+
+    if len(img_array.shape) != 5:
+        local_d = {
+            'T': 0,
+            'Z': 1,
+            'C': 2,
+            'Y': 3,
+            'X': 4
+        }
+        missing_dims = _get_missing_dims(metadata['Sizes BF'])
+        for missing_dim in missing_dims:
+            img_array = np.expand_dims(img_array, axis=local_d[missing_dim])
+
+        d = local_d
+
+    CORRECT_ORDER = 'TCXYZ'
+    reorder_tuple = _create_reorder_tuple(d, CORRECT_ORDER)
+    # NOTE: assumes correct order is TCXYZ
+    
+    custom_data = int_vol_or_seg.custom_data
+
+    rearranged_arr = img_array.transpose(*reorder_tuple)        
+    
+
+    artificial_channel_ids = list(range(rearranged_arr.shape[1]))
+    artificial_channel_ids = [str(x) for x in artificial_channel_ids]
+    # TODO: prepare list of of PreparedOMETIFFData
+    # for each time and channel
+    for time in range(rearranged_arr.shape[0]):
+        time_arr = rearranged_arr[time]
+        for channel_number in range(time_arr.shape[0]):
+            three_d_arr = time_arr[channel_number]
+            p: PreparedOMETIFFData = {
+                'channel_number': channel_number,
+                'time': time,
+                'data': three_d_arr
+            }
+            prepared_data.append(p)
+
+
+    artificial_channel_ids_dict = dict(zip(artificial_channel_ids, artificial_channel_ids))
+    return prepared_data, artificial_channel_ids_dict
+
+
 def ometiff_image_processing(internal_volume: InternalVolume):
     # NOTE: supports only 3D images
 
     zarr_structure: zarr.Group = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
     )
-
+    set_volume_custom_data(internal_volume, zarr_structure)
+    
+    print(f"Processing volume file {internal_volume.volume_input_path}")
+    
     reader = OMETIFFReader(fpath=internal_volume.volume_input_path)
     img_array, metadata, xml_metadata = reader.read()
-    # set map header to metadata to use it in metadata extraction
-    internal_volume.custom_data = {}
-    internal_volume.custom_data['ometiff_metadata'] = metadata
 
-    print(f"Processing volume file {internal_volume.volume_input_path}")
-    # TODO: this assumes array is 4D
-    # could try to use metadata['SizeC'] for example
-    # need to hardcode this such that it accepts only 'SizeT' == 1
-    if metadata['SizeT'] > 1:
-        raise Exception('SizeT > 1 is not supported')
-    if (metadata['DimOrder'] == 'TZCYX'):
-        # need to make it CZYX
-        # CXYZ order now
-        corrected_volume_arr_data = img_array[...].swapaxes(0,1).swapaxes(1,3)
-    elif (metadata['DimOrder'] == 'CTZYX' or metadata['DimOrder'] == 'TCZYX'):
-        # TODO: check dimensionality of array
-        # metadata does not tells us dimensionality of array
-        # TODO: need to do the same for segmentation?
-        corrected_volume_arr_data = img_array[...].swapaxes(0,2)
-        # corrected_volume_arr_data = img_array[...].swapaxes(0,1).swapaxes(1,3)
-    else:
-        raise Exception('DimOrder is not supported')
-    
-    dask_arr = da.from_array(corrected_volume_arr_data)
-    # create volume data group
+    prepared_data, artificial_channel_ids = prepare_ometiff_for_writing(img_array, metadata, internal_volume)
+
     volume_data_group: zarr.Group = zarr_structure.create_group(
         VOLUME_DATA_GROUPNAME
     )
 
-    channel_ids = _get_ome_tiff_channel_ids(zarr_structure, metadata)
-    # channel_names = zarr_structure.attrs['extra_data']['name_dict']['crop_raw']
-    # print(f'Channel names: {channel_names}')
+    set_ometiff_source_metadata(internal_volume, metadata)
     
-    # TODO: use metadata['SizeC']
-    for channel in range(metadata['SizeC']):
-        store_volume_data_in_zarr_stucture(
-            data=dask_arr[channel],
-            volume_data_group=volume_data_group,
-            params_for_storing=internal_volume.params_for_storing,
-            force_dtype=internal_volume.volume_force_dtype,
-            resolution="1",
-            time_frame="0",
-            channel=channel_ids[channel],
-            # quantize_dtype_str=internal_volume.quantize_dtype_str
-        )
+    # NOTE: at that point internal_volume.custom_data should exist
+    # as it is filled by one of three ways
+    
+    # TODO: set internal_volume.custom_data['channel_ids_mapping'] to artificial
+    # if it does not exist
+    if 'channel_ids_mapping' not in internal_volume.custom_data:
+        internal_volume.custom_data['channel_ids_mapping'] = artificial_channel_ids
 
+    channel_ids_mapping: dict[str, str] = internal_volume.custom_data['channel_ids_mapping']
+    for data_item in prepared_data:
+        dask_arr = da.from_array(data_item['data'])
+        channel_number = data_item['channel_number']
+        channel_id = channel_ids_mapping[str(channel_number)]
+        store_volume_data_in_zarr_stucture(
+                data=dask_arr,
+                volume_data_group=volume_data_group,
+                params_for_storing=internal_volume.params_for_storing,
+                force_dtype=internal_volume.volume_force_dtype,
+                resolution="1",
+                time_frame=str(data_item['time']),
+                channel=channel_id,
+                # quantize_dtype_str=internal_volume.quantize_dtype_str
+            )
     print("Volume processed")
+

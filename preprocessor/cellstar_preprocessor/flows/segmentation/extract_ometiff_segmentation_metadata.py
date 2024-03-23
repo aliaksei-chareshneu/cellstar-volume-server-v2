@@ -1,5 +1,5 @@
 from decimal import Decimal
-from cellstar_db.models import SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.models import OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.extract_ometiff_image_metadata import _get_ome_tiff_voxel_sizes_in_downsamplings
@@ -178,21 +178,24 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
     root = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
-    
+    # TODO: same as with volume metadata
     metadata_dict = root.attrs["metadata_dict"]
-    ometiff_metadata = internal_segmentation.custom_data['ometiff_metadata']
+    ometiff_custom_data: OMETIFFSpecificExtraData = internal_segmentation.custom_data['dataset_specific_data']['ometiff']
+    ometiff_metadata = ometiff_custom_data['ometiff_source_metadata']
+    
+    # ometiff_metadata = internal_segmentation.custom_data['ometiff_metadata']
     # NOTE: sample ometiff has no time
     # channel_ids = _get_allencell_segmentation_channel_ids(root)
     start_time = 0
-    end_time = 0
+    end_time = ometiff_metadata['SizeT'] - 1
     time_units = "millisecond"
 
-    original_voxel_size_in_micrometers = _get_allencell_voxel_size(root)
+    # original_voxel_size_in_micrometers = _get_allencell_voxel_size(root)
 
     if LATTICE_SEGMENTATION_DATA_GROUPNAME in root:
         lattice_ids = []
 
-        metadata_dict["segmentation_lattices"]: SegmentationLatticesMetadata = {
+        metadata_dict["segmentation_lattices"] = {
             'segmentation_ids': [],
             'segmentation_sampling_info': {},
             'time_info': {}
@@ -240,7 +243,7 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
             )
 
             _get_ome_tiff_voxel_sizes_in_downsamplings(
-                root=root,
+                internal_volume_or_segmentation=internal_segmentation,
                 boxes_dict=metadata_dict["segmentation_lattices"][
                     "segmentation_sampling_info"
                 ][str(lattice_id)]["boxes"],

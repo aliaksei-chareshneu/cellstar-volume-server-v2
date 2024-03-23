@@ -1,3 +1,4 @@
+from cellstar_preprocessor.flows.volume.ometiff_image_processing import prepare_ometiff_for_writing
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import dask.array as da
 import mrcfile
@@ -8,7 +9,7 @@ import gc
 import numcodecs
 
 
-from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import open_zarr_structure_from_path, set_ometiff_source_metadata, set_segmentation_custom_data
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.helper_methods import (
     normalize_axis_order_mrcfile,
@@ -27,74 +28,58 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
 
     reader = OMETIFFReader(fpath=internal_segmentation.segmentation_input_path)
     img_array, metadata, xml_metadata = reader.read()
-    # set map header to metadata to use it in metadata extraction
-    internal_segmentation.custom_data = {}
-    internal_segmentation.custom_data['ometiff_metadata'] = metadata
-
+    set_segmentation_custom_data(internal_segmentation, zarr_structure)
+    set_ometiff_source_metadata(internal_segmentation, metadata)
+    
     print(f"Processing segmentation file {internal_segmentation.segmentation_input_path}")
-    # TODO: reorder later if necessary according to metadata
-    # (metadata['DimOrder'] == 'TZCYX')
-    # need to swap axes
-    # shape
-    if (metadata['DimOrder'] == 'TZCYX'):
-        # TODO: check dim length, no time dimension actually
-        # so actually ZCYX
-        # (119, 3, 281, 268)
-        # need to make it CZYX
-        # CXYZ order now
-        corrected_arr_data_with_channel = img_array[...].swapaxes(0,1).swapaxes(1,3)
-        # dask_arr = da.from_array(corrected_arr_data)
-        # create volume data group
-        segmentation_data_gr = zarr_structure.create_group(LATTICE_SEGMENTATION_DATA_GROUPNAME)
 
-        # NOTE: several lattices, as channels
-        # NOTE: artificially create set table and grid
-        # similar to omezarr labels processing
+    segmentation_data_gr: zarr.Group = zarr_structure.create_group(LATTICE_SEGMENTATION_DATA_GROUPNAME)
+    
+    
 
+    prepared_data, artificial_channel_ids = prepare_ometiff_for_writing(img_array, metadata, internal_segmentation)
 
-        # TODO: account for channels
-        # TODO: later get channel names from metadata.csv, now from metadata variable
-        # so need to first preprocess csv to get channel 
-        # first it should preprocess metadata.csv
-        # get channel names
-        # pass them 
-        # {'crop_raw': ['dna', 'membrane', 'structure'] for crop_raw
-        # channel_names = ['dna', 'membrane', 'structure']
-        channel_names = zarr_structure.attrs['extra_data']['name_dict']['crop_seg']
-        print(f'Channel names: {channel_names}')
-        
-        for channel in range(corrected_arr_data_with_channel.shape[0]):
-            corrected_arr_data = corrected_arr_data_with_channel[channel]
-            lattice_id_gr = segmentation_data_gr.create_group(channel_names[channel])
+    if 'channel_ids_mapping' not in internal_segmentation.custom_data:
+        internal_segmentation.custom_data['channel_ids_mapping'] = artificial_channel_ids
+    
+    channel_ids_mapping: dict[str, str] = internal_segmentation.custom_data['segmentation_ids_mapping']
 
-            # NOTE: single resolution
-            resolution_gr = lattice_id_gr.create_group('1')
+    # similar to volume do loop
+    for data_item in prepared_data:
+        arr = data_item['data']
+        channel_number = data_item['channel_number']
+        lattice_id = channel_ids_mapping[str(channel_number)]
+        time = data_item['time']
 
-            # NOTE: single timeframe
-            time_group = resolution_gr.create_group('0')
+        # TODO: create datasets etc.
+        lattice_id_gr = segmentation_data_gr.create_group(lattice_id)
 
-            our_arr = time_group.create_dataset(
-                name="grid",
-                shape=corrected_arr_data.shape,
-                data=corrected_arr_data,
-            )
+        # NOTE: single resolution
+        resolution_gr = lattice_id_gr.create_group('1')
 
-            our_set_table = time_group.create_dataset(
-                name="set_table",
-                dtype=object,
-                object_codec=numcodecs.JSON(),
-                shape=1,
-            )
+        # NOTE: single timeframe
+        # time_group = resolution_gr.create_group('0')
+        time_group: zarr.Groups = resolution_gr.create_group(time)
+        our_arr = time_group.create_dataset(
+            name="grid",
+            shape=arr.shape,
+            data=arr,
+        )
 
-            d = {}
-            for value in np.unique(our_arr[...]):
-                d[str(value)] = [int(value)]
+        our_set_table = time_group.create_dataset(
+            name="set_table",
+            dtype=object,
+            object_codec=numcodecs.JSON(),
+            shape=1,
+        )
 
-            our_set_table[...] = [d]
+        d = {}
+        for value in np.unique(our_arr[...]):
+            d[str(value)] = [int(value)]
 
-            del corrected_arr_data
-            gc.collect()
-    else:
-        raise Exception('DimOrder is not supported')
+        our_set_table[...] = [d]
+
+        del arr
+        gc.collect()
 
     print("Segmentation processed")

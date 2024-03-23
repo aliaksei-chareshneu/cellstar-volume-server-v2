@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 from typing import Union
 
+from cellstar_db.models import ExtraData, OMETIFFSpecificExtraData
 import numpy as np
 import zarr
 
@@ -12,29 +13,97 @@ from cellstar_preprocessor.model.volume import InternalVolume
 
 import collections.abc
 
-def _get_ome_tiff_channel_ids(root: zarr.Group, ome_tiff_metadata):
-    # TODO: if custom data = get it from custom_data
-    if 'extra_data' in root.attrs:
-        return root.attrs['extra_data']['name_dict']['crop_raw']
+def _is_channels_correct(source_ometiff_metadata):
+    ch = list(source_ometiff_metadata['Channels'].keys())
+    number_of_channels = source_ometiff_metadata['SizeC']
+    if len(ch) != number_of_channels:
+        return False
     else:
-        channels = ome_tiff_metadata['Channels']
-        # for now just return 0
-        # return [0]
-        channel_ids = []
-        for key in channels:
-            channel = channels[key]
-            channel_id = _parse_ome_tiff_channel_id(channel['ID'])
-            channel_ids.append(channel_id)
+        return True
 
-        return channel_ids
+
+def _get_ome_tiff_channel_ids_dict(root: zarr.Group, internal_volume: InternalVolume):
+    # TODO: fix this part
+    # if 'extra_data' in root.attrs:
+    #     return root.attrs['extra_data']['name_dict']['crop_raw']
+    # if internal_volume.custom_data:
+        # Need to check if there is mapping provided
+        # if not return artificial channel ids
+        # if 'channel_ids_mapping' in internal_volume.custom_data:
+    return internal_volume.custom_data['channel_ids_mapping']
+
+    # elif 'ometiff' in internal_volume.custom_data:
+    #     ometiff_custom_data: OMETIFFExtraData = internal_volume.custom_data['ometiff']
+    #     ome_tiff_metadata = ometiff_custom_data['ometiff_source_metadata']
+        
+        
+    # #     # TODO: fix this part later
+    # #     if _is_channels_correct(ome_tiff_metadata):
+    # #         # TODO: check if this works 
+    # #         print('"Channels" in ometiff metadata are correct')
+    # #         # channels is a dict
+    # #         channels = ome_tiff_metadata['Channels']
+    # #         # for now just return 0
+    # #         # return [0]
+    # #         channel_ids = []
+    # #         for key in channels:
+    # #             channel = channels[key]
+    # #             # NOTE: assumes the order is the same?
+    # #             # or parse
+    # #             channel_id = channel['Name']
+    # #             # channel_id = _parse_ome_tiff_channel_id(channel['ID'])
+    # #             # TODO: do something like 
+    # #             # 
+    # #             channel_ids.append(channel_id)
+
+    # #         return channel_ids
+    # #     # get artificial ones
+    #     # else:
+    #     keys: list[int] = ometiff_custom_data['artificial_channel_ids']
+    #     return dict(zip(str(keys), str(keys)))
+        # return ometiff_custom_data['artificial_channel_ids']
 
 def _parse_ome_tiff_channel_id(ometiff_channel_id: str):
     channel_id = re.sub(r'\W+', '', ometiff_channel_id)
     return channel_id
 
+def set_ometiff_source_metadata(int_vol_or_seg: InternalVolume | InternalSegmentation, metadata):
+    if 'dataset_specific_data' in int_vol_or_seg.custom_data:
+        if 'ometiff' in int_vol_or_seg.custom_data['dataset_specific_data']:
+                c: OMETIFFSpecificExtraData = int_vol_or_seg.custom_data['dataset_specific_data']['ometiff']
+                c['ometiff_source_metadata'] = metadata
+                int_vol_or_seg.custom_data['dataset_specific_data']['ometiff'] = c
+    else:
+        c: OMETIFFSpecificExtraData = {
+            'ometiff_source_metadata': metadata
+        }
+        # if 'dataset_specific_data' in int_vol_or_seg.custom_data               
+        try:
+            int_vol_or_seg.custom_data['dataset_specific_data']['ometiff'] = c
+        except KeyError:
+            int_vol_or_seg.custom_data['dataset_specific_data'] = {
+                "ometiff": c
+            }
+
+def get_ometiff_source_metadata(int_vol_or_seg: InternalVolume | InternalSegmentation):
+    return int_vol_or_seg.custom_data['dataset_specific_data']['ometiff']['ometiff_source_metadata']
+
+def set_volume_custom_data(internal_volume: InternalVolume, zarr_structure: zarr.Group):
+    if 'extra_data' in zarr_structure.attrs:
+        if 'volume' in zarr_structure.attrs['extra_data']:
+            internal_volume.custom_data = zarr_structure.attrs['extra_data']['volume']
+    else:
+        internal_volume.custom_data = {}
+
+def set_segmentation_custom_data(internal_segmentation: InternalSegmentation, zarr_structure: zarr.Group):
+    if 'extra_data' in zarr_structure.attrs:
+        if 'segmentation' in zarr_structure.attrs['extra_data']:
+            internal_segmentation.custom_data = zarr_structure.attrs['extra_data']['segmentation']
+    else:
+        internal_segmentation.custom_data = {}
 
 def process_extra_data(path: Path, intermediate_zarr_structure: Path):
-    data = open_json_file(path)
+    data: ExtraData = open_json_file(path)
     zarr_structure: zarr.Group = open_zarr_structure_from_path(
         intermediate_zarr_structure
     )

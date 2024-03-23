@@ -30,6 +30,7 @@ def map_preprocessing(internal_volume: InternalVolume):
         # temp hack to process rec files with cella 0 0 0
         # if mrc_original.header.cella.x == 0 and mrc_original.header.cella.y == 0 and mrc_original.header.cella.z == 0:
         if internal_volume.pixel_size:
+            # TODO: this is probably wrong
             mrc_original.voxel_size = 1 * internal_volume.pixel_size
 
         header = mrc_original.header
