@@ -7,7 +7,7 @@ import zarr
 
 
 class OMETIFFSpecificExtraData(TypedDict):
-    missing_dimension: str
+    # missing_dimension: str
     cell_stage: Optional[str]
     ometiff_source_metadata: Optional[dict]
 
@@ -32,13 +32,6 @@ class ExtraData(TypedDict):
     # for custom things
     metadata: Optional[object]
     dataset_specific_data: Optional[object]
-
-# class OMETIFFCustomData(TypedDict):
-#     # do we need this?
-#     specific_dataset: bool
-#     # possibly remove this
-#     # artificial_channel_ids: Optional[list[int]]
-#     ometiff_source_metadata: dict
 
 # METADATA DATA MODEL
 

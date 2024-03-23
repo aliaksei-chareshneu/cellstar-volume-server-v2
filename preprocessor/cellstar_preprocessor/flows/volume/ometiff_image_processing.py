@@ -69,22 +69,6 @@ def prepare_ometiff_for_writing(img_array: np.ndarray, metadata, int_vol_or_seg:
     
     custom_data = int_vol_or_seg.custom_data
 
-    # if 'dataset_specific_data' in custom_data:
-    #     if 'ometiff' in custom_data['dataset_specific_data']:
-    #         if 'missing_dimensions' in custom_data['dataset_specific_data']['ometiff']:
-                # may not exist if no missing dimension
-                # ometiff_custom_data: OMETIFFSpecificExtraData = custom_data['dataset_specific_data']['ometiff']
-                # missing_dims: list[str] = ometiff_custom_data['missing_dimensions']
-
-    # if 'extra_data' in zarr_structure.attrs:
-    #     if 'missing_dimensions' in zarr_structure.attrs['extra_data']:
-    #         missing_dim: str = zarr_structure.attrs['extra_data']['missing_dimensions']
-                # TODO: problem here
-                # for missing_dim in missing_dims:
-                #     img_array = np.expand_dims(img_array, axis=d[missing_dim])
-
-    # TODO: fix for mitocheck
-    # need to provide missing dimensions (Z, C)
     rearranged_arr = img_array.transpose(*reorder_tuple)        
     
 
