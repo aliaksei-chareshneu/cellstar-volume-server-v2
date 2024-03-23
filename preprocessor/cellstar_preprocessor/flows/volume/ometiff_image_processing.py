@@ -28,36 +28,60 @@ def _create_reorder_tuple(d: dict, correct_order: str):
     reorder_tuple = tuple([d[l] for l in correct_order])
     return reorder_tuple
 
+def _get_missing_dims(sizesBF: list[int]):
+    sizesBFcorrected = sizesBF[1:]
+    missing = []
+    order = 'TZCYX'
+    for idx, dim in enumerate(sizesBFcorrected):
+        if dim == 1:
+            missing.append(order[idx])
+    print(f'Missing dims: {missing}')
+    return missing 
+
 def prepare_ometiff_for_writing(img_array: np.ndarray, metadata, int_vol_or_seg: InternalVolume | InternalSegmentation):
     prepared_data: list[PreparedOMETIFFData] = []
-    order: str = metadata['DimOrder BF Array']
+
     d = {}
+    order = metadata['DimOrder BF Array']
     for letter in order:
         d[str(letter)] = order.index(str(letter))
 
+
+    missing_dims = []
+
+    if len(img_array.shape) != 5:
+        local_d = {
+            'T': 0,
+            'Z': 1,
+            'C': 2,
+            'Y': 3,
+            'X': 4
+        }
+        missing_dims = _get_missing_dims(metadata['Sizes BF'])
+        for missing_dim in missing_dims:
+            img_array = np.expand_dims(img_array, axis=local_d[missing_dim])
+
+        d = local_d
 
     CORRECT_ORDER = 'TCXYZ'
     reorder_tuple = _create_reorder_tuple(d, CORRECT_ORDER)
     # NOTE: assumes correct order is TCXYZ
     
-    # deal with missing dimension
-    # should check internal volume custom data dataset_specific_data?
-    
     custom_data = int_vol_or_seg.custom_data
 
-    if 'dataset_specific_data' in custom_data:
-        if 'ometiff' in custom_data['dataset_specific_data']:
-            if 'missing_dimensions' in custom_data['dataset_specific_data']['ometiff']:
+    # if 'dataset_specific_data' in custom_data:
+    #     if 'ometiff' in custom_data['dataset_specific_data']:
+    #         if 'missing_dimensions' in custom_data['dataset_specific_data']['ometiff']:
                 # may not exist if no missing dimension
-                ometiff_custom_data: OMETIFFSpecificExtraData = custom_data['dataset_specific_data']['ometiff']
-                missing_dims: list[str] = ometiff_custom_data['missing_dimensions']
+                # ometiff_custom_data: OMETIFFSpecificExtraData = custom_data['dataset_specific_data']['ometiff']
+                # missing_dims: list[str] = ometiff_custom_data['missing_dimensions']
 
     # if 'extra_data' in zarr_structure.attrs:
     #     if 'missing_dimensions' in zarr_structure.attrs['extra_data']:
     #         missing_dim: str = zarr_structure.attrs['extra_data']['missing_dimensions']
                 # TODO: problem here
-                for missing_dim in missing_dims:
-                    img_array = np.expand_dims(img_array, axis=d[missing_dim])
+                # for missing_dim in missing_dims:
+                #     img_array = np.expand_dims(img_array, axis=d[missing_dim])
 
     # TODO: fix for mitocheck
     # need to provide missing dimensions (Z, C)
