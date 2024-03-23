@@ -5,6 +5,7 @@ import re
 from typing import Union
 
 from cellstar_db.models import ExtraData, OMETIFFSpecificExtraData
+from cellstar_preprocessor.flows.constants import SHORT_UNIT_NAMES_TO_LONG, SPACE_UNITS_CONVERSION_DICT
 import numpy as np
 import zarr
 
@@ -294,3 +295,100 @@ def decide_np_dtype(mode: str, endianness: str):
 def chunk_numpy_arr(arr, chunk_size):
     lst = np.split(arr, np.arange(chunk_size, len(arr), chunk_size))
     return np.stack(lst, axis=0)
+
+
+def _get_ometiff_physical_size(ome_tiff_metadata):
+    d = {}
+    if 'PhysicalSizeX' in ome_tiff_metadata:
+        d['x'] = ome_tiff_metadata['PhysicalSizeX']
+    else:
+        d['x'] = 1.0
+
+    if 'PhysicalSizeY' in ome_tiff_metadata:
+        d['y'] = ome_tiff_metadata['PhysicalSizeY']
+    else:
+        d['y'] = 1.0
+
+    if 'PhysicalSizeZ' in ome_tiff_metadata:
+        d['z'] = ome_tiff_metadata['PhysicalSizeZ']
+    else:
+        d['z'] = 1.0
+
+    return d
+
+
+def _convert_to_angstroms(value, input_unit: str):
+    # TODO: support other units
+    if input_unit in SPACE_UNITS_CONVERSION_DICT:
+        return value * SPACE_UNITS_CONVERSION_DICT[input_unit]
+    else:
+        raise Exception(f"{input_unit} space unit is not supported")
+
+
+def _convert_short_units_to_long(short_unit_name: str):
+    # TODO: support conversion of other axes units (currently only µm to micrometer).
+    # https://www.openmicroscopy.org/Schemas/Documentation/Generated/OME-2016-06/ome_xsd.html#Pixels_PhysicalSizeXUnit
+    if short_unit_name in SHORT_UNIT_NAMES_TO_LONG:
+        return SHORT_UNIT_NAMES_TO_LONG[short_unit_name]
+    else:
+        raise Exception('Short unit name is not supported')
+
+
+def _get_ometiff_axes_units(ome_tiff_metadata):
+    axes_units = {}
+    if 'PhysicalSizeXUnit' in ome_tiff_metadata:
+        axes_units['x'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeXUnit'])
+    else:
+        axes_units['x'] = 'micrometer'
+
+    if 'PhysicalSizeYUnit' in ome_tiff_metadata:
+        axes_units['y'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeYUnit'])
+    else:
+        axes_units['y'] = 'micrometer'
+
+    if 'PhysicalSizeZUnit' in ome_tiff_metadata:
+        axes_units['z'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeZUnit'])
+    else:
+        axes_units['z'] = 'micrometer'
+
+    return axes_units
+
+
+def _get_ome_tiff_voxel_sizes_in_downsamplings(internal_volume_or_segmentation: InternalVolume | InternalSegmentation, boxes_dict, downsamplings, ometiff_metadata):
+
+    ometiff_physical_size_dict: dict[str, str] = {}
+
+    # TODO: here check if internal_volume contains voxel_sizes
+    if 'voxel_size' in internal_volume_or_segmentation.custom_data:
+        l = internal_volume_or_segmentation.custom_data['voxel_size']
+    # if 'extra_data' in root.attrs:
+    #     # TODO: this is in micrometers
+    #     # we anyway do not support other units
+    #     l = root.attrs['extra_data']['scale_micron']
+        ometiff_physical_size_dict['x'] = l[0]
+        ometiff_physical_size_dict['y'] = l[1]
+        ometiff_physical_size_dict['z'] = l[2]
+    else:
+        # TODO: try to get from ometiff itself
+        ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
+
+
+
+    ometiff_axes_units_dict = _get_ometiff_axes_units(ometiff_metadata)
+    # ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
+
+    for level in downsamplings:
+        downsampling_level = str(level)
+        if downsampling_level == '1':
+            boxes_dict[downsampling_level]['voxel_size'] = [
+                _convert_to_angstroms(ometiff_physical_size_dict['x'], ometiff_axes_units_dict['x']),
+                _convert_to_angstroms(ometiff_physical_size_dict['y'], ometiff_axes_units_dict['y']),
+                _convert_to_angstroms(ometiff_physical_size_dict['z'], ometiff_axes_units_dict['z'])
+            ]
+        else:
+            # NOTE: rounding error - if one of dimensions in original data is odd
+            boxes_dict[downsampling_level]['voxel_size'] = [
+                _convert_to_angstroms(ometiff_physical_size_dict['x'] * int(downsampling_level), ometiff_axes_units_dict['x']),
+                _convert_to_angstroms(ometiff_physical_size_dict['y'] * int(downsampling_level), ometiff_axes_units_dict['y']),
+                _convert_to_angstroms(ometiff_physical_size_dict['z'] * int(downsampling_level), ometiff_axes_units_dict['z'])
+            ]

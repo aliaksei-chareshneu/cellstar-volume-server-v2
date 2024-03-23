@@ -65,3 +65,7 @@ INIT_METADATA_DICT: Metadata = {
 
 GEOMETRIC_SEGMENTATIONS_ZATTRS = 'geometric_segmentations'
 RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS = 'raw_geometric_segmentation_input'
+SHORT_UNIT_NAMES_TO_LONG = {
+    'µm': 'micrometer',
+    # TODO: support other units
+}

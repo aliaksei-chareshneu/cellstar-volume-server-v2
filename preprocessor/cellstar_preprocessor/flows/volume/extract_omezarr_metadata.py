@@ -1,4 +1,5 @@
 from cellstar_preprocessor.flows import segmentation
+from cellstar_preprocessor.flows.common import _convert_to_angstroms
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import numpy as np
 import zarr
@@ -11,7 +12,6 @@ from cellstar_preprocessor.flows.common import (
 )
 from cellstar_preprocessor.flows.constants import (
     LATTICE_SEGMENTATION_DATA_GROUPNAME,
-    SPACE_UNITS_CONVERSION_DICT,
 )
 from cellstar_preprocessor.model.volume import InternalVolume
 
@@ -169,14 +169,6 @@ def get_voxel_sizes_in_downsamplings(ome_zarr_attrs, boxes_dict):
                 raise Exception("First transformation should be of scale type")
 
     return boxes_dict
-
-
-def _convert_to_angstroms(value, input_unit: str):
-    # TODO: support other units
-    if input_unit in SPACE_UNITS_CONVERSION_DICT:
-        return value * SPACE_UNITS_CONVERSION_DICT[input_unit]
-    else:
-        raise Exception(f"{input_unit} space unit is not supported")
 
 
 def get_time_units(ome_zarr_attrs):

@@ -2,7 +2,7 @@ from decimal import Decimal
 from cellstar_db.models import AnnotationsMetadata, EntryId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids_dict, get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
-from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
+from cellstar_preprocessor.flows.common import _convert_to_angstroms
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
 import dask.array as da

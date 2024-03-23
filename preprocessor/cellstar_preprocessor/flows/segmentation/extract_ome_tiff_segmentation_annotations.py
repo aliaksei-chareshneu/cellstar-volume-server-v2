@@ -3,7 +3,7 @@ from uuid import uuid4
 from cellstar_db.models import AnnotationsMetadata, DescriptionData, DescriptionText, SegmentAnnotationData, TargetId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import get_downsamplings, get_ometiff_source_metadata, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
-from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
+from cellstar_preprocessor.flows.common import _convert_to_angstroms
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
