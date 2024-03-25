@@ -3,11 +3,10 @@ import json
 import math
 from pathlib import Path
 import re
-from typing import Union
+from typing import TypedDict, Union
 
 from cellstar_db.models import ExtraData, OMETIFFSpecificExtraData
 from cellstar_preprocessor.flows.constants import SHORT_UNIT_NAMES_TO_LONG, SPACE_UNITS_CONVERSION_DICT
-from cellstar_preprocessor.flows.volume.ometiff_image_processing import PreparedOMETIFFData, _create_reorder_tuple, _get_missing_dims
 import dask.array as da
 import numpy as np
 from pyometiff import OMETIFFReader
@@ -409,6 +408,30 @@ def read_ometiff_to_dask(int_vol_or_seg: InternalVolume | InternalSegmentation):
     del img_array_np
     gc.collect()
     return img_array, metadata, xml_metadata
+
+
+def _create_reorder_tuple(d: dict, correct_order: str):
+    reorder_tuple = tuple([d[l] for l in correct_order])
+    return reorder_tuple
+
+
+def _get_missing_dims(sizesBF: list[int]):
+    sizesBFcorrected = sizesBF[1:]
+    missing = []
+    order = 'TZCYX'
+    for idx, dim in enumerate(sizesBFcorrected):
+        if dim == 1:
+            missing.append(order[idx])
+    print(f'Missing dims: {missing}')
+    return missing
+
+
+class PreparedOMETIFFData(TypedDict):
+    time: int
+    # channel would be int
+    # TODO: get its name later on
+    channel_number: int
+    data: np.ndarray
 
 
 def prepare_ometiff_for_writing(img_array: da.Array, metadata, int_vol_or_seg: InternalVolume | InternalSegmentation):

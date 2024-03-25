@@ -1,8 +1,6 @@
-from typing import TypedDict
 from cellstar_db.models import OMETIFFSpecificExtraData, VolumeExtraData
 from cellstar_preprocessor.flows.common import read_ometiff_to_dask
 from cellstar_preprocessor.flows.common import prepare_ometiff_for_writing
-import numpy as np
 import zarr
 import nibabel as nib
 
@@ -14,27 +12,6 @@ from cellstar_preprocessor.flows.volume.helper_methods import (
 )
 from cellstar_preprocessor.model.volume import InternalVolume
 
-
-class PreparedOMETIFFData(TypedDict):
-    time: int
-    # channel would be int
-    # TODO: get its name later on
-    channel_number: int
-    data: np.ndarray
-
-def _create_reorder_tuple(d: dict, correct_order: str):
-    reorder_tuple = tuple([d[l] for l in correct_order])
-    return reorder_tuple
-
-def _get_missing_dims(sizesBF: list[int]):
-    sizesBFcorrected = sizesBF[1:]
-    missing = []
-    order = 'TZCYX'
-    for idx, dim in enumerate(sizesBFcorrected):
-        if dim == 1:
-            missing.append(order[idx])
-    print(f'Missing dims: {missing}')
-    return missing 
 
 def ometiff_image_processing(internal_volume: InternalVolume):
     # NOTE: supports only 3D images
