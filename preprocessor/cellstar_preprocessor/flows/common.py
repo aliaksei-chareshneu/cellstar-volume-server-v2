@@ -1,3 +1,4 @@
+import gc
 import json
 import math
 from pathlib import Path
@@ -6,7 +7,9 @@ from typing import Union
 
 from cellstar_db.models import ExtraData, OMETIFFSpecificExtraData
 from cellstar_preprocessor.flows.constants import SHORT_UNIT_NAMES_TO_LONG, SPACE_UNITS_CONVERSION_DICT
+import dask.array as da
 import numpy as np
+from pyometiff import OMETIFFReader
 import zarr
 
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
@@ -392,3 +395,16 @@ def _get_ome_tiff_voxel_sizes_in_downsamplings(internal_volume_or_segmentation: 
                 _convert_to_angstroms(ometiff_physical_size_dict['y'] * int(downsampling_level), ometiff_axes_units_dict['y']),
                 _convert_to_angstroms(ometiff_physical_size_dict['z'] * int(downsampling_level), ometiff_axes_units_dict['z'])
             ]
+
+
+def read_ometiff_to_dask(int_vol_or_seg: InternalVolume | InternalSegmentation):
+    if isinstance(int_vol_or_seg, InternalVolume):
+        fpath = int_vol_or_seg.volume_input_path
+    else:
+        fpath = int_vol_or_seg.segmentation_input_path
+    reader = OMETIFFReader(fpath=fpath)
+    img_array_np, metadata, xml_metadata = reader.read()
+    img_array = da.from_array(img_array_np)
+    del img_array_np
+    gc.collect()
+    return img_array, metadata, xml_metadata

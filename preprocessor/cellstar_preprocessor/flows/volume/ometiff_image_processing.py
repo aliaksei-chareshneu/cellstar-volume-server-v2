@@ -1,5 +1,6 @@
 from typing import TypedDict
 from cellstar_db.models import OMETIFFSpecificExtraData, VolumeExtraData
+from cellstar_preprocessor.flows.common import read_ometiff_to_dask
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import dask.array as da
 import mrcfile
@@ -15,7 +16,6 @@ from cellstar_preprocessor.flows.volume.helper_methods import (
 )
 from cellstar_preprocessor.model.volume import InternalVolume
 
-from pyometiff import OMETIFFReader
 
 class PreparedOMETIFFData(TypedDict):
     time: int
@@ -38,7 +38,7 @@ def _get_missing_dims(sizesBF: list[int]):
     print(f'Missing dims: {missing}')
     return missing 
 
-def prepare_ometiff_for_writing(img_array: np.ndarray, metadata, int_vol_or_seg: InternalVolume | InternalSegmentation):
+def prepare_ometiff_for_writing(img_array: da.Array, metadata, int_vol_or_seg: InternalVolume | InternalSegmentation):
     prepared_data: list[PreparedOMETIFFData] = []
 
     d = {}
@@ -59,7 +59,7 @@ def prepare_ometiff_for_writing(img_array: np.ndarray, metadata, int_vol_or_seg:
         }
         missing_dims = _get_missing_dims(metadata['Sizes BF'])
         for missing_dim in missing_dims:
-            img_array = np.expand_dims(img_array, axis=local_d[missing_dim])
+            img_array = da.expand_dims(img_array, axis=local_d[missing_dim])
 
         d = local_d
 
@@ -102,8 +102,7 @@ def ometiff_image_processing(internal_volume: InternalVolume):
     
     print(f"Processing volume file {internal_volume.volume_input_path}")
     
-    reader = OMETIFFReader(fpath=internal_volume.volume_input_path)
-    img_array, metadata, xml_metadata = reader.read()
+    img_array, metadata, xml_metadata = read_ometiff_to_dask(internal_volume)
 
     prepared_data, artificial_channel_ids = prepare_ometiff_for_writing(img_array, metadata, internal_volume)
 
@@ -123,7 +122,7 @@ def ometiff_image_processing(internal_volume: InternalVolume):
 
     channel_ids_mapping: dict[str, str] = internal_volume.custom_data['channel_ids_mapping']
     for data_item in prepared_data:
-        dask_arr = da.from_array(data_item['data'])
+        dask_arr = data_item['data']
         channel_number = data_item['channel_number']
         channel_id = channel_ids_mapping[str(channel_number)]
         store_volume_data_in_zarr_stucture(

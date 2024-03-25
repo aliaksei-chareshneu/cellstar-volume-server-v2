@@ -9,8 +9,13 @@ import gc
 import numcodecs
 
 
-from cellstar_preprocessor.flows.common import open_zarr_structure_from_path, set_ometiff_source_metadata, set_segmentation_custom_data
+from cellstar_preprocessor.flows.common import open_zarr_structure_from_path, read_ometiff_to_dask, set_ometiff_source_metadata, set_segmentation_custom_data
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
+from cellstar_preprocessor.flows.volume.helper_methods import (
+    normalize_axis_order_mrcfile,
+    store_volume_data_in_zarr_stucture,
+)
+from cellstar_preprocessor.model.volume import InternalVolume
 
 from pyometiff import OMETIFFReader
 
@@ -21,8 +26,8 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
         internal_segmentation.intermediate_zarr_structure_path
     )
 
-    reader = OMETIFFReader(fpath=internal_segmentation.segmentation_input_path)
-    img_array, metadata, xml_metadata = reader.read()
+    img_array, metadata, xml_metadata = read_ometiff_to_dask(internal_segmentation)
+
     set_segmentation_custom_data(internal_segmentation, zarr_structure)
     set_ometiff_source_metadata(internal_segmentation, metadata)
     
@@ -41,7 +46,7 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
 
     # similar to volume do loop
     for data_item in prepared_data:
-        arr = data_item['data']
+        arr: da.Array = data_item['data']
         channel_number = data_item['channel_number']
         lattice_id = channel_ids_mapping[str(channel_number)]
         time = data_item['time']
@@ -58,7 +63,7 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
         our_arr = time_group.create_dataset(
             name="grid",
             shape=arr.shape,
-            data=arr,
+            data=arr.compute(),
         )
 
         our_set_table = time_group.create_dataset(

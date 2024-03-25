@@ -1,14 +1,20 @@
 from decimal import Decimal
 import re
 from cellstar_db.models import OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids_dict, get_downsamplings, open_zarr_structure_from_path
-from cellstar_preprocessor.flows.common import _get_ome_tiff_voxel_sizes_in_downsamplings
+from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids_dict, _get_ome_tiff_voxel_sizes_in_downsamplings, get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
+from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
+from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
 import dask.array as da
 import numpy as np
 import zarr
+
+SHORT_UNIT_NAMES_TO_LONG = {
+    'µm': 'micrometer',
+    # TODO: support other units
+}
 
 def _get_source_axes_units():
     # NOTE: hardcoding this for now
@@ -20,6 +26,34 @@ def _get_source_axes_units():
     }
     # d = {}
     return d
+
+def _convert_short_units_to_long(short_unit_name: str):
+    # TODO: support conversion of other axes units (currently only µm to micrometer).
+    # https://www.openmicroscopy.org/Schemas/Documentation/Generated/OME-2016-06/ome_xsd.html#Pixels_PhysicalSizeXUnit
+    if short_unit_name in SHORT_UNIT_NAMES_TO_LONG:
+        return SHORT_UNIT_NAMES_TO_LONG[short_unit_name]
+    else:
+        raise Exception('Short unit name is not supported')
+
+def _get_ometiff_physical_size(ome_tiff_metadata):
+    d = {}
+    if 'PhysicalSizeX' in ome_tiff_metadata:
+        d['x'] = ome_tiff_metadata['PhysicalSizeX']
+    else:
+        d['x'] = 1.0
+
+    if 'PhysicalSizeY' in ome_tiff_metadata:
+        d['y'] = ome_tiff_metadata['PhysicalSizeY']
+    else:
+        d['y'] = 1.0
+
+    if 'PhysicalSizeZ' in ome_tiff_metadata:
+        d['z'] = ome_tiff_metadata['PhysicalSizeZ']
+    else:
+        d['z'] = 1.0
+    
+    return d
+
 
 def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
     for res_gr_name, res_gr in root_data_group.groups():
@@ -34,7 +68,26 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
         for time_gr_name, time_gr in res_gr.groups():
             sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"] = time_gr.grid.shape
 
-# TODO: move to common?
+def _get_ometiff_axes_units(ome_tiff_metadata):
+    axes_units = {}
+    if 'PhysicalSizeXUnit' in ome_tiff_metadata:
+        axes_units['x'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeXUnit'])
+    else:
+        axes_units['x'] = 'micrometer'
+
+    if 'PhysicalSizeYUnit' in ome_tiff_metadata:
+        axes_units['y'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeYUnit'])
+    else:
+        axes_units['y'] = 'micrometer'
+
+    if 'PhysicalSizeZUnit' in ome_tiff_metadata:
+        axes_units['z'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeZUnit'])
+    else:
+        axes_units['z'] = 'micrometer'
+    
+    return axes_units
+    
+
 def _get_ome_tiff_origins(boxes_dict: dict, downsamplings):
     # NOTE: origins seem to be 0, 0, 0, as they are not specified
     for level in downsamplings:
@@ -69,7 +122,9 @@ def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
                 )
                 # assert sampling_info_dict['boxes'][res_gr_name]['force_dtype'] == channel_arr.dtype.str
 
-                arr_view = channel_arr[...]
+                # trying to get arr view takes long
+                # arr_view = channel_arr[...]
+                arr_view: da.Array = da.from_zarr(channel_arr)
                 # if QUANTIZATION_DATA_DICT_ATTR_NAME in arr.attrs:
                 #     data_dict = arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
                 #     data_dict['data'] = arr_view
@@ -77,10 +132,10 @@ def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
                 #     if isinstance(arr_view, da.Array):
                 #         arr_view = arr_view.compute()
 
-                mean_val = float(str(np.mean(arr_view)))
-                std_val = float(str(np.std(arr_view)))
-                max_val = float(str(arr_view.max()))
-                min_val = float(str(arr_view.min()))
+                mean_val = float(str(arr_view.mean().compute()))
+                std_val = float(str(arr_view.std().compute()))
+                max_val = float(str(arr_view.max().compute()))
+                min_val = float(str(arr_view.min().compute()))
 
                 sampling_info_dict["descriptive_statistics"][res_gr_name][time_gr_name][
                     channel_arr_name

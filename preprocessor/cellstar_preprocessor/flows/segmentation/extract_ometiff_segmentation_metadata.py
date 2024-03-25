@@ -1,9 +1,8 @@
 from decimal import Decimal
 from cellstar_db.models import OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-from cellstar_preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import _get_ome_tiff_voxel_sizes_in_downsamplings, get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
-from cellstar_preprocessor.flows.common import _get_ome_tiff_voxel_sizes_in_downsamplings
-from cellstar_preprocessor.flows.common import _convert_to_angstroms
+from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
@@ -153,7 +152,7 @@ def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
                 )
                 # assert sampling_info_dict['boxes'][res_gr_name]['force_dtype'] == channel_arr.dtype.str
 
-                arr_view = channel_arr[...]
+                arr_view: da.Array = da.from_zarr(channel_arr)
                 # if QUANTIZATION_DATA_DICT_ATTR_NAME in arr.attrs:
                 #     data_dict = arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
                 #     data_dict['data'] = arr_view
@@ -161,10 +160,10 @@ def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
                 #     if isinstance(arr_view, da.Array):
                 #         arr_view = arr_view.compute()
 
-                mean_val = float(str(np.mean(arr_view)))
-                std_val = float(str(np.std(arr_view)))
-                max_val = float(str(arr_view.max()))
-                min_val = float(str(arr_view.min()))
+                mean_val = float(str(arr_view.mean().compute()))
+                std_val = float(str(arr_view.std().compute()))
+                max_val = float(str(arr_view.max().compute()))
+                min_val = float(str(arr_view.min().compute()))
 
                 sampling_info_dict["descriptive_statistics"][res_gr_name][time_gr_name][
                     channel_arr_name
