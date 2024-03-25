@@ -1,4 +1,4 @@
-from cellstar_preprocessor.flows.volume.ometiff_image_processing import prepare_ometiff_for_writing
+from cellstar_preprocessor.flows.common import prepare_ometiff_for_writing
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import dask.array as da
 import mrcfile

@@ -1,9 +1,7 @@
 from typing import TypedDict
 from cellstar_db.models import OMETIFFSpecificExtraData, VolumeExtraData
 from cellstar_preprocessor.flows.common import read_ometiff_to_dask
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
-import dask.array as da
-import mrcfile
+from cellstar_preprocessor.flows.common import prepare_ometiff_for_writing
 import numpy as np
 import zarr
 import nibabel as nib
@@ -37,60 +35,6 @@ def _get_missing_dims(sizesBF: list[int]):
             missing.append(order[idx])
     print(f'Missing dims: {missing}')
     return missing 
-
-def prepare_ometiff_for_writing(img_array: da.Array, metadata, int_vol_or_seg: InternalVolume | InternalSegmentation):
-    prepared_data: list[PreparedOMETIFFData] = []
-
-    d = {}
-    order = metadata['DimOrder BF Array']
-    for letter in order:
-        d[str(letter)] = order.index(str(letter))
-
-
-    missing_dims = []
-
-    if len(img_array.shape) != 5:
-        local_d = {
-            'T': 0,
-            'Z': 1,
-            'C': 2,
-            'Y': 3,
-            'X': 4
-        }
-        missing_dims = _get_missing_dims(metadata['Sizes BF'])
-        for missing_dim in missing_dims:
-            img_array = da.expand_dims(img_array, axis=local_d[missing_dim])
-
-        d = local_d
-
-    CORRECT_ORDER = 'TCXYZ'
-    reorder_tuple = _create_reorder_tuple(d, CORRECT_ORDER)
-    # NOTE: assumes correct order is TCXYZ
-    
-    custom_data = int_vol_or_seg.custom_data
-
-    rearranged_arr = img_array.transpose(*reorder_tuple)        
-    
-
-    artificial_channel_ids = list(range(rearranged_arr.shape[1]))
-    artificial_channel_ids = [str(x) for x in artificial_channel_ids]
-    # TODO: prepare list of of PreparedOMETIFFData
-    # for each time and channel
-    for time in range(rearranged_arr.shape[0]):
-        time_arr = rearranged_arr[time]
-        for channel_number in range(time_arr.shape[0]):
-            three_d_arr = time_arr[channel_number]
-            p: PreparedOMETIFFData = {
-                'channel_number': channel_number,
-                'time': time,
-                'data': three_d_arr
-            }
-            prepared_data.append(p)
-
-
-    artificial_channel_ids_dict = dict(zip(artificial_channel_ids, artificial_channel_ids))
-    return prepared_data, artificial_channel_ids_dict
-
 
 def ometiff_image_processing(internal_volume: InternalVolume):
     # NOTE: supports only 3D images
