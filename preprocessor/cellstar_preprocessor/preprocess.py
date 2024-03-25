@@ -351,6 +351,7 @@ class OMETIFFImageProcessingTask(TaskBase):
     def execute(self) -> None:
         volume = self.internal_volume
         ometiff_image_processing(internal_volume=volume)
+        volume_downsampling(internal_volume=volume)
 
 class OMETIFFSegmentationProcessingTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
