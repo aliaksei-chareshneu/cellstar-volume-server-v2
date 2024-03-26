@@ -44,6 +44,11 @@ def volume_downsampling(internal_volume: InternalVolume):
     for time, timegr in original_res_gr.groups():
         timegr: zarr.Group
         for channel_id, channel_arr in timegr.arrays():
+            # NOTE: skipping convolve if one of dimensions is 1
+            if 1 in channel_arr.shape:
+                print(f"Downsampling skipped for volume channel {channel_id}, timeframe {time}")
+                continue
+
             original_data_arr = zarr_structure[VOLUME_DATA_GROUPNAME]["1"][str(time)][str(channel_id)]
             if QUANTIZATION_DATA_DICT_ATTR_NAME in original_data_arr.attrs:
                 data_dict = original_data_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
