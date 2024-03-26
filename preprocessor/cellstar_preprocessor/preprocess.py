@@ -360,6 +360,7 @@ class OMETIFFSegmentationProcessingTask(TaskBase):
     def execute(self) -> None:
         segmentation = self.internal_segmentation
         ometiff_segmentation_processing(internal_segmentation=segmentation)
+        sff_segmentation_downsampling(segmentation)
 
 class OMETIFFImageMetadataExtractionTask(TaskBase):
     def __init__(self, internal_volume: InternalVolume):

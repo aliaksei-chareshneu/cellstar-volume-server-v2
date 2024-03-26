@@ -47,42 +47,44 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
         for lattice_gr_name, lattice_gr in zarr_structure[
             LATTICE_SEGMENTATION_DATA_GROUPNAME
         ].groups():
-            original_data_arr = lattice_gr[1][0].grid
-            lattice_id = int(lattice_gr_name)
+            original_res_gr: zarr.Group = lattice_gr["1"]
+            for time, time_gr in original_res_gr.groups():
+                original_data_arr = original_res_gr[time].grid
+                lattice_id = lattice_gr_name
 
-            segmentation_downsampling_steps = compute_number_of_downsampling_steps(
-                int_vol_or_seg=internal_segmentation,
-                min_grid_size=MIN_GRID_SIZE,
-                input_grid_size=math.prod(original_data_arr.shape),
-                force_dtype=original_data_arr.dtype,
-                factor=2**3,
-            )
+                segmentation_downsampling_steps = compute_number_of_downsampling_steps(
+                    int_vol_or_seg=internal_segmentation,
+                    min_grid_size=MIN_GRID_SIZE,
+                    input_grid_size=math.prod(original_data_arr.shape),
+                    force_dtype=original_data_arr.dtype,
+                    factor=2**3,
+                )
 
-            ratios_to_be_stored = compute_downsamplings_to_be_stored(
-                int_vol_or_seg=internal_segmentation,
-                number_of_downsampling_steps=segmentation_downsampling_steps,
-                input_grid_size=math.prod(original_data_arr.shape),
-                dtype=original_data_arr.dtype,
-                factor=2**3,
-            )
+                ratios_to_be_stored = compute_downsamplings_to_be_stored(
+                    int_vol_or_seg=internal_segmentation,
+                    number_of_downsampling_steps=segmentation_downsampling_steps,
+                    input_grid_size=math.prod(original_data_arr.shape),
+                    dtype=original_data_arr.dtype,
+                    factor=2**3,
+                )
 
-            _create_category_set_downsamplings(
-                magic_kernel=MagicKernel3dDownsampler(),
-                original_data=original_data_arr[...],
-                downsampling_steps=segmentation_downsampling_steps,
-                ratios_to_be_stored=ratios_to_be_stored,
-                data_group=lattice_gr,
-                value_to_segment_id_dict_for_specific_lattice_id=internal_segmentation.value_to_segment_id_dict[
-                    lattice_id
-                ],
-                params_for_storing=internal_segmentation.params_for_storing,
-                time_frame=0
-            )
+                _create_category_set_downsamplings(
+                    magic_kernel=MagicKernel3dDownsampler(),
+                    original_data=original_data_arr[...],
+                    downsampling_steps=segmentation_downsampling_steps,
+                    ratios_to_be_stored=ratios_to_be_stored,
+                    data_group=lattice_gr,
+                    value_to_segment_id_dict_for_specific_lattice_id=internal_segmentation.value_to_segment_id_dict[
+                        lattice_id
+                    ],
+                    params_for_storing=internal_segmentation.params_for_storing,
+                    time_frame=time
+                )
 
-            # NOTE: removes original level resolution data
-            if internal_segmentation.downsampling_parameters.remove_original_resolution:
-                del lattice_gr[1]
-                print("Original resolution data removed for segmentation")
+        # NOTE: removes original level resolution data
+        if internal_segmentation.downsampling_parameters.remove_original_resolution:
+            del lattice_gr[1]
+            print("Original resolution data removed for segmentation")
 
     elif (
         internal_segmentation.primary_descriptor

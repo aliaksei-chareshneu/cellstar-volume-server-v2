@@ -148,7 +148,7 @@ def map_value_to_segment_id(zarr_structure):
     root = zarr_structure
     d = {}
     for segment_name, segment in root.segment_list.groups():
-        lat_id = int(segment.three_d_volume.lattice_id[...])
+        lat_id = str(segment.three_d_volume.lattice_id[...])
         value = int(segment.three_d_volume.value[...])
         segment_id = int(segment.id[...])
         if lat_id not in d:

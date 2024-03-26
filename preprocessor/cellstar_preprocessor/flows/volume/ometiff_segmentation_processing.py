@@ -1,4 +1,5 @@
 from cellstar_preprocessor.flows.common import prepare_ometiff_for_writing
+from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import dask.array as da
 import mrcfile
@@ -26,6 +27,13 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
         internal_segmentation.intermediate_zarr_structure_path
     )
 
+    internal_segmentation.primary_descriptor = (
+            SegmentationPrimaryDescriptor.three_d_volume
+        )
+    
+    # create value_to_segment_id_dict artificially for each lattice
+    internal_segmentation.value_to_segment_id_dict = {}
+    
     img_array, metadata, xml_metadata = read_ometiff_to_dask(internal_segmentation)
 
     set_segmentation_custom_data(internal_segmentation, zarr_structure)
@@ -34,8 +42,6 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
     print(f"Processing segmentation file {internal_segmentation.segmentation_input_path}")
 
     segmentation_data_gr: zarr.Group = zarr_structure.create_group(LATTICE_SEGMENTATION_DATA_GROUPNAME)
-    
-    
 
     prepared_data, artificial_channel_ids = prepare_ometiff_for_writing(img_array, metadata, internal_segmentation)
 
@@ -50,6 +56,13 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
         channel_number = data_item['channel_number']
         lattice_id = channel_ids_mapping[str(channel_number)]
         time = data_item['time']
+
+        internal_segmentation.value_to_segment_id_dict[lattice_id] = {}
+        arr.compute_chunk_sizes()
+        unique = da.unique(arr)
+        unique.compute_chunk_sizes()
+        for value in unique:
+            internal_segmentation.value_to_segment_id_dict[lattice_id][int(value)] = int(value)
 
         # TODO: create datasets etc.
         lattice_id_gr = segmentation_data_gr.create_group(lattice_id)

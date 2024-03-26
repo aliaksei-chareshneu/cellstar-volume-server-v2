@@ -77,7 +77,7 @@ def _process_three_d_volume_segmentation_data(
 ):
     for gr_name, gr in zarr_structure.lattice_list.groups():
         # gr is a 'lattice' obj in lattice list
-        lattice_id = int(gr.id[...])
+        lattice_id = str(gr.id[...])
         segm_arr = lattice_data_to_np_arr(
             data=gr.data[0],
             mode=gr.mode[0],
