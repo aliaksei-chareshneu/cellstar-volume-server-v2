@@ -25,16 +25,31 @@ The `preprocess` command of `preprocessor/cellstar_preprocessor/preprocess.py` s
   <!-- TODO: remove nii things? -->
 
 
-### Example of adding a single entry to the database
+### Examples of adding a single entry to the database
 
+#### EMD-1832
 <!-- - Create a folder `inputs/emd-1832`
 - Download [MAP](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1832/map/emd_1832.map.gz) and extract it to `inputs/emd-1832/emd_1832.map`
 - Download [Segmentation](https://www.ebi.ac.uk/em_static/emdb_sff/18/1832/emd_1832.hff.gz) and extract it to `inputs/emd-1832/emd_1832.hff` -->
 
-- To add a single entry to the db, run:
+- To add an emd-1832 entry to the db, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff --input-kind sff --entry-id emd-1832 --source-db emdb --source-db-id emd-1832 --source-db-name emdb --working-folder preprocessor/temp/temp_zarr_hierarchy_storage --db-path preprocessor/temp/test_db --quantize-dtype-str u1
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff --input-kind sff --entry-id emd-1832 --source-db emdb --source-db-id emd-1832 --source-db-name emdb --working-folder temp_working_folder --db-path test_db --quantize-dtype-str u1
 ```
 
 It will add entry `emd-1832` to the database and during preprocessing volume data will be quantized with `u1` option
+
+#### IDR-13457537
+- To add IDR-13457537 entry to the db, unzip `test-data/preprocessor/sample_segmentations/idr/13457537.zarr.zip` file:
+```
+cd test-data/preprocessor/sample_segmentations/idr/idr-13457537
+unzip 13457537.zarr.zip
+```
+
+From root directory (`cellstar-volume-server-v2`), run:
+```
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_segmentations/idr/idr-13457537/13457537.zarr --input-kind omezarr --entry-id idr-13457537 --source-db idr --source-db-id idr-13457537 --source-db-name idr --working-folder temp_working_folder --db-path test_db
+```
+
+It will add entry `idr-13457537` to the database
