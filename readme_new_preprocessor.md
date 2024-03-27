@@ -25,7 +25,7 @@ The `preprocess` command of `preprocessor/cellstar_preprocessor/preprocess.py` s
   <!-- TODO: remove nii things? -->
 
 
-Example:
+### Example of adding a single entry to the database
 
 <!-- - Create a folder `inputs/emd-1832`
 - Download [MAP](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1832/map/emd_1832.map.gz) and extract it to `inputs/emd-1832/emd_1832.map`
