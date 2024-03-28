@@ -7,8 +7,10 @@ from cellstar_preprocessor.flows.constants import GEOMETRIC_SEGMENTATION_FILENAM
 import zarr
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 
+# should return tuple - segmentation_id, primitives
 def _process_geometric_segmentation_data(data: GeometricSegmentationInputData, zarr_structure_path: Path):
     shape_primitives_input = data.shape_primitives_input
+    segmentation_id = data.segmentation_id
 
     primitives: dict[int, ShapePrimitiveData] = {}
 
@@ -87,7 +89,7 @@ def _process_geometric_segmentation_data(data: GeometricSegmentationInputData, z
         d = ShapePrimitiveData(shape_primitive_list=shape_primitives_processed)
         primitives[timeframe_index] = d
     
-    return primitives
+    return segmentation_id, primitives
 
     # return d
     # NOTE: from save annotations
@@ -118,11 +120,14 @@ def geometric_segmentation_preprocessing(internal_segmentation: InternalSegmenta
         raise Exception('Geometric segmentation input is not supported')
     
     geometric_segmentation_input = GeometricSegmentationInputData(**data)
-    primitives = _process_geometric_segmentation_data(data=geometric_segmentation_input, zarr_structure_path=internal_segmentation.intermediate_zarr_structure_path)
+    segmentation_id, primitives = _process_geometric_segmentation_data(data=geometric_segmentation_input, zarr_structure_path=internal_segmentation.intermediate_zarr_structure_path)
 
     # create GeometricSegmentationData
     # with new set id
     set_id = str(uuid4())
+    if segmentation_id:
+        set_id = segmentation_id
+
     geometric_segmentation_data: GeometricSegmentationData = {
         'segmentation_id': set_id,
         'primitives': primitives

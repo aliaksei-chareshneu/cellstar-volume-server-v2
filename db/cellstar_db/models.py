@@ -366,6 +366,8 @@ class ShapePrimitiveInputData(BaseModel):
     ]
 
 class GeometricSegmentationInputData(BaseModel):
+    # provide id here as optional
+    segmentation_id: Optional[str]
     # maps timeframe index to list of ShapePrimitiveInputData
     shape_primitives_input: dict[int, list[ShapePrimitiveInputData]]
     time_units: Optional[str]
