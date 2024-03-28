@@ -53,3 +53,13 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 ```
 
 It will add entry `idr-13457537` to the database
+
+#### EMD-1832-geometric-segmentation
+
+- To add an emd-1832 entry with artificially created geometric segmentation to the db, from root directory (`cellstar-volume-server-v2`) run:
+
+```
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map --input-kind map --input-path test-data\preprocessor\sample_segmentations\geometric_segmentations\geometric_segmentation_1.json --input-kind geometric_segmentation --input-path test-data\preprocessor\sample_segmentations\geometric_segmentations\geometric_segmentation_2.json --input-kind geometric_segmentation  --entry-id emd-1832-geometric-segmentation --source-db emdb --source-db-id emd-1832-geometric-segmentation --source-db-name emdb --working-folder temp_working_folder --db-path test_db
+```
+
+It will add entry `emd-1832-geometric-segmentation` to the database
