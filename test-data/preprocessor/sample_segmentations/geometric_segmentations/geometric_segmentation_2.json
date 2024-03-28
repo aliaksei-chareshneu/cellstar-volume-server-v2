@@ -1,0 +1,39 @@
+{
+    "shape_primitives_input": 
+        {
+            "0": [
+                {
+                    "kind": "sphere",
+                    "parameters": {
+                        "id": 111,
+                        "center": [
+                            0,
+                            1,
+                            11
+                        ],
+                        "color": [0.7, 0.2, 0.7, 1.0],
+                        "radius": 19
+                    }
+                },
+                {
+                    "kind": "cylinder",
+                    "parameters": {
+                        "id": 1,
+                        "start": [
+                            1,
+                            1,
+                            1
+                        ],
+                        "end": [
+                            20,
+                            10,
+                            16
+                        ],
+                        "color": [0.8, 0.5, 0.1, 1.0],
+                        "radius_top": 40,
+                        "radius_bottom": 40
+                    }
+                }
+            ]
+        }
+}
