@@ -1,4 +1,4 @@
-## Using preprocessor to add entry to database or extend data of existing entry
+## Adding entry to database or extending data of existing entry
 
 The `preprocess` command of `preprocessor/cellstar_preprocessor/preprocess.py` script is used for adding entries to the database with the following arguments:
 
@@ -35,7 +35,7 @@ The `preprocess` command of `preprocessor/cellstar_preprocessor/preprocess.py` s
 - To add an emd-1832 entry to the db, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff --input-kind sff --entry-id emd-1832 --source-db emdb --source-db-id emd-1832 --source-db-name emdb --working-folder temp_working_folder --db-path test_db --quantize-dtype-str u1
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff --input-kind sff --entry-id emd-1832 --source-db emdb --source-db-id emd-1832 --source-db-name emdb --working-folder temp_working_folder --db-path test_db --quantize-dtype-str u1
 ```
 
 It will add entry `emd-1832` to the database and during preprocessing volume data will be quantized with `u1` option
@@ -59,7 +59,41 @@ It will add entry `idr-13457537` to the database
 - To add an emd-1832 entry with artificially created geometric segmentation to the db, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map --input-kind map --input-path test-data\preprocessor\sample_segmentations\geometric_segmentations\geometric_segmentation_1.json --input-kind geometric_segmentation --input-path test-data\preprocessor\sample_segmentations\geometric_segmentations\geometric_segmentation_2.json --input-kind geometric_segmentation  --entry-id emd-1832-geometric-segmentation --source-db emdb --source-db-id emd-1832-geometric-segmentation --source-db-name emdb --working-folder temp_working_folder --db-path test_db
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/EMD-1832.map --input-kind map --input-path test-data\preprocessor\sample_segmentations\geometric_segmentations\geometric_segmentation_1.json --input-kind geometric_segmentation --input-path test-data\preprocessor\sample_segmentations\geometric_segmentations\geometric_segmentation_2.json --input-kind geometric_segmentation  --entry-id emd-1832-geometric-segmentation --source-db emdb --source-db-id emd-1832-geometric-segmentation --source-db-name emdb --working-folder temp_working_folder --db-path test_db
 ```
 
 It will add entry `emd-1832-geometric-segmentation` to the database
+
+#### EMD-1273 with segmentation based on masks
+<!-- - Create a folder `inputs/emd-1832` -->
+- Download [MAP](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/map/emd_1273.map.gz) and extract it to `inputs/emd-1832/emd_1832.map`
+- Download masks:
+1. Download map and masks
+
+
+## Editing descriptions of existing database entry
+
+The `edit-descriptions` command of `preprocessor/cellstar_preprocessor/preprocess.py` script is used for editing descriptions of the existing database entry. The arguments are as follows:
+
+  | Argument | Description |
+  | -------- | ---------- |
+  |`--entry-id` | entry id (e.g. `emd-1832`), i.e. internal database folder name for that entry |
+  |`--source-db` | source database name (e.g. `emdb`) i.e. internal database to be used as database folder name |
+  |`--db-path` | path to folder with internal database |
+  |`--data-json-path` | path to file with descriptions |
+
+<!-- ### Examples
+
+#### Adding descriptions for emd-1273 entry
+
+First build the database with that entry according to [this tutorial](#idr-13457537) 
+
+Then from root directory (`cellstar-volume-server-v2`), run:
+```
+python preprocessor/cellstar_preprocessor/preprocess.py edit-descriptions --entry-id idr-13457537 --source-db idr --data-json-path --db-path test_db
+```
+
+<!-- TODO: host idr-13457537-descriptions.json at repo -->
+
+
+<!-- It will add descriptions to `idr-13457537` entry. -->
