@@ -64,14 +64,24 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 
 It will add entry `emd-1832-geometric-segmentation` to the database
 
-#### EMD-1273 with segmentation based on masks
+#### EMD-1273 with segmentations based on masks
 <!-- - Create a folder `inputs/emd-1832` -->
-- Download [MAP](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/map/emd_1273.map.gz) and extract it to `inputs/emd-1832/emd_1832.map`
-- Download masks:
-1. Download map and masks
+1. Download [MAP](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/map/emd_1273.map.gz) and extract it to `test-data/preprocessor/sample_volumes/emdb/`
+2. Create folder `test-data/preprocessor/sample_segmentations/emdb_masks/`
+3. Download masks to `test-data/preprocessor/sample_segmentations/emdb_masks/`:
+    - [Mask 1](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_1.map)
+    - [Mask 2](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_2.map)
+    - [Mask 3](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_3.map)
+    - [Mask 4](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_4.map)
+    - [Mask 5](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_5.map)
 
+4. To add an `emd-1273` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
 
-## Editing descriptions of existing database entry
+```
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/emd_1273.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_1.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_2.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_3.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_4.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_5.map --input-kind mask --entry-id emd-1273 --source-db emdb --source-db-id emd-1273 --source-db-name emdb --working-folder temp_working_folder --db-path test_db
+```
+
+<!-- ## Editing descriptions of existing database entry
 
 The `edit-descriptions` command of `preprocessor/cellstar_preprocessor/preprocess.py` script is used for editing descriptions of the existing database entry. The arguments are as follows:
 
@@ -82,18 +92,15 @@ The `edit-descriptions` command of `preprocessor/cellstar_preprocessor/preproces
   |`--db-path` | path to folder with internal database |
   |`--data-json-path` | path to file with descriptions |
 
-<!-- ### Examples
+### Examples
 
 #### Adding descriptions for emd-1273 entry
 
-First build the database with that entry according to [this tutorial](#idr-13457537) 
+First build the database with that entry according to [this tutorial](#emd-1273-with-segmentations-based-on-masks) 
 
 Then from root directory (`cellstar-volume-server-v2`), run:
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py edit-descriptions --entry-id idr-13457537 --source-db idr --data-json-path --db-path test_db
+python preprocessor/cellstar_preprocessor/preprocess.py edit-descriptions --entry-id emd-1273 --source-db idr --data-json-path emd-1273-descriptions.json --db-path test_db
 ```
 
-<!-- TODO: host idr-13457537-descriptions.json at repo -->
-
-
-<!-- It will add descriptions to `idr-13457537` entry. -->
+It will add descriptions to `emd-1273` entry. -->
