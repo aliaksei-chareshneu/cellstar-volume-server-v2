@@ -1,3 +1,4 @@
+from pathlib import Path
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.flows.segmentation.helper_methods import store_segmentation_data_in_zarr_structure
@@ -40,16 +41,18 @@ def mask_segmentation_preprocessing(internal_segmentation: InternalSegmentation)
     # artificially create value_to_segment_id_dict
     internal_segmentation.value_to_segment_id_dict = {}
     
-    for lattice_id, mask in enumerate(internal_segmentation.segmentation_input_path):
+    # here instead of enumerate, use file name
+
+    # for lattice_id, mask in enumerate(internal_segmentation.segmentation_input_path):
+    for mask in internal_segmentation.segmentation_input_path:
+        mask: Path
+        lattice_id = mask.stem
         with mrcfile.open(str(mask.resolve())) as mrc_original:
             data = mrc_original.data
             header = mrc_original.header
 
             data = _normalize_axis_order_mrcfile_numpy(arr=data, mrc_header=header)
             internal_segmentation.value_to_segment_id_dict[lattice_id] = {}
-    
-    
-            # TODO: edit this part
 
             unique_values = np.unique(data)
             unique_values_without_zero = unique_values[unique_values > 0]
