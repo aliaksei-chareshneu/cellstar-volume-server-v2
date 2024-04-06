@@ -274,6 +274,7 @@ def _write_to_file(responses: list[QueryResponse], out_path: Path):
                 filenames = []
                 for segment_id, content in meshes:
                     filename = f'{type}_{segment_id}_{segmentation_id}_{time}.bcif'
+                    filenames.append(filename)
                     zip_file.writestr(filename, content)
                 
                 info: MeshSegmentationFilesInfo = {
