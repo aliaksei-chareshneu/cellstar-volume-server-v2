@@ -815,7 +815,7 @@ class Preprocessor:
     async def entry_exists(self):
         new_db_path = Path(self.preprocessor_input.db_path)
         if new_db_path.is_dir() == False:
-            new_db_path.mkdir()
+            new_db_path.mkdir(parents=True)
 
         db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
 
