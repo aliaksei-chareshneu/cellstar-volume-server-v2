@@ -192,7 +192,7 @@ def compute_downsamplings_to_be_stored(
 
     return lst
 
-
+# TODO: should validate if min number of steps <= max number of steps
 def compute_number_of_downsampling_steps(
     *,
     int_vol_or_seg: Union[InternalVolume, InternalSegmentation],
@@ -202,11 +202,19 @@ def compute_number_of_downsampling_steps(
     factor: int,
 ) -> int:
     num_of_downsampling_steps = 1
+    # if this is set, set it to min
+    if int_vol_or_seg.downsampling_parameters.min_downsampling_level:
+        num_of_downsampling_steps = int(
+            math.log2(int_vol_or_seg.downsampling_parameters.min_downsampling_level)
+        )
+    # if this is set as well, set it to max
     if int_vol_or_seg.downsampling_parameters.max_downsampling_level:
         num_of_downsampling_steps = int(
             math.log2(int_vol_or_seg.downsampling_parameters.max_downsampling_level)
         )
-    else:
+        
+    # if neither of this set - calculate
+    if not int_vol_or_seg.downsampling_parameters.max_downsampling_level and not int_vol_or_seg.downsampling_parameters.min_downsampling_level:
         if input_grid_size <= min_grid_size:
             return 1
 
