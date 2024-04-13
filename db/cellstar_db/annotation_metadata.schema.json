@@ -88,7 +88,7 @@
             "title": "ExternalReference"
         },
         "DescriptionText": {
-            "type": "object",
+            "type": ["object", "null"],
             "additionalProperties": false,
             "properties": {
                 "format": {
@@ -142,7 +142,7 @@
                     }
                 },
                 "is_hidden": {
-                    "type": "boolean"
+                    "type": ["boolean", "null"]
                 },
                 "time": {
                     // TODO: fix this (can be array of ints)
