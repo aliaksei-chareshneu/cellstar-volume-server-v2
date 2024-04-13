@@ -1,5 +1,4 @@
 {
-    // "$schema": "http://json-schema.org/draft-04/schema#",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "$defs": {
@@ -46,7 +45,6 @@
                     }
                 },
                 "time": {
-                    // TODO: to separate type
                     "type": ["integer", "array"]
                 }
             },
@@ -145,15 +143,12 @@
                     "type": ["boolean", "null"]
                 },
                 "time": {
-                    // TODO: fix this (can be array of ints)
                     "type": ["integer", "array"]
                 },
                 "description": {
                     "$ref": "#/$defs/DescriptionText"
                 },
                 "metadata": {
-                    // how to represent dict str any
-                    // TODO: fix this
                     "type": "null"
                 }
             },
@@ -163,15 +158,10 @@
             "title": "DescriptionData"
         }
     },
-    // "properties": {
-    //     "primary": { "$ref": "#/$defs/vehicle" },
-    //     "secondary": { "$ref": "#/$defs/vehicle" }
-    // }
     "properties": {
         "name": {
             "type": "string"
         },
-        // TODO: other type?
         "entry_id": {
             "type": "object",
             "properties": {
