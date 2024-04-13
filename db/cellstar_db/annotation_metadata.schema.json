@@ -1,0 +1,220 @@
+{
+    // "$schema": "http://json-schema.org/draft-04/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "$defs": {
+        "ChannelAnnotation": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "channel_id": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
+        "SegmentAnnotationData": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "segment_kind": {
+                    "type": "string",
+                    "enum": ["lattice", "mesh", "primitive"]
+                },
+                "segment_id": {
+                    "type": "integer"
+                },
+                "segmentation_id": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "time": {
+                    // TODO: to separate type
+                    "type": ["integer", "array"]
+                }
+            },
+            "required": [
+                "segment_id",
+                "segment_kind",
+                "segmentation_id"
+            ],
+            "title": "SegmentAnnotationData"
+        },
+        "ExternalReference": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "accession": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "qt-uri-protocols": [
+                        "http",
+                        "https"
+                    ]
+                }
+            },
+            "title": "ExternalReference"
+        },
+        "DescriptionText": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "format": {
+                    "type": "string",
+                    "enum": ["text", "markdown"]
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "TargetID": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "segmentation_id": {
+                    "type": "string"
+                },
+                "segment_id": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "segment_id",
+                "segmentation_id"
+            ],
+            "title": "TargetID"
+        },
+        "DescriptionData": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "target_kind": {
+                    "type": "string",
+                    "enum": ["lattice", "mesh", "primitive", "entry"]
+                },
+                "target_id": {
+                    "$ref": "#/$defs/TargetID"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "external_references": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExternalReference"
+                    }
+                },
+                "is_hidden": {
+                    "type": "boolean"
+                },
+                "time": {
+                    // TODO: fix this (can be array of ints)
+                    "type": ["integer", "array"]
+                },
+                "description": {
+                    "$ref": "#/$defs/DescriptionText"
+                },
+                "metadata": {
+                    // how to represent dict str any
+                    // TODO: fix this
+                    "type": "null"
+                }
+            },
+            "required": [
+                "target_kind"
+            ],
+            "title": "DescriptionData"
+        }
+    },
+    // "properties": {
+    //     "primary": { "$ref": "#/$defs/vehicle" },
+    //     "secondary": { "$ref": "#/$defs/vehicle" }
+    // }
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        // TODO: other type?
+        "entry_id": {
+            "type": "object",
+            "properties": {
+                "source_db_name": {
+                    "type": "string"
+                },
+                "source_db_id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "source_db_name",
+                "source_db_id"
+            ]
+        },
+        "descriptions": {
+            "type": "object",
+            "propertyNames": {
+                "format": "uuid"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/DescriptionData"
+            }
+        },
+        "annotations": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/SegmentAnnotationData"
+            }
+        },
+        "details": {
+            "type": "string"
+        },
+        "volume_channels_annotations": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ChannelAnnotation"
+            }
+        }
+    },
+    "required": [
+        "entry_id",
+        "descriptions",
+        "annotations"
+    ]
+}
