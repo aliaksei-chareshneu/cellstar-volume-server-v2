@@ -15,6 +15,7 @@ from cellstar_query.requests import MetadataRequest
 
 DEFAULT_MAX_POINTS = 1000000000000
 INDEX_JSON_FILENAME = 'index.json'
+DEFAULT_MESH_DETAIL_LVL = 5
 
 @dataclass
 class QueryResponse:
@@ -84,7 +85,7 @@ class JsonQueryParams(TypedDict):
     channel_id: Optional[str]
     segmentation_id: Optional[str]
     # TODO: maybe drop it at all and get the first available mesh resolution?
-    # detail_lvl: Optional[int]
+    detail_lvl: Optional[int]
     max_points: Optional[int]
 
 class ParsedArgs(TypedDict):
@@ -161,16 +162,18 @@ class LatticeSegmentationQueryTask(QueryTask):
         return QueryResponse(response=response, type='lattice', input_data=self.__dict__)
 
 class MeshSegmentationQueryTask(QueryTask):
-    def __init__(self, volume_server: VolumeServerService, time: int, segmentation_id: str, source_db: str, entry_id: str):
+    def __init__(self, volume_server: VolumeServerService, time: int, segmentation_id: str, source_db: str, entry_id: str, detail_lvl: int):
         self.volume_server = volume_server
         self.time = time
         self.segmentation_id = segmentation_id
         self.source_db = source_db
         self.entry_id = entry_id
+        # could be optional?
+        self.detail_lvl = detail_lvl
     async def execute(self):
         metadata_response = await get_metadata_query(volume_server=self.volume_server, source=self.source_db, id=self.entry_id)
         mr: Metadata = metadata_response['grid']
-        detail_lvl = int(sorted(mr['segmentation_meshes']['segmentation_metadata'][self.segmentation_id]['detail_lvl_to_fraction'].keys())[0])
+        # detail_lvl = int(sorted(mr['segmentation_meshes']['segmentation_metadata'][self.segmentation_id]['detail_lvl_to_fraction'].keys())[0])
         segment_ids = list(mr['segmentation_meshes']['segmentation_metadata'][self.segmentation_id]['mesh_timeframes'][str(self.time)]['segment_ids'].keys())
         response: list[str, bytes] = []
         for segment_id in segment_ids:
@@ -181,7 +184,7 @@ class MeshSegmentationQueryTask(QueryTask):
                 id=self.entry_id,
                 time=self.time,
                 segment_id=segment_id,
-                detail_lvl=detail_lvl
+                detail_lvl=self.detail_lvl
             )
             response.append((str(segment_id), r))
         return QueryResponse(response=response, type='mesh', input_data=self.__dict__)
@@ -370,6 +373,18 @@ def _query_segmentation_data(kind: Literal['geometric_segmentation', 'segmentati
                     source_db=source_db,
                     entry_id=entry_id,
                     max_points=max_points))
+            elif kind == 'segmentation_meshes':
+                # get detail lvl here
+                detail_lvl = DEFAULT_MESH_DETAIL_LVL
+                if 'detail_lvl' in parsed_params:
+                    detail_lvl = parsed_params['detail_lvl']
+                queries_list.append(task(
+                    volume_server=volume_server,
+                    time=timeframe,
+                    segmentation_id=segmentation_id,
+                    source_db=source_db,
+                    entry_id=entry_id,
+                    detail_lvl=detail_lvl))
             else:
                 queries_list.append(task(
                     volume_server=volume_server,
