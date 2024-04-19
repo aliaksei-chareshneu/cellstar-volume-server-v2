@@ -186,17 +186,6 @@ def get_time_units(ome_zarr_attrs):
         return "millisecond"
 
 
-def _get_downsamplings(data_group) -> list:
-    volume_downsamplings = []
-    for gr_name, gr in data_group.groups():
-        volume_downsamplings.append(gr_name)
-        volume_downsamplings = sorted(volume_downsamplings)
-
-    # convert to ints
-    volume_downsamplings = sorted([int(x) for x in volume_downsamplings])
-    return volume_downsamplings
-
-
 def _get_channel_ids(time_data_group, segmentation_data=False) -> list:
     if segmentation_data:
         channel_ids = sorted(time_data_group.group_keys())
