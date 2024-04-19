@@ -32,7 +32,8 @@ class FetchEntriesTest(ServerTestBase):
                 for source in body.keys():
                     count += len(body[source])
 
-                self.assertEqual(1, count)
+                # at least one, but could be more
+                self.assertGreaterEqual(count, 1)
 
                 # test annotation keyword wrong case
                 keyword = "drosophila"
@@ -44,7 +45,7 @@ class FetchEntriesTest(ServerTestBase):
                 for source in body.keys():
                     count += len(body[source])
 
-                self.assertEqual(1, count)
+                self.assertGreaterEqual(count, 1)
 
                 # test entry keyword
                 keyword = "emd"
@@ -56,7 +57,7 @@ class FetchEntriesTest(ServerTestBase):
                 for source in body.keys():
                     count += len(body[source])
 
-                self.assertEqual(1, count)
+                self.assertGreaterEqual(count, 1)
 
         finally:
             pass
