@@ -1,5 +1,5 @@
 from decimal import Decimal
-from cellstar_db.models import TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.models import DownsamplingLevelInfo, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.model.volume import InternalVolume
@@ -18,14 +18,15 @@ def _get_source_axes_units(nii_header):
     }
     return d
 
-def _get_voxel_sizes_in_downsamplings(nii_header, volume_downsamplings):
+def _get_voxel_sizes_in_downsamplings(nii_header, volume_downsamplings: list[DownsamplingLevelInfo]):
     # TODO: hardcoding this (mistake in header, correct size for mouse github dataset x = 16 nm, y = 16 nm, and z = 15 nm)
     # pixdim = nii_header['pixdim']
     # original_voxel_size = (pixdim[1], pixdim[2], pixdim[3])
     original_voxel_size = (160, 160, 150)
 
     voxel_sizes_in_downsamplings: dict = {}
-    for rate in volume_downsamplings:
+    for level in volume_downsamplings:
+        rate = level['level']
         voxel_sizes_in_downsamplings[rate] = tuple(
             [float(Decimal(float(i)) * Decimal(rate)) for i in original_voxel_size]
         )
@@ -35,7 +36,7 @@ def _get_nii_volume_sampling_info(
     root_data_group,
     sampling_info_dict,
     nii_header: object,
-    volume_downsamplings: list[int],
+    volume_downsamplings: list[DownsamplingLevelInfo],
 ):
 
     voxel_sizes_in_downsamplings = _get_voxel_sizes_in_downsamplings(nii_header=nii_header, volume_downsamplings=volume_downsamplings)

@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 from typing import TypedDict, Union
 
-from cellstar_db.models import ExtraData, OMETIFFSpecificExtraData
+from cellstar_db.models import DownsamplingLevelInfo, ExtraData, OMETIFFSpecificExtraData
 from cellstar_preprocessor.flows.constants import SHORT_UNIT_NAMES_TO_LONG, SPACE_UNITS_CONVERSION_DICT
 import dask.array as da
 import numpy as np
@@ -125,7 +125,7 @@ def update_dict(orig_dict, new_dict: dict):
     return orig_dict
 
 
-def get_downsamplings(data_group: zarr.Group) -> list[int]:
+def get_downsamplings(data_group: zarr.Group) -> list[DownsamplingLevelInfo]:
     downsamplings = []
     for gr_name, gr in data_group.groups():
         downsamplings.append(gr_name)
@@ -133,7 +133,17 @@ def get_downsamplings(data_group: zarr.Group) -> list[int]:
 
     # convert to ints
     downsamplings = sorted([int(x) for x in downsamplings])
-    return downsamplings
+    downsampling_info_list: list[DownsamplingLevelInfo] = []
+    for downsampling in downsamplings:
+        info: DownsamplingLevelInfo = {
+            'available': True,
+            'level': downsampling
+        }
+        downsampling_info_list.append(
+            info
+        )
+    
+    return downsampling_info_list
 
 
 def save_dict_to_json_file(
@@ -365,7 +375,7 @@ def _get_ometiff_axes_units(ome_tiff_metadata):
     return axes_units
 
 
-def _get_ome_tiff_voxel_sizes_in_downsamplings(internal_volume_or_segmentation: InternalVolume | InternalSegmentation, boxes_dict, downsamplings, ometiff_metadata):
+def _get_ome_tiff_voxel_sizes_in_downsamplings(internal_volume_or_segmentation: InternalVolume | InternalSegmentation, boxes_dict, downsamplings: list[DownsamplingLevelInfo], ometiff_metadata):
 
     ometiff_physical_size_dict: dict[str, str] = {}
 
@@ -388,7 +398,8 @@ def _get_ome_tiff_voxel_sizes_in_downsamplings(internal_volume_or_segmentation: 
     ometiff_axes_units_dict = _get_ometiff_axes_units(ometiff_metadata)
     # ometiff_physical_size_dict = _get_ometiff_physical_size(ometiff_metadata)
 
-    for level in downsamplings:
+    for info in downsamplings:
+        level = info['level']
         downsampling_level = str(level)
         if downsampling_level == '1':
             boxes_dict[downsampling_level]['voxel_size'] = [

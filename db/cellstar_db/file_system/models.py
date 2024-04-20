@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from cellstar_db.models import MeshComponentNumbers, Metadata, VolumeMetadata
+from cellstar_db.models import DownsamplingLevelInfo, MeshComponentNumbers, Metadata, VolumeMetadata
 
 
 class FileSystemVolumeMedatada(VolumeMetadata):
@@ -34,7 +34,7 @@ class FileSystemVolumeMedatada(VolumeMetadata):
             return self.raw_metadata['geometric_segmentation']["segmentation_ids"]
         return []
 
-    def segmentation_downsamplings(self, lattice_id: str) -> List[int]:
+    def segmentation_downsamplings(self, lattice_id: str) -> List[DownsamplingLevelInfo]:
         s = []
         try:
             s = self.raw_metadata["segmentation_lattices"]["segmentation_sampling_info"][
@@ -44,7 +44,7 @@ class FileSystemVolumeMedatada(VolumeMetadata):
             logging.error(e, stack_info=True, exc_info=True)
         return s
 
-    def volume_downsamplings(self) -> List[int]:
+    def volume_downsamplings(self) -> List[DownsamplingLevelInfo]:
         return self.raw_metadata["volumes"]["volume_sampling_info"]["spatial_downsampling_levels"]
 
     def origin(self, downsampling_rate: int) -> List[float]:

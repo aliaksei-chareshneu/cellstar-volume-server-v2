@@ -102,9 +102,9 @@ def volume_downsampling(internal_volume: InternalVolume):
                 current_level_data = downsampled_data
             print("Volume downsampled")
 
-    # NOTE: remove original level resolution data
-    if internal_volume.downsampling_parameters.remove_original_resolution:
-        del zarr_structure[VOLUME_DATA_GROUPNAME]["1"]
-        print("Original resolution data removed")
+    # # NOTE: remove original level resolution data
+    # if internal_volume.downsampling_parameters.remove_original_resolution:
+    #     del zarr_structure[VOLUME_DATA_GROUPNAME]["1"]
+    #     print("Original resolution data removed")
 
 

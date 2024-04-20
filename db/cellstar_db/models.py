@@ -45,9 +45,13 @@ class TimeTransformation(TypedDict):
     downsampling_level: Union[int, Literal['all']]
     factor: float
 
+class DownsamplingLevelInfo(TypedDict):
+    level: int
+    available: bool
+
 class SamplingInfo(TypedDict):
     # Info about "downsampling dimension"
-    spatial_downsampling_levels: list[int]
+    spatial_downsampling_levels: list[DownsamplingLevelInfo]
     # the only thing which changes with SPATIAL downsampling is box!
     boxes: dict[int, SamplingBox]
     time_transformations: Optional[list[TimeTransformation]]
@@ -391,7 +395,7 @@ class VolumeMetadata(Protocol):
     def segmentation_downsamplings(self, lattice_id: str) -> List[int]:
         ...
 
-    def volume_downsamplings(self) -> List[int]:
+    def volume_downsamplings(self) -> List[DownsamplingLevelInfo]:
         ...
 
     def origin(self, downsampling_rate: int) -> List[float]:

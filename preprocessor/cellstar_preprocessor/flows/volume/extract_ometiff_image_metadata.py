@@ -1,6 +1,6 @@
 from decimal import Decimal
 import re
-from cellstar_db.models import OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.models import DownsamplingLevelInfo, OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids_dict, _get_ome_tiff_voxel_sizes_in_downsamplings, get_downsamplings, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
@@ -88,9 +88,10 @@ def _get_ometiff_axes_units(ome_tiff_metadata):
     return axes_units
     
 
-def _get_ome_tiff_origins(boxes_dict: dict, downsamplings):
+def _get_ome_tiff_origins(boxes_dict: dict, downsamplings: list[DownsamplingLevelInfo]):
     # NOTE: origins seem to be 0, 0, 0, as they are not specified
-    for level in downsamplings:
+    for info in downsamplings:
+        level = info['level']
         downsampling_level = str(level)
         boxes_dict[downsampling_level]['origin'] = [0, 0, 0]
 

@@ -2,7 +2,7 @@ from decimal import ROUND_CEILING, Decimal, getcontext
 
 import dask.array as da
 import numpy as np
-from cellstar_db.models import TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.models import DownsamplingLevelInfo, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 
 from cellstar_preprocessor.flows.common import (
     get_downsamplings,
@@ -47,7 +47,7 @@ def _ccp4_words_to_dict_mrcfile(mrc_header: object) -> dict:
 
 
 def _get_origin_and_voxel_sizes_from_map_header(
-    mrc_header: object, volume_downsamplings: list[int]
+    mrc_header: object, volume_downsamplings: list[DownsamplingLevelInfo]
 ):
     d = _ccp4_words_to_dict_mrcfile(mrc_header)
     ao = {d["MAPC"] - 1: 0, d["MAPR"] - 1: 1, d["MAPS"] - 1: 2}
@@ -65,7 +65,8 @@ def _get_origin_and_voxel_sizes_from_map_header(
     )
 
     voxel_sizes_in_downsamplings: dict = {}
-    for rate in volume_downsamplings:
+    for level in volume_downsamplings:
+        rate = level['level']
         voxel_sizes_in_downsamplings[rate] = tuple(
             [float(Decimal(i) * Decimal(rate)) for i in original_voxel_size]
         )
@@ -85,7 +86,7 @@ def _get_volume_sampling_info(
     root_data_group,
     sampling_info_dict,
     mrc_header: object,
-    volume_downsamplings: list[int],
+    volume_downsamplings: list[VolumeSamplingInfo],
 ):
     # TODO: modify it such that voxel sizes are calculated on each iteration
     origin, voxel_sizes_in_downsamplings = _get_origin_and_voxel_sizes_from_map_header(
@@ -182,6 +183,19 @@ def extract_metadata_from_map(internal_volume: InternalVolume):
         mrc_header=map_header,
         volume_downsamplings=volume_downsamplings,
     )
-
+    
+    # NOTE: remove original level resolution data
+    if internal_volume.downsampling_parameters.remove_original_resolution:
+        del root[VOLUME_DATA_GROUPNAME]["1"]
+        print("Original resolution volume data removed")
+        
+        current_levels: list[DownsamplingLevelInfo] = metadata_dict["volumes"]['volume_sampling_info']['spatial_downsampling_levels']
+        for i, item in enumerate(current_levels):
+            if item["level"] == 1:
+                current_levels[i]["available"] = False
+        
+        metadata_dict["volumes"]['volume_sampling_info']['spatial_downsampling_levels'] = current_levels
+        
     root.attrs["metadata_dict"] = metadata_dict
+    
     return metadata_dict

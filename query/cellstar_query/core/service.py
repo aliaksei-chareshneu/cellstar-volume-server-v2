@@ -141,8 +141,15 @@ class VolumeServerService:
     async def get_meshes_bcif(self, req: MeshRequest) -> bytes:
         with Timing("read metadata"):
             metadata = await self.db.read_metadata(req.source, req.structure_id)
-        with Timing("decide box"):
-            box = self._decide_slice_box(None, None, metadata)
+        # with Timing("decide box"):
+        #     box = self._decide_slice_box(None, None, metadata)
+        # for meshes instead can create box
+        # for original resolution
+        box = GridSliceBox(
+                    downsampling_rate=1,
+                    bottom_left=(0, 0, 0),
+                    top_right=tuple(d - 1 for d in metadata.sampled_grid_dimensions(1)),  # type: ignore  # length is 3
+                )
         with Timing("read meshes"):
             with self.db.read(req.source, req.structure_id) as context:
                 try:
@@ -215,11 +222,24 @@ class VolumeServerService:
         """`max_points=None` means unlimited number of points"""
         box = None
 
+        # how it works
+        # loop over all downsampling levels
+        # even if not available, it should decide original slice box for meshes
         # loops over downsampling rates
-        for downsampling_rate in sorted(metadata.volume_downsamplings()):
+        # 1, 2, 4, 8
+        # on each iteration checks request box
+        # if provided - calculates box based on that
+        # if not, calculates box based on downsampling
+        # returns first box
+        for downsampling_level_info in metadata.volume_downsamplings():
+            if downsampling_level_info["available"] == False:
+                continue
+            
+            downsampling_rate = downsampling_level_info['level']
             if req_box:
                 box = calc_slice_box(req_box.bottom_left, req_box.top_right, metadata, downsampling_rate)
             # for cell query
+            # this branch works
             else:
                 box = GridSliceBox(
                     downsampling_rate=downsampling_rate,
@@ -232,6 +252,10 @@ class VolumeServerService:
             
             # returns first downsampling if max_points is None
             # of if box volume is lower than max_points  
+            
+            # so it loops over all downsamplings
+            # and tries to find the one satisfying the the max points
+            # 
             if max_points is None or (box is not None and box.volume < max_points):
                 return box
 
