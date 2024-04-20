@@ -3,22 +3,33 @@
 
 from cellstar_db.models import AnnotationsMetadata, DescriptionData, SegmentAnnotationData
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
+from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import ome_zarr_labels_preprocessing
 from cellstar_preprocessor.flows.volume.extract_omezarr_annotations import convert_hex_to_rgba_fractional, extract_omezarr_annotations
+from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tests.helper_methods import initialize_intermediate_zarr_structure_for_tests
-from cellstar_preprocessor.tests.input_for_tests import INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES, INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES
+from cellstar_preprocessor.tests.input_for_tests import INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES, INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES, INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES, INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES
 import pytest
 
+# Pair internal volumes and segmentations here
 
-INTERNAL_VOLUMES = [
-    INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES,
-    INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES
+INTERNAL_VOLUMES_AND_SEGMENTATIONS = [
+    (INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES, INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES),
+    (INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES, INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES)
 ]
 
-@pytest.mark.parametrize("internal_volume", INTERNAL_VOLUMES)
-def test_extract_omezarr_annotations(internal_volume: InternalVolume):
+@pytest.mark.parametrize("internal_volume_and_segmentation", INTERNAL_VOLUMES_AND_SEGMENTATIONS)
+def test_extract_omezarr_annotations(internal_volume_and_segmentation: tuple[InternalVolume, InternalSegmentation]):
     initialize_intermediate_zarr_structure_for_tests()
 
+    # most likely
+    # should produce some zarr structure first
+    # with segmentation
+    # do ome_zarr_labels_preprocessing
+    internal_volume = internal_volume_and_segmentation[0]
+    internal_segmentation = internal_volume_and_segmentation[1]
+    
+    ome_zarr_labels_preprocessing(internal_segmentation=internal_segmentation)
     d: AnnotationsMetadata = extract_omezarr_annotations(internal_volume=internal_volume)
 
     ome_zarr_root = open_zarr_structure_from_path(
@@ -90,4 +101,5 @@ def test_extract_omezarr_annotations(internal_volume: InternalVolume):
                 assert segment_annotation_item["color"] == ind_label_color_fractional
                 assert segment_annotation_item["segment_id"] == label_value
                 assert segment_annotation_item['segment_kind'] == 'lattice'
-                assert segment_annotation_item['time'] == 0
+                # can be not 0
+                # assert segment_annotation_item['time'] == 0

@@ -48,9 +48,9 @@ def test_sff_segmentation_downsampling(internal_segmentation: InternalSegmentati
 
         set_table[...] = [d]
 
-        value_to_segment_id_dict = {0: {}}
+        value_to_segment_id_dict = {'0': {}}
         for value in np.unique(segment_ids_data):
-            value_to_segment_id_dict[0][int(value)] = int(value)
+            value_to_segment_id_dict['0'][int(value)] = int(value)
 
         internal_segmentation.value_to_segment_id_dict = value_to_segment_id_dict
 
