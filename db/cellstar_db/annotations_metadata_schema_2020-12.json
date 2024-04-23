@@ -30,7 +30,11 @@
                 },
                 "segment_kind": {
                     "type": "string",
-                    "enum": ["lattice", "mesh", "primitive"]
+                    "enum": [
+                        "lattice",
+                        "mesh",
+                        "primitive"
+                    ]
                 },
                 "segment_id": {
                     "type": "integer"
@@ -45,7 +49,10 @@
                     }
                 },
                 "time": {
-                    "type": ["integer", "array"]
+                    "type": [
+                        "integer",
+                        "array"
+                    ]
                 }
             },
             "required": [
@@ -86,12 +93,18 @@
             "title": "ExternalReference"
         },
         "DescriptionText": {
-            "type": ["object", "null"],
+            "type": [
+                "object",
+                "null"
+            ],
             "additionalProperties": false,
             "properties": {
                 "format": {
                     "type": "string",
-                    "enum": ["text", "markdown"]
+                    "enum": [
+                        "text",
+                        "markdown"
+                    ]
                 },
                 "text": {
                     "type": "string"
@@ -125,7 +138,12 @@
                 },
                 "target_kind": {
                     "type": "string",
-                    "enum": ["lattice", "mesh", "primitive", "entry"]
+                    "enum": [
+                        "lattice",
+                        "mesh",
+                        "primitive",
+                        "entry"
+                    ]
                 },
                 "target_id": {
                     "$ref": "#/$defs/TargetID"
@@ -140,22 +158,34 @@
                     }
                 },
                 "is_hidden": {
-                    "type": ["boolean", "null"]
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
                 },
                 "time": {
-                    "type": ["integer", "array"]
+                    "type": [
+                        "integer",
+                        "array"
+                    ]
                 },
                 "description": {
                     "$ref": "#/$defs/DescriptionText"
                 },
                 "metadata": {
-                    "type": "null"
+                    "$ref": "#/$defs/DescriptionDataMetadata"
                 }
             },
             "required": [
                 "target_kind"
             ],
             "title": "DescriptionData"
+        },
+        "DescriptionDataMetadata": {
+            "type": [
+                "object",
+                "null"
+            ]
         }
     },
     "properties": {
