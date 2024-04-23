@@ -1,11 +1,27 @@
 from uuid import uuid4
-from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData, TargetId
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, ExternalReference, SegmentAnnotationData, TargetId
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, MESH_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 
+def _preprocess_external_references(raw_external_references: list[ExternalReference]):
+    '''Converts ref ids to strings'''
+    external_referneces: list[ExternalReference] = []
+    for x in raw_external_references:
+        r: ExternalReference = {
+            'accession': x['accession'],
+            'description': x['description'],
+            'id': str(x['id']),
+            'label': x['label'],
+            'resource': x['resource'],
+            'url': x['url']
+        }
+        external_referneces.append(
+            r    
+        )
+    return external_referneces
 
 def extract_annotations_from_sff_segmentation(
     internal_segmentation: InternalSegmentation,
@@ -38,6 +54,9 @@ def extract_annotations_from_sff_segmentation(
                         'segment_id': segment["id"],
                         'segmentation_id': str(lattice_id)
                     }
+                    raw_external_references: list[ExternalReference] = segment["biological_annotation"]["external_references"]
+                    external_referneces: list[ExternalReference] = _preprocess_external_references(raw_external_references)
+                        
                     description: DescriptionData = {
                         'id': description_id,
                         'target_kind': "lattice",
@@ -46,7 +65,8 @@ def extract_annotations_from_sff_segmentation(
                         'metadata': None,
                         'time': time,
                         'name': segment["biological_annotation"]["name"],
-                        'external_references': segment["biological_annotation"]["external_references"],
+                        # for each external reference, make id a string
+                        'external_references': external_referneces,
                         'target_id': target_id
                     }
                     # create segment annotation
@@ -69,6 +89,8 @@ def extract_annotations_from_sff_segmentation(
                     'segment_id': segment["id"],
                     'segmentation_id': str(set_id)
                 }
+                raw_external_references: list[ExternalReference] = segment["biological_annotation"]["external_references"]
+                external_referneces: list[ExternalReference] = _preprocess_external_references(raw_external_references)
                 description: DescriptionData = {
                     'id': description_id,
                     'target_kind': "mesh",
@@ -77,7 +99,7 @@ def extract_annotations_from_sff_segmentation(
                     'metadata': None,
                     'time': time,
                     'name': segment["biological_annotation"]["name"],
-                    'external_references': segment["biological_annotation"]["external_references"],
+                    'external_references': external_referneces,
                     'target_id': target_id
                 }
                 segment_annotation: SegmentAnnotationData = {
