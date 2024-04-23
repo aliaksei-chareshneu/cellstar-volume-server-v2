@@ -29,7 +29,7 @@ class AnnnotationsEditContext:
         for x in xs:
         # 2. if 'id' in x:    
             if 'id' in x.keys():
-                descr_id = x['id']
+                descr_id = str(x['id'])
             else:
                 descr_id = str(uuid4())
 
