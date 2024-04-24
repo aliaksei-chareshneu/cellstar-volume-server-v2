@@ -939,7 +939,7 @@ async def main_preprocessor(
     db_path: Path,
     input_paths: list[Path],
     input_kinds: list[InputKind],
-    min_size_per_channel_mb: typing.Optional[float] = 5,
+    min_size_per_downsampling_lvl_mb: typing.Optional[float] = 5,
 ):
     if quantize_downsampling_levels:
         quantize_downsampling_levels = quantize_downsampling_levels.split(" ")
@@ -955,7 +955,7 @@ async def main_preprocessor(
             force_volume_dtype=force_volume_dtype,
         ),
         downsampling=DownsamplingParams(
-            min_size_per_downsampling_lvl_mb=min_size_per_channel_mb,
+            min_size_per_downsampling_lvl_mb=min_size_per_downsampling_lvl_mb,
             max_size_per_downsampling_lvl_mb=max_size_per_downsampling_lvl_mb,
             min_downsampling_level=min_downsampling_level,
             max_downsampling_level=max_downsampling_level,
@@ -1006,7 +1006,7 @@ def main(
     ] = None,
     force_volume_dtype: Annotated[typing.Optional[str], typer.Option(None)] = None,
     max_size_per_downsampling_lvl_mb: Annotated[typing.Optional[float], typer.Option(None)] = None,
-    min_size_per_channel_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5,
+    min_size_per_downsampling_lvl_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5,
     min_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
     max_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
     remove_original_resolution: Annotated[typing.Optional[bool], typer.Option(None)] = False,
@@ -1036,7 +1036,7 @@ def main(
             quantize_downsampling_levels=quantize_downsampling_levels,
             force_volume_dtype=force_volume_dtype,
             max_size_per_downsampling_lvl_mb=max_size_per_downsampling_lvl_mb,
-            min_size_per_channel_mb=min_size_per_channel_mb,
+            min_size_per_downsampling_lvl_mb=min_size_per_downsampling_lvl_mb,
             min_downsampling_level=min_downsampling_level,
             max_downsampling_level=max_downsampling_level,
             remove_original_resolution=remove_original_resolution,
