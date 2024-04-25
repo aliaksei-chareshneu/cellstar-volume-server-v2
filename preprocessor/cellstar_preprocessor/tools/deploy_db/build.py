@@ -4,6 +4,7 @@
 import argparse
 import asyncio
 import atexit
+from collections import defaultdict
 import multiprocessing
 import os
 import shutil
@@ -11,6 +12,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+# from _old.input_data_model import QuantizationDtype
 from cellstar_db.models import InputForBuildingDatabase
 from cellstar_preprocessor.flows.constants import CSV_WITH_ENTRY_IDS_FILE, DB_BUILDING_PARAMETERS_JSON, DEFAULT_DB_PATH, TEMP_ZARR_HIERARCHY_STORAGE_PATH
 from cellstar_preprocessor.preprocess import PreprocessorMode, main_preprocessor
@@ -30,42 +32,52 @@ def parse_script_args():
     # parser.add_argument('--raw_input_files_dir', type=Path, default=RAW_INPUT_FILES_DIR, help='dir with raw input files')
     parser.add_argument("--db_path", type=str, default=DEFAULT_DB_PATH, help='path to db folder')
     parser.add_argument("--temp_zarr_hierarchy_storage_path", type=str, default=TEMP_ZARR_HIERARCHY_STORAGE_PATH, help='path to db working directory')
-
+    parser.add_argument("--delete_existing_db", action='store_true', default=False, help='remove existing db directory')
     args=parser.parse_args()
     return args
 
 # common arguments
-def _preprocessor_internal_wrapper(input: InputForBuildingDatabase, db_path: str, working_folder: str):
+def _preprocessor_internal_wrapper(input_for_building: InputForBuildingDatabase, db_path: str, working_folder: str):
     # TODO: run as function
     # main_preprocessor
     # before that convert some arguments types used in main_preprocessor
+    # input_for_building = defaultdict(str, input_for_building_raw)
     quantize_downsampling_levels = None
-    if input['quantize_downsampling_levels']:
+    if 'quantize_downsampling_levels' in input_for_building:
         quantize_downsampling_levels = []
-        quantize_downsampling_levels = " ".join(str(item) for item in input['quantize_downsampling_levels'])
+        quantize_downsampling_levels = " ".join(str(item) for item in input_for_building['quantize_downsampling_levels'])
     
+    
+    # TODO: replace all absent values with None
+    # if not 'quantize_dtype_str' in input_for_building:
+    #     input_for_building['quantize_dtype_str'] = None
+        # if input_for_building['quantize_dtype_str'] == 'u1':
+        #     input_for_building['quantize_dtype_str'] = QuantizationDtype.u1
+        # if input_for_building['quantize_dtype_str'] == 'u2':
+        #     input_for_building['quantize_dtype_str'] = QuantizationDtype.u2
+            
     # there is a list
     # each item is tuple
     # need to get two lists
-    inputs = input['inputs']
+    inputs = input_for_building['inputs']
     input_pathes_list = [Path(i[0]) for i in inputs]
     input_kinds_list = [i[1] for i in inputs]
     # TODO: use starmap?
     asyncio.run(
         main_preprocessor(
             mode=PreprocessorMode.add,
-            quantize_dtype_str=input['quantize_dtype_str'],
+            quantize_dtype_str=input_for_building.get('quantize_dtype_str'),
             quantize_downsampling_levels=quantize_downsampling_levels,
-            force_volume_dtype=input['force_volume_dtype'],
-            max_size_per_downsampling_lvl_mb=input['max_size_per_downsampling_lvl_mb'],
-            min_size_per_downsampling_lvl_mb=input['min_size_per_downsampling_lvl_mb'],
-            max_downsampling_level=input['max_downsampling_level'],
-            min_downsampling_level=input['min_downsampling_level'],
-            remove_original_resolution=input['remove_original_resolution'],
-            entry_id=input['entry_id'],
-            source_db=input['source_db'],
-            source_db_id=input['source_db_id'],
-            source_db_name=input['source_db_name'],
+            force_volume_dtype=input_for_building.get('force_volume_dtype'),
+            max_size_per_downsampling_lvl_mb=input_for_building.get('max_size_per_downsampling_lvl_mb'),
+            min_size_per_downsampling_lvl_mb=input_for_building.get('min_size_per_downsampling_lvl_mb'),
+            max_downsampling_level=input_for_building.get('max_downsampling_level'),
+            min_downsampling_level=input_for_building.get('min_downsampling_level'),
+            remove_original_resolution=input_for_building.get('remove_original_resolution'),
+            entry_id=input_for_building.get('entry_id'),
+            source_db=input_for_building.get('source_db'),
+            source_db_id=input_for_building.get('source_db_id'),
+            source_db_name=input_for_building.get('source_db_name'),
             working_folder=Path(working_folder),
             db_path=Path(db_path),
             input_paths=input_pathes_list,
@@ -120,6 +132,9 @@ def _preprocessor_external_wrapper(arguments_list: list[tuple[InputForBuildingDa
     p.join()
 
 def build(args):
+    if args.delete_existing_db and Path(args.db_path).exists():
+        shutil.rmtree(args.db_path)
+        
     if not args.temp_zarr_hierarchy_storage_path:
         
         temp_zarr_hierarchy_storage_path = Path(TEMP_ZARR_HIERARCHY_STORAGE_PATH) / args.db_path
