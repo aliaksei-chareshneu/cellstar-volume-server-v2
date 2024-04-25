@@ -1,11 +1,35 @@
 from enum import Enum
+from pathlib import Path
 from typing import Any, List, Literal, Optional, Protocol, TypedDict, Union
 
+from cellstar_preprocessor.model.input import InputKind, QuantizationDtype
 import numpy as np
 from pydantic import BaseModel, validator
 import zarr
 
-
+# JSON - list of InputForBuildingDatabase
+# TODO: can be a JSON schema instead
+# NOTE: Single entry input
+# TODO: infer schema from json
+# TODO: use this class when parsing
+# need to create preprocessor input from 
+class InputForBuildingDatabase(TypedDict):
+    quantize_dtype_str: QuantizationDtype | None
+    quantize_downsampling_levels: list[int] | None
+    force_volume_dtype: str | None
+    max_size_per_downsampling_lvl_mb: float | None
+    min_size_per_downsampling_lvl_mb: float | None
+    min_downsampling_level: int | None
+    max_downsampling_level: int | None
+    remove_original_resolution: bool | None
+    entry_id: str
+    source_db: str
+    source_db_id: str
+    source_db_name: str
+    working_folder: str
+    db_path: str
+    inputs: list[tuple[str, InputKind]]
+    
 class OMETIFFSpecificExtraData(TypedDict):
     # missing_dimension: str
     cell_stage: Optional[str]
