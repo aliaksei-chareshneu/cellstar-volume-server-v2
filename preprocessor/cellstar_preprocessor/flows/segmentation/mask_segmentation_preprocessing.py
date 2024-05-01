@@ -53,7 +53,8 @@ def mask_segmentation_preprocessing(internal_segmentation: InternalSegmentation)
 
             data = _normalize_axis_order_mrcfile_numpy(arr=data, mrc_header=header)
             internal_segmentation.value_to_segment_id_dict[lattice_id] = {}
-
+            internal_segmentation.map_header = header
+            
             unique_values = np.unique(data)
             unique_values_without_zero = unique_values[unique_values > 0]
             if unique_values_without_zero.dtype.kind == 'f':

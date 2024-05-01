@@ -11,6 +11,7 @@ from cellstar_db.file_system.models import FileSystemVolumeMedatada
 from cellstar_db.file_system.volume_and_segmentation_context import VolumeAndSegmentationContext
 from cellstar_preprocessor.flows.segmentation.collect_custom_annotations import collect_custom_annotations
 from cellstar_preprocessor.flows.segmentation.extract_annotations_from_geometric_segmentation import extract_annotations_from_geometric_segmentation
+from cellstar_preprocessor.flows.segmentation.extract_metadata_from_mask import extract_metadata_from_mask
 from cellstar_preprocessor.flows.segmentation.extract_metadata_from_nii_segmentation import extract_metadata_from_nii_segmentation
 from cellstar_preprocessor.flows.segmentation.extract_metadata_geometric_segmentation import extract_metadata_geometric_segmentation
 from cellstar_preprocessor.flows.segmentation.extract_ome_tiff_segmentation_annotations import extract_ome_tiff_segmentation_annotations
@@ -300,10 +301,12 @@ class MaskMetadataCollectionTask(TaskBase):
         self.internal_segmentation = internal_segmentation
 
     def execute(self) -> None:
-        metadata_dict = extract_metadata_from_sff_segmentation(
+        # metadata_dict = extract_metadata_from_sff_segmentation(
+        #     internal_segmentation=self.internal_segmentation
+        # )
+        metadata_dict = extract_metadata_from_mask(
             internal_segmentation=self.internal_segmentation
         )
-
 class GeometricSegmentationMetadataCollectionTask(TaskBase):
     def __init__(self, internal_segmentation: InternalSegmentation):
         self.internal_segmentation = internal_segmentation
