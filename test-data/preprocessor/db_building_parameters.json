@@ -12,8 +12,6 @@
         "source_db": "emdb",
         "source_db_id": "emd-1832",
         "source_db_name": "emdb",
-        "working_folder": "preprocessor/temp/temp_zarr_hierarchy_storage",
-        "db_path": "preprocessor/temp/test_db",
         "inputs": [
             [
                 "test-data/preprocessor/sample_volumes/emdb/EMD-1832.map",
@@ -22,6 +20,18 @@
             [
                 "test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff",
                 "sff"
+            ]
+        ]
+    },
+    {
+        "entry_id": "idr-13457537",
+        "source_db": "idr",
+        "source_db_id": "idr-13457537",
+        "source_db_name": "idr",
+        "inputs": [
+            [
+                "temp/v2_temp_static_entry_files_dir/idr/idr-13457537/13457537.zarr",
+                "omezarr"
             ]
         ]
     }
