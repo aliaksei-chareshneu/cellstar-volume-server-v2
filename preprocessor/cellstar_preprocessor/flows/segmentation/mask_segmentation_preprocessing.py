@@ -55,17 +55,23 @@ def mask_segmentation_preprocessing(internal_segmentation: InternalSegmentation)
             internal_segmentation.value_to_segment_id_dict[lattice_id] = {}
             internal_segmentation.map_header = header
             
-            unique_values = np.unique(data)
-            unique_values_without_zero = unique_values[unique_values > 0]
-            if unique_values_without_zero.dtype.kind == 'f':
-                data.setflags(write=1)
-                # start from highest value found in the array + 1
-                start = int(unique_values_without_zero.max() + 1)
-                for index, value in enumerate(unique_values_without_zero, start=start):
-                    data[data == value] = index
             
+            # fix this part?
+            # for multiple lattices we do not need this, just astype i4?
+            
+            # unique_values = np.unique(data)
+            # unique_values_without_zero = unique_values[unique_values > 0]
+            # if unique_values_without_zero.dtype.kind == 'f':
+            #     data.setflags(write=1)
+            #     # start from highest value found in the array + 1
+            #     start = int(unique_values_without_zero.max() + 1)
+            #     for index, value in enumerate(unique_values_without_zero, start=start):
+            #         data[data == value] = index
+            
+            #     data = data.astype('i4')
+            if data.dtype.kind == 'f':
+                data.setflags(write=1)
                 data = data.astype('i4')
-
 
             for value in np.unique(data):
                 internal_segmentation.value_to_segment_id_dict[lattice_id][int(value)] = int(value)
