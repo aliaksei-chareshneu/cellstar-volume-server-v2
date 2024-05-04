@@ -1,9 +1,9 @@
-# CLI tool
+# Query App
 
-CLI tool 
+Query App (CVSX)
 
 # Usage
-To run the CLI tool and produce the static files suitable for visualization at the frontend:
+To run the query app tool and produce the static files suitable for visualization at the frontend:
 1. Build the database using preprocessor **(TODO LINK TO README FOR PREPROCESSOR)**
 2. From repository root (`cellstar-volume-server-v2` by default) run:
     ```
@@ -53,7 +53,7 @@ To run the CLI tool and produce the static files suitable for visualization at t
             - `--limit`           Maximum number of entries
             - `--keyword`         Keyword
         - `composite`             Composite query, consisting of several simple queries listed above (i.e. `subqueries`).
-            - `--json-params-path` Path to `.json` file with query parameters.List of query parameters should be exhaustive, i.e. there should be sufficient arguments for all subqueries to be executed. 
+            - `--json-params-path` Path to `.json` file with query parameters. List of query parameters should be exhaustive, i.e. there should be sufficient arguments for all subqueries to be executed. 
                 File should be structured as follows:
                 ```json
                 {
@@ -76,6 +76,7 @@ To run the CLI tool and produce the static files suitable for visualization at t
                         "volume-cell",
                         "segmentation-cell",
                         "annotations"
+                        "metadata"
                     ],
                     "args": {
                         "entry_id": "emd-1832",
@@ -88,10 +89,16 @@ To run the CLI tool and produce the static files suitable for visualization at t
                 ```
                 Then use the following command:
                 ```
-                python query_app.py --db_path temp/test_db --out results.zip composite --json-params-path json_with_query_params.json
+                python query_app.py --db_path temp/test_db --out results.cvsx composite --json-params-path json_with_query_params.json
                 ```
                 
-                This will produce `results.zip` containing the results of `volume-cell`, `segmentation-cell`, and `annotations` queries
+                This will produce `results.cvsx` containing the results of `volume-cell`, `segmentation-cell`, `annotations`, and `metadata` queries
+
+---
+**NOTE**
+
+Frontend visualization support is provided mainly for results of composite queries (CVSX files)
+---
 
 # Example of usage
 ```
