@@ -37,6 +37,25 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
 
     palette = sns.color_palette(None, palette_length)
 
+    if 'segment_ids_to_segment_names_mapping' not in internal_segmentation.custom_data:
+        # list_of_sesgmentation_pathes: list[Path] = internal_segmentation.segmentation_input_path
+        # internal_segmentation.custom_data['segmentation_ids_mapping'] = {s.stem : s.stem for s in list_of_sesgmentation_pathes}
+        # TODO: create from internal_segmentation.value_to_segment_id_dict[lattice_id]
+        internal_segmentation.custom_data['segment_ids_to_segment_names_mapping'] = {}
+        for lattice_id in internal_segmentation.value_to_segment_id_dict:
+            # str to int?
+            # e.g. "1": 1
+            # need to make "1": "Segment 1"
+            # {k: '_'+ v for k,v in signames.items()}
+            value_to_segment_id_dict: dict[int, int] = internal_segmentation.value_to_segment_id_dict[lattice_id]
+            mapping_for_lattice: dict[str, str] = {str(k): 'Segment '+ str(v) for k, v in value_to_segment_id_dict.items()}
+
+            internal_segmentation.custom_data['segment_ids_to_segment_names_mapping'][str(lattice_id)] = mapping_for_lattice
+
+        
+    segment_ids_to_segment_names_mapping: dict[str, dict[str, str]] = internal_segmentation.custom_data['segment_ids_to_segment_names_mapping']
+    # segmentation_ids_mapping: dict[str, str] = internal_segmentation.custom_data['segmentation_ids_mapping']
+
     count = 0
     for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
         # int to int dict
@@ -62,7 +81,9 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
                     'is_hidden': None,
                     'metadata': None,
                     'time': 0,
-                    'name': f"Segment {segment_id}",
+                    # here segment name from extra data if available
+                    # 'name': f"Segment {segment_id}",
+                    'name': segment_ids_to_segment_names_mapping[str(lattice_id)][str(segment_id)],
                     'external_references': [],
                     'target_id': target_id
                 }

@@ -1,5 +1,5 @@
 from pathlib import Path
-from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import open_zarr_structure_from_path, set_segmentation_custom_data
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.flows.segmentation.helper_methods import store_segmentation_data_in_zarr_structure
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
@@ -41,12 +41,21 @@ def mask_segmentation_preprocessing(internal_segmentation: InternalSegmentation)
     # artificially create value_to_segment_id_dict
     internal_segmentation.value_to_segment_id_dict = {}
     
-    # here instead of enumerate, use file name
+    set_segmentation_custom_data(internal_segmentation, our_zarr_structure)
+    
+    # should be dict str to str with all channel ids
+    if 'segmentation_ids_mapping' not in internal_segmentation.custom_data:
+        list_of_sesgmentation_pathes: list[Path] = internal_segmentation.segmentation_input_path
+        internal_segmentation.custom_data['segmentation_ids_mapping'] = {s.stem : s.stem for s in list_of_sesgmentation_pathes}
+    
+    segmentation_ids_mapping: dict[str, str] = internal_segmentation.custom_data['segmentation_ids_mapping']
+
+
 
     # for lattice_id, mask in enumerate(internal_segmentation.segmentation_input_path):
     for mask in internal_segmentation.segmentation_input_path:
         mask: Path
-        lattice_id = mask.stem
+        lattice_id = segmentation_ids_mapping[mask.stem]
         with mrcfile.open(str(mask.resolve())) as mrc_original:
             data = mrc_original.data
             header = mrc_original.header
