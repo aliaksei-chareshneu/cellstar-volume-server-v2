@@ -19,7 +19,7 @@ class FileSystemVolumeMedatada(VolumeMetadata):
     def entry_id(self) -> str:
         return self.raw_metadata['entry_id']['source_db_id']
 
-    def segmentation_lattice_ids(self) -> List[int]:
+    def segmentation_lattice_ids(self) -> List[str]:
         if "segmentation_ids" in self.raw_metadata["segmentation_lattices"]:
             return self.raw_metadata["segmentation_lattices"]["segmentation_ids"]
         return []
