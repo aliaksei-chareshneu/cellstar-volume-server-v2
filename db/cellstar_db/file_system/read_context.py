@@ -231,7 +231,7 @@ class FileSystemDBReadContext(DBReadContext):
 
     async def read_segmentation_slice(
         self,
-        lattice_id: int,
+        lattice_id: str,
         down_sampling_ratio: int,
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
         time: int,
