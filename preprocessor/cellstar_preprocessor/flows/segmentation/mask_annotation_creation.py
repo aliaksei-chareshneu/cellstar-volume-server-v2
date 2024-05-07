@@ -5,6 +5,16 @@ from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROU
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import seaborn as sns
 
+def _get_segment_name_from_mapping(mapping: dict[str, dict[str, str]], lattice_id: str, segment_id: str):
+    # default segment name if no segmentation or no segment in mapping
+    if lattice_id in mapping:
+        if segment_id in mapping[lattice_id]:
+            return mapping[lattice_id][segment_id]
+        else:
+            return f'Segment {segment_id}'
+    else:
+        return f'Segment {segment_id}'
+
 def mask_annotation_creation(internal_segmentation: InternalSegmentation):
     
     # segm_arr = root[SEGMENTATION_DATA_GROUPNAME][0][0][0][0]
@@ -37,6 +47,7 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
 
     palette = sns.color_palette(None, palette_length)
 
+    # should create this mapping for all lattices not mentioned in
     if 'segment_ids_to_segment_names_mapping' not in internal_segmentation.custom_data:
         # list_of_sesgmentation_pathes: list[Path] = internal_segmentation.segmentation_input_path
         # internal_segmentation.custom_data['segmentation_ids_mapping'] = {s.stem : s.stem for s in list_of_sesgmentation_pathes}
@@ -74,6 +85,10 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
                     'segment_id': segment_id,
                     'segmentation_id': str(lattice_id)
                 }
+                # if segment is not in the mapping
+                # or if segmentation not in the mapping
+                # get default segment name
+                segment_name = _get_segment_name_from_mapping(internal_segmentation.custom_data['segment_ids_to_segment_names_mapping'], str(lattice_id), str(segment_id))
                 description: DescriptionData = {
                     'id': description_id,
                     'target_kind': "lattice",
@@ -83,7 +98,7 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
                     'time': 0,
                     # here segment name from extra data if available
                     # 'name': f"Segment {segment_id}",
-                    'name': segment_ids_to_segment_names_mapping[str(lattice_id)][str(segment_id)],
+                    'name': segment_name,
                     'external_references': [],
                     'target_id': target_id
                 }
