@@ -16,7 +16,7 @@
                     }
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             }
         },
@@ -25,7 +25,7 @@
             "additionalProperties": false,
             "properties": {
                 "id": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "format": "uuid"
                 },
                 "segment_kind": {
@@ -43,7 +43,7 @@
                     "type": "string"
                 },
                 "color": {
-                    "type": "array",
+                    "type": ["array", "null"],
                     "items": {
                         "type": "number"
                     }
@@ -51,7 +51,8 @@
                 "time": {
                     "type": [
                         "integer",
-                        "array"
+                        "array",
+                        "null"
                     ]
                 }
             },
@@ -67,22 +68,22 @@
             "additionalProperties": false,
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "resource": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "accession": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "description": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "url": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "format": "uri",
                     "qt-uri-protocols": [
                         "http",
@@ -133,7 +134,7 @@
             "additionalProperties": false,
             "properties": {
                 "id": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "format": "uuid"
                 },
                 "target_kind": {
@@ -146,13 +147,16 @@
                     ]
                 },
                 "target_id": {
-                    "$ref": "#/$defs/TargetID"
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/$defs/TargetID"}
+                    ]
                 },
                 "name": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "external_references": {
-                    "type": "array",
+                    "type": ["array", "null"],
                     "items": {
                         "$ref": "#/$defs/ExternalReference"
                     }
@@ -166,14 +170,19 @@
                 "time": {
                     "type": [
                         "integer",
-                        "array"
+                        "array",
+                        "null"
                     ]
                 },
                 "description": {
-                    "$ref": "#/$defs/DescriptionText"
+                    "allOf": [
+                        {"$ref": "#/$defs/DescriptionText"}
+                    ]
                 },
                 "metadata": {
-                    "$ref": "#/$defs/DescriptionDataMetadata"
+                    "allOf": [
+                        {"$ref": "#/$defs/DescriptionDataMetadata"}
+                    ]
                 }
             },
             "required": [
@@ -190,7 +199,7 @@
     },
     "properties": {
         "name": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "entry_id": {
             "type": "object",
@@ -223,10 +232,10 @@
             }
         },
         "details": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "volume_channels_annotations": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
                 "$ref": "#/$defs/ChannelAnnotation"
             }
