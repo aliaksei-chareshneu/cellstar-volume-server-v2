@@ -44,14 +44,14 @@
                     "resource",
                     "kind"
                 ]
-            },
-            "required": [
-                "entry_id",
-                "source_db",
-                "source_db_name",
-                "source_db_id",
-                "inputs"
-            ]
-        }
+            }
+        },
+        "required": [
+            "entry_id",
+            "source_db",
+            "source_db_name",
+            "source_db_id",
+            "inputs"
+        ]
     }
 }
