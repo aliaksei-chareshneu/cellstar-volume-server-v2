@@ -1,0 +1,57 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "source_db_name": {
+                "type": "string"
+            },
+            "source_db_id": {
+                "type": "string"
+            },
+            "entry_id": {
+                "type": "string"
+            },
+            "source_db": {
+                "type": "string"
+            },
+            "inputs": {
+                "type": "object",
+                "properties": {
+                    "kind": {
+                        // TODO: enum all input types (map, sff etc.)
+                        "type": "string"
+                    },
+                    "resource": {
+                        "type": "object",
+                        "properties": {
+                            // TODO: enum - external / local
+                            "kind": {
+                                "type": "string"
+                            },
+                            "uri": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "kind",
+                            "uri"
+                        ]
+                    }
+                },
+                "required": [
+                    "resource",
+                    "kind"
+                ]
+            },
+            "required": [
+                "entry_id",
+                "source_db",
+                "source_db_name",
+                "source_db_id",
+                "inputs"
+            ]
+        }
+    }
+}
