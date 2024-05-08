@@ -17,33 +17,36 @@
                 "type": "string"
             },
             "inputs": {
-                "type": "object",
-                "properties": {
-                    "kind": {
-                        // TODO: enum all input types (map, sff etc.)
-                        "type": "string"
-                    },
-                    "resource": {
-                        "type": "object",
-                        "properties": {
-                            // TODO: enum - external / local
-                            "kind": {
-                                "type": "string"
-                            },
-                            "uri": {
-                                "type": "string"
-                            }
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "kind": {
+                            // TODO: enum all input types (map, sff etc.)
+                            "type": "string"
                         },
-                        "required": [
-                            "kind",
-                            "uri"
-                        ]
-                    }
-                },
-                "required": [
-                    "resource",
-                    "kind"
-                ]
+                        "resource": {
+                            "type": "object",
+                            "properties": {
+                                // TODO: enum - external / local
+                                "kind": {
+                                    "type": "string"
+                                },
+                                "uri": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "kind",
+                                "uri"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "resource",
+                        "kind"
+                    ]
+                }
             }
         },
         "required": [
