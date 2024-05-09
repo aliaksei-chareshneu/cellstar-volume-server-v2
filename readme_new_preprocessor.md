@@ -85,7 +85,7 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
  - Navigate to [EMPIAR-10988 entry webpage](https://www.ebi.ac.uk/empiar/EMPIAR-10988/)
  - Scroll down to `Browse All Files` section.
  - Open the dropdown under `Download button`, select just the files that are selected on the screenshot below:
-![alt text](image-3.png)
+ ![alt text](empiar-10988-webpage.png)
  - Press `Download`
  - Choose `Uncompressed ZIP archive streamed via HTTP`
  - Unzip the ZIP archive.
