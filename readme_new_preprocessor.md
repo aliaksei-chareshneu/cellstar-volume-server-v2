@@ -67,7 +67,7 @@ It will add entry `emd-1832-geometric-segmentation` to the database
 #### EMD-1273 with segmentations based on masks
 <!-- - Create a folder `inputs/emd-1832` -->
 1. Download [MAP](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/map/emd_1273.map.gz) and extract it to `test-data/preprocessor/sample_volumes/emdb/`
-2. Create folder `test-data/preprocessor/sample_segmentations/emdb_masks/`
+2. Create folder `test-data/preprocessor/sample_segmentations/emdb_masks/` if not exists
 3. Download masks to `test-data/preprocessor/sample_segmentations/emdb_masks/`:
     - [Mask 1](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_1.map)
     - [Mask 2](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_2.map)
@@ -79,6 +79,50 @@ It will add entry `emd-1832-geometric-segmentation` to the database
 
 ```
 python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/emd_1273.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_1.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_2.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_3.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_4.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_5.map --input-kind mask --entry-id emd-1273 --source-db emdb --source-db-id emd-1273 --source-db-name emdb --working-folder temp_working_folder --db-path test_db
+```
+
+#### EMPIAR-10988
+ - Navigate to [EMPIAR-10988 entry webpage](https://www.ebi.ac.uk/empiar/EMPIAR-10988/)
+ - Scroll down to `Browse All Files` section.
+ - Open the dropdown under `Download button`, select just the files that are selected on the screenshot below:
+![alt text](image-3.png)
+ - Press `Download`
+ - Choose `Uncompressed ZIP archive streamed via HTTP`
+ - Unzip the ZIP archive.
+ - Create `test-data/preprocessor/sample_volumes/empiar/empiar-10988` folder
+ - Copy `TS_026.rec` file to `test-data/preprocessor/sample_volumes/empiar/empiar-10988` folder
+ - Create folder `test-data/preprocessor/sample_segmentations/empiar/empiar-10988`
+ - Copy `TS_026.labels.mrc`, `TS_026_cyto_ribosomes.mrc`, `TS_026_cytosol.mrc`, `TS_026_fas.mrc`, and `TS_026_membranes.mrc` files to `test-data/preprocessor/sample_segmentations/empiar/empiar-10988`
+ - To add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+ - Create `extra_data_empiar_10988.json` file in root repository directory with the following content:
+ ```json
+ {
+    "segmentation": {
+        "segment_ids_to_segment_names_mapping": {
+            "TS_026.labels": {
+                "1": "cytoplasm",
+                "2": "mitochondria",
+                "3": "vesicle",
+                "4": "tube",
+                "5": "ER",
+                "6": "nuclear envelope",
+                "7": "nucleus",
+                "8": "vacuole",
+                "9": "lipid droplet",
+                "10": "golgi",
+                "11": "vesicular body",
+                "13": "not identified compartment"
+            }
+        }
+    }
+}
+ ```
+
+ The content of the file is based on the content of `organelle_labels.txt` from EMPIAR-10988 webpage. It maps the segment IDs for segmentation from `TS_026.labels.mrc` file to biologically relevant segment names. 
+
+<!-- TODO: fix command (sample volume etc.) -->
+```
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder /mnt/data_compute_ssd/temp/temp_zarr_hierarchy_storage --db-path /mnt/data_compute_ssd/temp/test_db
 ```
 
 <!-- ## Editing descriptions of existing database entry
