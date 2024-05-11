@@ -5,7 +5,8 @@ from pathlib import Path
 import re
 from typing import TypedDict, Union
 
-from cellstar_db.models import DownsamplingLevelInfo, ExtraData, OMETIFFSpecificExtraData
+from PIL import ImageColor
+from cellstar_db.models import ChannelAnnotation, DownsamplingLevelInfo, ExtraData, OMETIFFSpecificExtraData
 from cellstar_preprocessor.flows.constants import SHORT_UNIT_NAMES_TO_LONG, SPACE_UNITS_CONVERSION_DICT
 import dask.array as da
 import numpy as np
@@ -505,3 +506,24 @@ def prepare_ometiff_for_writing(img_array: da.Array, metadata, int_vol_or_seg: I
 
     artificial_channel_ids_dict = dict(zip(artificial_channel_ids, artificial_channel_ids))
     return prepared_data, artificial_channel_ids_dict
+
+
+def convert_hex_to_rgba_fractional(channel_color_hex):
+    channel_color_rgba = ImageColor.getcolor(f"#{channel_color_hex}", "RGBA")
+    channel_color_rgba_fractional = tuple([i / 255 for i in channel_color_rgba])
+    return channel_color_rgba_fractional
+
+
+def get_channel_annotations(ome_zarr_attrs: dict):
+    volume_channel_annotations: list[ChannelAnnotation] = []
+    for channel_id, channel in enumerate(ome_zarr_attrs["omero"]["channels"]):
+        label = None if not channel['label'] else channel['label']
+        volume_channel_annotations.append(
+            {
+                "channel_id": str(channel_id),
+                "color": convert_hex_to_rgba_fractional(channel["color"]),
+                "label": label,
+            }
+        )
+
+    return volume_channel_annotations

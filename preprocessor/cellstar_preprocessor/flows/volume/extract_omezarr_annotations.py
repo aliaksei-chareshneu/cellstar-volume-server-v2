@@ -1,13 +1,14 @@
 from uuid import uuid4
-from cellstar_db.models import AnnotationsMetadata, DescriptionData, EntryId, SegmentAnnotationData, TargetId
-from PIL import ImageColor
+from cellstar_db.models import AnnotationsMetadata, ChannelAnnotation, DescriptionData, EntryId, Metadata, SegmentAnnotationData, TargetId
 
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.flows.common import get_channel_annotations
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 import numpy as np
 import zarr
+import zarr.storage
 
 def _get_label_time(label_value: int, our_label_gr: zarr.Group):
     timeframes_with_present_label = []
@@ -37,23 +38,6 @@ def _get_label_time(label_value: int, our_label_gr: zarr.Group):
     else:
         return timeframes_with_present_label
 
-def convert_hex_to_rgba_fractional(channel_color_hex):
-    channel_color_rgba = ImageColor.getcolor(f"#{channel_color_hex}", "RGBA")
-    channel_color_rgba_fractional = tuple([i / 255 for i in channel_color_rgba])
-    return channel_color_rgba_fractional
-
-def _get_channel_annotations(ome_zarr_attrs, volume_channel_annotations):
-    for channel_id, channel in enumerate(ome_zarr_attrs["omero"]["channels"]):
-        label = None if not channel['label'] else channel['label']
-        volume_channel_annotations.append(
-            {
-                "channel_id": str(channel_id),
-                "color": convert_hex_to_rgba_fractional(channel["color"]),
-                "label": label,
-            }
-        )
-
-
 # NOTE: Lattice IDs = Label groups
 def extract_omezarr_annotations(internal_volume: InternalVolume):
     ome_zarr_root = open_zarr_structure_from_path(
@@ -69,10 +53,7 @@ def extract_omezarr_annotations(internal_volume: InternalVolume):
         source_db_name=internal_volume.entry_data.source_db_name,
     )
 
-    _get_channel_annotations(
-        ome_zarr_attrs=ome_zarr_root.attrs,
-        volume_channel_annotations=d["volume_channels_annotations"],
-    )
+    d["volume_channels_annotations"] = get_channel_annotations(ome_zarr_root.attrs)
 
     # TODO: omezarr annotations (image label) should have time
     # NOTE: how to get it?

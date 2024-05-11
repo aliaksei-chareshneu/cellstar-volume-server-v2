@@ -8,6 +8,7 @@ import zarr
 
 from cellstar_preprocessor.flows.common import (
     create_dataset_wrapper,
+    get_channel_annotations,
     open_zarr_structure_from_path,
 )
 from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
@@ -43,6 +44,9 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
         #     internal_volume.volume_force_dtype = volume_arr.dtype
 
         size_of_data_for_lvl = 0
+        # first get volume channel annotations in preprocessing zarr image
+        # then set channel ids according to them in preprocessing zarr image
+        volume_channel_annotations = get_channel_annotations(root_zattrs)
         resolution_group = volume_data_gr.create_group(volume_arr_resolution)
         if len(axes) == 5 and axes[0]["name"] == "t":
             for i in range(volume_arr.shape[0]):
@@ -54,9 +58,27 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                     #     shape=corrected_volume_arr_data.shape,
                     #     data=corrected_volume_arr_data
                     # )
+                    
+                    # Fix this part
+                    
+                    # could be no target annotations
+                    # then label = j
+                    target_annotations = list(filter(lambda a: a['channel_id'] == str(j), volume_channel_annotations))
+                    assert len(target_annotations) <= 1, 'More than one channel with the same ID'
+                    label = j
+                    if len(target_annotations) == 1:
+                        target_annotation = target_annotations[0]
+                        if 'label' in target_annotation:
+                            label = target_annotation['label']
+                    # store = root.store
+                    # old_channel_array_path = f'{VOLUME_DATA_GROUPNAME}/{resolution}/{timeframe_index}/{channel_id}'
+                    
+                    # new_channel_array_path = f'{VOLUME_DATA_GROUPNAME}/{resolution}/{timeframe_index}/{label}'
+                    # print(f'Renaming {old_channel_array_path} to {new_channel_array_path}')
+                    
                     our_channel_arr = create_dataset_wrapper(
                         zarr_group=time_group,
-                        name=j,
+                        name=label,
                         shape=corrected_volume_arr_data.shape,
                         data=corrected_volume_arr_data,
                         dtype=corrected_volume_arr_data.dtype,
