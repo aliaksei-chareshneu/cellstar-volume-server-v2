@@ -50,7 +50,7 @@ def hex_to_rgba(hex_code):
 # TODO: use rln_ribosome_bin1_tomo_649.star
 
 # divisor = 4
-def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: list[float], pixel_size: float, star_file_coordinate_divisor: int):
+def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: list[float], pixel_size: float, star_file_coordinate_divisor: int, segmentation_id: str):
     lst: list[ShapePrimitiveInputData] = []
     df = starfile.read(str(path.resolve()))
     for index, row in df.iterrows():
@@ -80,7 +80,7 @@ def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: list[
             0: lst
         }
     geometric_segmentation_input = GeometricSegmentationInputData(
-        segmentation_id='0',
+        segmentation_id=segmentation_id,
         shape_primitives_input=d
     )
     
@@ -91,6 +91,7 @@ def parse_script_args():
     parser.add_argument('--star_file_path', type=str, help='')
     parser.add_argument('--geometric_segmentation_input_file_path', type=str, help='')
     parser.add_argument('--sphere_radius', type=float)
+    parser.add_argument('--segmentation_id', type=str)
     # TODO: color as hex? => transform to list float
     parser.add_argument('--sphere_color_hex', type=str)
     parser.add_argument('--pixel_size', type=float)
@@ -113,7 +114,8 @@ def main(args: argparse.Namespace):
         sphere_radius=sphere_radius,
         sphere_color=sphere_color,
         pixel_size=pixel_size,
-        star_file_coordinate_divisor=star_file_coordinate_divisor
+        star_file_coordinate_divisor=star_file_coordinate_divisor,
+        segmentation_id=args.segmentation_id
     )  
     with (geometric_segmentation_input_file_path).open('w') as fp:
         json.dump(lst.dict(), fp, indent=4)
