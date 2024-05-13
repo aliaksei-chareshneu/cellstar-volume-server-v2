@@ -138,11 +138,15 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
  - Copy `17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc` file to `test-data/preprocessor/sample_volumes/empiar/empiar-11756` folder
  - Create folder `test-data/preprocessor/sample_segmentations/empiar/empiar-11756`
  <!-- TODO: other 3 star files  -->
- - Copy `rln_ribosome_bin1_tomo_649.star` file to `test-data/preprocessor/sample_segmentations/empiar/empiar-11756`
- - To obtain file with input data for geometric segmentation, use the `preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py`, e.g.:
+ - Copy `rln_ribosome_bin1_tomo_649.star` and `rln_nucleosome_bin1_tomo_649.star` files to `test-data/preprocessor/sample_segmentations/empiar/empiar-11756`
+ - To obtain file with input data for geometric segmentation, use the `preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py` for both `.star` files, i.e.:
  <!-- TODO: check pixel size for that entry -->
  ```
- python preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_ribosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --sphere_radius 100 --sphere_color_hex #FFFF00 --pixel_size 7.84 --star_file_coordinate_divisor 4
+ python preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_ribosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --sphere_radius 100 --segmentation_id ribosomes  --sphere_color_hex #FFFF00 --pixel_size 7.84 --star_file_coordinate_divisor 4
+ ```
+ 
+ ```
+ python preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_nucleosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --sphere_radius 100  --segmentation_id nucleosomes --sphere_color_hex #FF0000 --pixel_size 7.84 --star_file_coordinate_divisor 4
  ```
  - Map file from EMPIAR webpages has wrong header parameters (voxel size is 0 for all 3 dimensions). To alleviate this, create `test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json` file with the following content:
  ```json
@@ -160,7 +164,7 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 
 <!-- TODO: command -->
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
 ```
 
 
