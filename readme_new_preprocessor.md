@@ -126,49 +126,42 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 ```
 
 
-<!-- #### EMPIAR-10988
- - Navigate to [EMPIAR-10988 entry webpage](https://www.ebi.ac.uk/empiar/EMPIAR-10988/)
+#### EMPIAR-11756
+ - Navigate to [EMPIAR-11756 entry webpage](https://www.ebi.ac.uk/empiar/EMPIAR-11756/)
  - Scroll down to `Browse All Files` section.
  - Open the dropdown under `Download button`, select just the files that are selected on the screenshot below:
- ![alt text](empiar-10988-webpage.png)
+ ![alt text](EMPIAR-11756-webpage.png)
  - Press `Download`
  - Choose `Uncompressed ZIP archive streamed via HTTP`
  - Unzip the ZIP archive.
- - Create `test-data/preprocessor/sample_volumes/empiar/empiar-10988` folder
- - Copy `TS_026.rec` file to `test-data/preprocessor/sample_volumes/empiar/empiar-10988` folder
- - Create folder `test-data/preprocessor/sample_segmentations/empiar/empiar-10988`
- - Copy `TS_026.labels.mrc`, `TS_026_cyto_ribosomes.mrc`, `TS_026_cytosol.mrc`, `TS_026_fas.mrc`, and `TS_026_membranes.mrc` files to `test-data/preprocessor/sample_segmentations/empiar/empiar-10988`
- - Create `extra_data_empiar_10988.json` file in root repository directory with the following content:
-  ```json
-  {
-      "segmentation": {
-          "segment_ids_to_segment_names_mapping": {
-              "TS_026.labels": {
-                  "1": "cytoplasm",
-                  "2": "mitochondria",
-                  "3": "vesicle",
-                  "4": "tube",
-                  "5": "ER",
-                  "6": "nuclear envelope",
-                  "7": "nucleus",
-                  "8": "vacuole",
-                  "9": "lipid droplet",
-                  "10": "golgi",
-                  "11": "vesicular body",
-                  "13": "not identified compartment"
-              }
-          }
-      }
-  }
-  ```
+ - Create `test-data/preprocessor/sample_volumes/empiar/empiar-11756` folder
+ - Copy `17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc` file to `test-data/preprocessor/sample_volumes/empiar/empiar-11756` folder
+ - Create folder `test-data/preprocessor/sample_segmentations/empiar/empiar-11756`
+ <!-- TODO: other 3 star files  -->
+ - Copy `rln_ribosome_bin1_tomo_649.star` file to `test-data/preprocessor/sample_segmentations/empiar/empiar-11756`
+ - To obtain file with input data for geometric segmentation, use the `preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py`, e.g.:
+ <!-- TODO: check pixel size for that entry -->
+ ```
+ python preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_ribosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --sphere_radius 100 --sphere_color_hex #FFFF00 --pixel_size 7.84 --star_file_coordinate_divisor 4
+ ```
+ - Map file from EMPIAR webpages has wrong header parameters (voxel size is 0 for all 3 dimensions). To alleviate this, create `test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json` file with the following content:
+ ```json
+    {
+        "volume": {
+            "voxel_size": [
+                7.84,
+                7.84,
+                7.84
+            ]
+        }   
+    }
+ ```
+ - To add an `empiar-11756` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
 
-  The content of the file is based on the content of `organelle_labels.txt` from EMPIAR-10988 webpage. It maps the segment IDs for segmentation from `TS_026.labels.mrc` file to biologically relevant segment names. 
-
- - To add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
- 
+<!-- TODO: command -->
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
-``` -->
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
+```
 
 
 
