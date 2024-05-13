@@ -3,7 +3,7 @@ import mrcfile
 import numpy as np
 import zarr
 
-from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import open_zarr_structure_from_path, set_volume_custom_data
 from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.helper_methods import (
     normalize_axis_order_mrcfile,
@@ -27,12 +27,14 @@ def map_preprocessing(internal_volume: InternalVolume):
         else:
             internal_volume.volume_force_dtype = data.dtype
 
+        set_volume_custom_data(internal_volume, zarr_structure)
+    
         # temp hack to process rec files with cella 0 0 0
         # if mrc_original.header.cella.x == 0 and mrc_original.header.cella.y == 0 and mrc_original.header.cella.z == 0:
-        if internal_volume.pixel_size:
+        if "voxel_size" in internal_volume.custom_data:
             # TODO: this is probably wrong
-            mrc_original.voxel_size = 1 * internal_volume.pixel_size
-
+            mrc_original.voxel_size = 1 * internal_volume.custom_data['voxel_size']
+        
         header = mrc_original.header
 
         
