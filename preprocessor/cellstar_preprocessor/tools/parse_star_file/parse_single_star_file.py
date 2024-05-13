@@ -8,44 +8,13 @@ import argparse
 import json
 from typing import TypedDict
 from cellstar_db.models import GeometricSegmentationInputData, ShapePrimitiveInputData, ShapePrimitiveKind, SphereInputParams
+from cellstar_preprocessor.flows.common import convert_hex_to_rgba_fractional
 import starfile
 from pathlib import Path
 
 STAR_FILE_PATH = Path('preprocessor/temp/pdbe_dataset_scripts/80S_bin1_cryoDRGN-ET_clean_tomo_9.star')
 JSON_PATH = Path('preprocessor/temp/shape_primitives/shape_primitives_9rec_input.json')
 
-def hex_to_rgba(hex_code):
-  """
-  Converts a hex color code to a tuple representing RGBA values.
-
-  Args:
-      hex_code: A string representing a hex color code (e.g., "#FFFFFF", "FF0000").
-
-  Returns:
-      A tuple containing the red, green, blue, and alpha values (0-255) of the hex color.
-
-  Raises:
-      ValueError: If the provided hex code is invalid.
-  """
-  if not isinstance(hex_code, str):
-    raise ValueError("Input must be a string")
-
-  # Remove the '#' symbol if present
-  hex_code = hex_code.lstrip('#')
-
-  # Check for valid hex code length
-  if len(hex_code) not in (3, 6):
-    raise ValueError("Invalid hex code length (must be 3 or 6 characters)")
-
-  # Convert each hex digit to integer (0-15)
-  rgb_values = tuple(int(hex_code[i:i+2], 16) for i in range(0, len(hex_code), 2))
-
-  # If the hex code has 3 digits, replicate them for each channel (e.g., #FFF becomes #FFFFFF)
-  if len(hex_code) == 3:
-    rgb_values = rgb_values * 4
-
-  # Add alpha channel (default to 255 for full opacity)
-  return rgb_values + (255,)
 
 # TODO: use rln_ribosome_bin1_tomo_649.star
 
@@ -107,7 +76,7 @@ def main(args: argparse.Namespace):
     star_file_coordinate_divisor = args.star_file_coordinate_divisor
     geometric_segmentation_input_file_path = Path(args.geometric_segmentation_input_file_path)
     
-    sphere_color = hex_to_rgba(sphere_color_hex)
+    sphere_color = convert_hex_to_rgba_fractional(sphere_color_hex)
     
     lst = parse_single_star_file(
         path=star_file_path,
