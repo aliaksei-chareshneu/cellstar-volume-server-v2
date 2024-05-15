@@ -134,8 +134,10 @@ In order to add an `empiar-10988` entry with geometric segmentation to the inter
     }
     ```
 
-  The content of the file is based on the content of `organelle_labels.txt` from [EMPIAR-10988 webpage](https://www.ebi.ac.uk/empiar/EMPIAR-10988/). It maps the segment IDs for segmentation from `TS_026.labels.mrc` file to biologically relevant segment names. 
+  The content of the file is based on the content of `organelle_labels.txt` from [EMPIAR-10988 webpage](https://www.ebi.ac.uk/empiar/EMPIAR-10988/). It maps the segment IDs for segmentation from `TS_026.labels.mrc` file to biologically relevant segment names.
+
 3. Add `empiar-10988` entry to the internal database
+
     To add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
     
 ```shell
