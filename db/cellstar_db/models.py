@@ -7,12 +7,29 @@ import numpy as np
 from pydantic import BaseModel, validator
 import zarr
 
+
+class RawInputFileResourceInfo(TypedDict):
+    kind: Literal['local', 'external']
+    uri: str
+
+class RawInputFileInfo(TypedDict):
+    kind: InputKind
+    resource: RawInputFileResourceInfo
+    
+class RawInputFilesDownloadParams(TypedDict):
+    entry_id: str
+    source_db: str
+    source_db_id: str
+    source_db_name: str
+    inputs: list[RawInputFileInfo]
+    
 # JSON - list of InputForBuildingDatabase
 # TODO: can be a JSON schema instead
 # NOTE: Single entry input
 # TODO: infer schema from json
 # TODO: use this class when parsing
 # need to create preprocessor input from 
+
 class InputForBuildingDatabase(TypedDict):
     quantize_dtype_str: QuantizationDtype | None
     quantize_downsampling_levels: list[int] | None
@@ -26,8 +43,8 @@ class InputForBuildingDatabase(TypedDict):
     source_db: str
     source_db_id: str
     source_db_name: str
-    working_folder: str
-    db_path: str
+    # working_folder: str
+    # db_path: str
     inputs: list[tuple[str, InputKind]]
     
 class OMETIFFSpecificExtraData(TypedDict):

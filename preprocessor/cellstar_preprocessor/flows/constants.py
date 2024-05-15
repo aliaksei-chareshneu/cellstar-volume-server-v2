@@ -3,8 +3,9 @@ from cellstar_db.models import AnnotationsMetadata, Metadata
 
 CSV_WITH_ENTRY_IDS_FILE = Path('test-data/preprocessor/db_building_parameters_custom_entries.csv')
 DEFAULT_DB_PATH = 'preprocessor/temp/test_db_build_by_script'
-RAW_INPUT_FILES_DIR = Path('test-data/preprocessor//raw_input_files')
+RAW_INPUT_FILES_DIR = 'test-data/preprocessor//raw_input_files'
 DB_BUILDING_PARAMETERS_JSON = 'test-data/preprocessor/db_building_parameters.json'
+RAW_INPUT_DOWNLOAD_PARAMS_JSON = 'test-data/preprocessor/download_raw_input_params.json'
 TEMP_ZARR_HIERARCHY_STORAGE_PATH = 'preprocessor/temp/temp_zarr_hierarchy_storage'
 QUANTIZATION_DATA_DICT_ATTR_NAME = "quantization_data_dict"
 LATTICE_SEGMENTATION_DATA_GROUPNAME = "lattice_segmentation_data"
