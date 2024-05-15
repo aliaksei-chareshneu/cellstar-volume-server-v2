@@ -185,19 +185,19 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
 	Create `test-data/preprocessor/sample_volumes/empiar/empiar-11756` folder, change current directory to it, and download electron density map file, e.g. using wget:
 
     ```shell
-        mkdir -p test-data/preprocessor/sample_volumes/empiar/empiar-11756
-        cd test-data/preprocessor/sample_volumes/empiar/empiar-11756
-        wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/cryocare_bin4_tomoname/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc
+    mkdir -p test-data/preprocessor/sample_volumes/empiar/empiar-11756
+    cd test-data/preprocessor/sample_volumes/empiar/empiar-11756
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/cryocare_bin4_tomoname/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc
 	```
 
 	Next, `create test-data/preprocessor/sample_segmentations/empiar/empiar-11756` directory, change current directory to it, and download two `.star` files:
 
     
     ```shell
-        mkdir -p test-data/preprocessor/sample_segmentations/empiar/empiar-11756
-        cd test-data/preprocessor/sample_segmentations/empiar/empiar-11756
-        wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_nucleosome_bin1_tomo_649.star
-        wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_ribosome_bin1_tomo_649.star
+    mkdir -p test-data/preprocessor/sample_segmentations/empiar/empiar-11756
+    cd test-data/preprocessor/sample_segmentations/empiar/empiar-11756
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_nucleosome_bin1_tomo_649.star
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_ribosome_bin1_tomo_649.star
     ```
 
 2. Prepare input files.
