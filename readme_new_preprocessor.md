@@ -137,9 +137,10 @@ In order to add an `empiar-10988` entry with geometric segmentation to the inter
   The content of the file is based on the content of `organelle_labels.txt` from [EMPIAR-10988 webpage](https://www.ebi.ac.uk/empiar/EMPIAR-10988/). It maps the segment IDs for segmentation from `TS_026.labels.mrc` file to biologically relevant segment names. 
 3. Add `empiar-10988` entry to the internal database
     To add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
-    ```
+    
+```shell
     python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
-    ```
+```
 
 
 
