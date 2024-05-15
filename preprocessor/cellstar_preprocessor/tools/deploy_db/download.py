@@ -134,7 +134,7 @@ def download(args: argparse.Namespace):
                 # TODO:
                 # TODO:
                 # need to make it relative to cellstar dev dir?
-                (complete_path.resolve(),
+                (str(complete_path.resolve()),
                 kind)
             )
             
