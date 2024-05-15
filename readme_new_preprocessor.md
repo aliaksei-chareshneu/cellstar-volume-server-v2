@@ -127,47 +127,56 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 
 
 #### EMPIAR-11756
- - Navigate to [EMPIAR-11756 entry webpage](https://www.ebi.ac.uk/empiar/EMPIAR-11756/)
- - Scroll down to `Browse All Files` section.
- - Open the dropdown under `Download button`, select just the files that are selected on the screenshot below:
- ![alt text](EMPIAR-11756-webpage.png)
- - Press `Download`
- - Choose `Uncompressed ZIP archive streamed via HTTP`
- - Unzip the ZIP archive.
- - Create `test-data/preprocessor/sample_volumes/empiar/empiar-11756` folder
- - Copy `17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc` file to `test-data/preprocessor/sample_volumes/empiar/empiar-11756` folder
- - Create folder `test-data/preprocessor/sample_segmentations/empiar/empiar-11756`
- <!-- TODO: other 3 star files  -->
- - Copy `rln_ribosome_bin1_tomo_649.star` and `rln_nucleosome_bin1_tomo_649.star` files to `test-data/preprocessor/sample_segmentations/empiar/empiar-11756`
- - To obtain file with input data for geometric segmentation, use the `preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py` for both `.star` files, i.e.:
- <!-- TODO: check pixel size for that entry -->
- ```
- python preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_ribosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --sphere_radius 100 --segmentation_id ribosomes  --sphere_color_hex FFFF00 --pixel_size 7.84 --star_file_coordinate_divisor 4
- ```
- 
- ```
- python preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_nucleosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --sphere_radius 100  --segmentation_id nucleosomes --sphere_color_hex FF0000 --pixel_size 7.84 --star_file_coordinate_divisor 4
- ```
- - Map file from EMPIAR webpages has wrong header parameters (voxel size is 0 for all 3 dimensions). To alleviate this, create `test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json` file with the following content:
- ```json
-    {
-        "volume": {
-            "voxel_size": [
-                7.84,
-                7.84,
-                7.84
-            ]
-        }   
-    }
- ```
- - To add an `empiar-11756` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+In order to add an `empiar-11756` entry with geometric segmentation to the internal database, follow the steps below:
+1. Obtain the raw input files
 
-<!-- TODO: command -->
-```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
+    Navigate your browser to EMPIAR-11756 entry web page at EMPIAR website (https://www.ebi.ac.uk/empiar/EMPIAR-11756/), scroll down to Browse All Files section. Open the dropdown under Download button, unselect all the files, select only the following files:
+    - `11756\data\tomoman_minimal_project\cryocare_bin4_tomoname\17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc`
+    - `11756\data\tomoman_minimal_project\17072022_BrnoKrios_Arctis_p3ar_grid_Position_35\metadata\particles\rln_nucleosome_bin1_tomo_649.star`
+     - `11756\data\tomoman_minimal_project\17072022_BrnoKrios_Arctis_p3ar_grid_Position_35\metadata\particles\rln_ribosome_bin1_tomo_649.star`
+	
+	Download the files by pressing `Download` button and selecting `Uncompressed ZIP archive streamed via HTTP` option. Unzip the archive. 
+
+    Create `test-data/preprocessor/sample_volumes/empiar/empiar-11756` folder, copy `11756\data\tomoman_minimal_project\cryocare_bin4_tomoname\17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc` file to it.
+    
+    Create `test-data/preprocessor/sample_segmentations/empiar/empiar-11756` folder, copy `11756\data\tomoman_minimal_project\17072022_BrnoKrios_Arctis_p3ar_grid_Position_35\metadata\particles\rln_nucleosome_bin1_tomo_649.star` and `11756\data\tomoman_minimal_project\17072022_BrnoKrios_Arctis_p3ar_grid_Position_35\metadata\particles\rln_ribosome_bin1_tomo_649.star` files to it.
+
+
+2. Prepare input files.
+	This EMPIAR entry contains relevant data that can be used to render geometric segmentation in .star format. To be able to use this data, .star files need to be parsed into the standard Mol* VS 2.0 format for geometric segmentations. This can be achieved by using custom script `preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py` that is part of our solution. In parallel, this script allows to set the biologically meaningful segmentation IDs for both geometric segmentations based on the data from EMPIAR entry webpage (i.e. `ribosomes` and `nucleosomes`). In order to parse both .star files, from the root repository directory (cellstar-volume-server-v2 by default) run:
+
+```shell
+python preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_ribosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --sphere_radius 100 --segmentation_id ribosomes  --sphere_color_hex FFFF00 --pixel_size 7.84 --star_file_coordinate_divisor 4
 ```
 
+```shell
+python preprocessor\cellstar_preprocessor\tools\parse_star_file\parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_nucleosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --sphere_radius 100  --segmentation_id nucleosomes --sphere_color_hex FF0000 --pixel_size 7.84 --star_file_coordinate_divisor 4
+```
 
+Besides the volume map file from EMPIAR entry webpage has wrong header parameters (voxel size is 0 for all 3 spatial dimensions). To alleviate this, one can use functionality of Preprocessor that allows to overwrite database entry parameters during preprocessing. Based on the data from EMPIAR entry webpage, voxel size should be `1.96` Angstrom for all 3 dimensions. Since we use volume map file from cryocare_bin4_tomoname folder, this value needs to be multiplied by 4, which gives us `7.84` Angstrom. According to this, create `test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json` file with the following content:
+
+```json
+{
+    "volume": {
+        "voxel_size": [
+            7.84,
+            7.84,
+            7.84
+        ]
+    }   
+}
+```
+
+
+3. Add empiar-11756 entry to the internal database
+To add an empiar-11756 entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+
+
+```shell
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
+```
+
+It will create a database entry with two geometric segmentations (segmentation IDs “ribosomes” and “nucleosomes”).
 
 <!-- ## Editing descriptions of existing database entry
 
