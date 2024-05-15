@@ -350,7 +350,9 @@ def _query_segmentation_data(kind: Literal['geometric_segmentation', 'segmentati
         max_points = parsed_params['max_points']
 
     segmentation_ids = _get_segmentation_ids(metadata, kind)
-
+    if 'segmentation_id' in parsed_params:
+        segmentation_ids = [parsed_params['segmentation_id']]
+        
     if kind == 'segmentation_lattices':
         task = LatticeSegmentationQueryTask
     elif kind == 'geometric_segmentation':
@@ -410,7 +412,7 @@ async def query(args: argparse.Namespace):
 
     # 3. query metadata
     metadata = await volume_server.get_metadata(req=MetadataRequest(source=parsed_params['source_db'], structure_id=parsed_params['entry_id']))
-    grid_metadata = metadata['grid']
+    grid_metadata: Metadata = metadata['grid']
     annotations = metadata['annotation']
 
     queries_list: list[QueryTaskBase] = []
@@ -439,9 +441,17 @@ async def query(args: argparse.Namespace):
                 entry_id=entry_id,
                 max_points=max_points))
     
-    lat = _query_segmentation_data('segmentation_lattices', parsed_params, grid_metadata, volume_server)
-    mesh = _query_segmentation_data('segmentation_meshes', parsed_params, grid_metadata, volume_server)
-    gs = _query_segmentation_data('geometric_segmentation', parsed_params, grid_metadata, volume_server)
+    # should check each kind of segmentation, and do it just if it exists?
+    lat = []
+    mesh = []
+    gs = []
+    if grid_metadata['segmentation_lattices'] and len(grid_metadata['segmentation_lattices']['segmentation_ids']) > 0:
+        lat = _query_segmentation_data('segmentation_lattices', parsed_params, grid_metadata, volume_server)
+    if grid_metadata['segmentation_meshes'] and len(grid_metadata['segmentation_meshes']['segmentation_ids']) > 0:
+        mesh = _query_segmentation_data('segmentation_meshes', parsed_params, grid_metadata, volume_server)
+    if grid_metadata['geometric_segmentation'] and len(grid_metadata['geometric_segmentation']['segmentation_ids']) > 0:
+        gs = _query_segmentation_data('geometric_segmentation', parsed_params, grid_metadata, volume_server)
+    
     queries_list = queries_list + lat + mesh + gs
 
     # NOTE: afterwards, do:
