@@ -35,7 +35,7 @@ The `preprocess` command of `preprocessor/cellstar_preprocessor/preprocess.py` s
 - To add an emd-1832 entry to the db, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff --input-kind sff --entry-id emd-1832 --source-db emdb --source-db-id emd-1832 --source-db-name emdb --working-folder temp_working_folder --db-path test_db --quantize-dtype-str u1
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff --input-kind sff --entry-id emd-1832 --source-db emdb --source-db-id emd-1832 --source-db-name emdb --working-folder temp_working_folder --db-path preprocessor/temp/test_db --quantize-dtype-str u1
 ```
 
 It will add entry `emd-1832` to the database and during preprocessing volume data will be quantized with `u1` option
@@ -49,7 +49,7 @@ unzip 13457537.zarr.zip
 
 From root directory (`cellstar-volume-server-v2`), run:
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_segmentations/idr/idr-13457537/13457537.zarr --input-kind omezarr --entry-id idr-13457537 --source-db idr --source-db-id idr-13457537 --source-db-name idr --working-folder temp_working_folder --db-path test_db
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_segmentations/idr/idr-13457537/13457537.zarr --input-kind omezarr --entry-id idr-13457537 --source-db idr --source-db-id idr-13457537 --source-db-name idr --working-folder temp_working_folder --db-path preprocessor/temp/test_db
 ```
 
 It will add entry `idr-13457537` to the database
@@ -59,7 +59,7 @@ It will add entry `idr-13457537` to the database
 - To add an emd-1832 entry with artificially created geometric segmentation to the db, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/geometric_segmentations/geometric_segmentation_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/geometric_segmentations/geometric_segmentation_2.json --input-kind geometric_segmentation  --entry-id emd-1832-geometric-segmentation --source-db emdb --source-db-id emd-1832-geometric-segmentation --source-db-name emdb --working-folder temp_working_folder --db-path test_db
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/geometric_segmentations/geometric_segmentation_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/geometric_segmentations/geometric_segmentation_2.json --input-kind geometric_segmentation  --entry-id emd-1832-geometric-segmentation --source-db emdb --source-db-id emd-1832-geometric-segmentation --source-db-name emdb --working-folder temp_working_folder --db-path preprocessor/temp/test_db
 ```
 
 It will add entry `emd-1832-geometric-segmentation` to the database
@@ -78,7 +78,7 @@ It will add entry `emd-1832-geometric-segmentation` to the database
 4. To add an `emd-1273` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/emd_1273.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_1.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_2.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_3.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_4.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_5.map --input-kind mask --entry-id emd-1273 --source-db emdb --source-db-id emd-1273 --source-db-name emdb --working-folder temp_working_folder --db-path test_db
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/emd_1273.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_1.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_2.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_3.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_4.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_5.map --input-kind mask --entry-id emd-1273 --source-db emdb --source-db-id emd-1273 --source-db-name emdb --working-folder temp_working_folder --db-path preprocessor/temp/test_db
 ```
 
 #### EMPIAR-10988
@@ -141,7 +141,7 @@ In order to add an `empiar-10988` entry with geometric segmentation to the inter
     To add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
     
 ```shell
-    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
+    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
 ```
 
 
@@ -193,7 +193,7 @@ To add an empiar-11756 entry with segmentations based on masks to the db, from r
 
 
 ```shell
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/preprocessor/temp/test_db
 ```
 
 It will create a database entry with two geometric segmentations (segmentation IDs “ribosomes” and “nucleosomes”).
@@ -238,7 +238,7 @@ It will create a database entry with two geometric segmentations (segmentation I
  - To add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
  
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
+python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
 ``` -->
 
 
@@ -297,7 +297,7 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
 
 
     ```shell
-    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
+    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/preprocessor/temp/test_db
     ```
 
     It will create a database entry with two geometric segmentations (segmentation IDs “ribosomes” and “nucleosomes”).
@@ -321,7 +321,7 @@ First build the database with that entry according to [this tutorial](#emd-1273-
 
 Then from root directory (`cellstar-volume-server-v2`), run:
 ```
-python preprocessor/cellstar_preprocessor/preprocess.py edit-descriptions --entry-id emd-1273 --source-db idr --data-json-path emd-1273-descriptions.json --db-path test_db
+python preprocessor/cellstar_preprocessor/preprocess.py edit-descriptions --entry-id emd-1273 --source-db idr --data-json-path emd-1273-descriptions.json --db-path preprocessor/temp/test_db
 ```
 
 It will add descriptions to `emd-1273` entry. -->
