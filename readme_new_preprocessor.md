@@ -193,10 +193,10 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
 
     
     ```shell
-    mkdir -p test-data/preprocessor/sample_segmentations/empiar/empiar-11756
-    cd test-data/preprocessor/sample_segmentations/empiar/empiar-11756
-    wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_nucleosome_bin1_tomo_649.star
-    wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_ribosome_bin1_tomo_649.star
+        mkdir -p test-data/preprocessor/sample_segmentations/empiar/empiar-11756
+        cd test-data/preprocessor/sample_segmentations/empiar/empiar-11756
+        wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_nucleosome_bin1_tomo_649.star
+        wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_ribosome_bin1_tomo_649.star
     ```
 
 2. Prepare input files.
