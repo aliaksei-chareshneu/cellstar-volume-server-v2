@@ -62,14 +62,20 @@ def _download(uri: str, final_path: Path, kind: InputKind):
         # filename construct based on last component of uri
         filename = _get_filename_from_uri(uri)
         complete_path = final_path / filename
+        final_path.mkdir(parents=True, exist_ok=True)
         req_output = urllib.request.urlretrieve(uri, complete_path.resolve())
         #  check if returns filename
         return complete_path
     
-def _copy_file(uri: str, final_path: Path):
+def _copy_file(uri: str, final_path: Path, kind: InputKind):
     filename = _get_filename_from_uri(uri)
+    final_path.mkdir(parents=True, exist_ok=True)
     complete_path = final_path / filename
-    shutil.copy2(uri, complete_path)
+    # if omezarr - copy_tree
+    if kind == InputKind.omezarr:
+        shutil.copytree(uri, complete_path)
+    else:
+        shutil.copy2(uri, complete_path)
     
     return complete_path
 
@@ -92,7 +98,7 @@ def _get_file(input_file_info: RawInputFileInfo, final_path: Path) -> Path:
         complete_path = _download(input_file_info['resource']['uri'], final_path, input_file_info['kind'])
         return complete_path
     elif resource['kind'] == 'local':
-        complete_path = _copy_file(resource['uri'], final_path)
+        complete_path = _copy_file(resource['uri'], final_path, resource['kind'])
         shutil.copy2(resource['uri'], final_path)
         return complete_path
 
@@ -128,8 +134,8 @@ def download(args: argparse.Namespace):
                 # TODO:
                 # TODO:
                 # need to make it relative to cellstar dev dir?
-                complete_path.resolve(),
-                kind
+                (complete_path.resolve(),
+                kind)
             )
             
         input_for_building_db: InputForBuildingDatabase = {
