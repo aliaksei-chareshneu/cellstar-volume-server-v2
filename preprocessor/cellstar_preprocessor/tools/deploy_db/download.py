@@ -99,7 +99,7 @@ def _get_file(input_file_info: RawInputFileInfo, final_path: Path) -> Path:
         return complete_path
     elif resource['kind'] == 'local':
         complete_path = _copy_file(resource['uri'], final_path, input_file_info['kind'])
-        shutil.copy2(resource['uri'], final_path)
+        # shutil.copy2(resource['uri'], final_path)
         return complete_path
 
 def download(args: argparse.Namespace):
