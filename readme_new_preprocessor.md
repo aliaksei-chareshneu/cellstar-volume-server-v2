@@ -181,6 +181,7 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 #### EMPIAR-11756
 In order to add an empiar-11756 entry with geometric segmentation to the internal database, follow the steps below:
 1. Obtain the raw input files
+
 	Create `test-data/preprocessor/sample_volumes/empiar/empiar-11756` folder, change current directory to it, and download electron density map file, e.g. using wget:
 
     ```shell
@@ -200,6 +201,7 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
     ```
 
 2. Prepare input files.
+
 	This EMPIAR entry contains relevant data that can be used to render geometric segmentation in .star format. To be able to use this data, .star files need to be parsed into the standard Mol* VS 2.0 format for geometric segmentations. This can be achieved by using custom script `preprocessor/cellstar_preprocessor/tools/parse_star_file/parse_single_star_file.py` that is part of our solution. In parallel, this script allows to set the biologically meaningful segmentation IDs for both geometric segmentations based on the data from EMPIAR entry webpage (i.e. `ribosomes` and `nucleosomes`). In order to parse both .star files, from the root repository directory (cellstar-volume-server-v2 by default) run:
 
     ```shell
@@ -226,14 +228,15 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
 
 
 3. Add empiar-11756 entry to the internal database
-To add an empiar-11756 entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+
+    To add an empiar-11756 entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
 
 
-```shell
-python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
-```
+    ```shell
+    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
+    ```
 
-It will create a database entry with two geometric segmentations (segmentation IDs “ribosomes” and “nucleosomes”).
+    It will create a database entry with two geometric segmentations (segmentation IDs “ribosomes” and “nucleosomes”).
 
 <!-- ## Editing descriptions of existing database entry
 
