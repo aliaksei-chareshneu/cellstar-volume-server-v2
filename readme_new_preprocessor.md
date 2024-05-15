@@ -83,9 +83,70 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 
 #### EMPIAR-10988
 
+
 In order to add an `empiar-10988` entry with geometric segmentation to the internal database, follow the steps below:
 1. Obtain the raw input files
 
+	Create `test-data/preprocessor/sample_volumes/empiar/empiar-10988` folder, change current directory to it, and download electron density map file, e.g. using wget:
+
+    ```shell
+    mkdir -p test-data/preprocessor/sample_volumes/empiar/empiar-10988
+    cd test-data/preprocessor/sample_volumes/empiar/empiar-10988
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/tomograms/TS_026.rec
+	```
+
+	Next, `create test-data/preprocessor/sample_segmentations/empiar/empiar-10988` directory, change current directory to it, and download two `.star` files:
+
+    
+    ```shell
+    mkdir -p test-data/preprocessor/sample_segmentations/empiar/empiar-10988
+    cd test-data/preprocessor/sample_segmentations/empiar/empiar-10988
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026.labels.mrc
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026_cyto_ribosomes.mrc
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026_cytosol.mrc
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026_fas.mrc
+    wget https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026_membranes.mrc
+    ```
+
+2. Prepare extra data
+    By default, Preprocessor will use segment IDs based on grid values in mask file. It is possible to overwrite them using additional input file with extra data, mapping segment IDs used by default (e.g. "1", "2" etc.) to biologically meaningful segment IDs (e.g., "cytoplasm", "mitochondria" etc.).
+    Create `extra_data_empiar_10988.json` file in root repository directory with the following content:
+    ```json
+    {
+        "segmentation": {
+            "segment_ids_to_segment_names_mapping": {
+                "TS_026.labels": {
+                    "1": "cytoplasm",
+                    "2": "mitochondria",
+                    "3": "vesicle",
+                    "4": "tube",
+                    "5": "ER",
+                    "6": "nuclear envelope",
+                    "7": "nucleus",
+                    "8": "vacuole",
+                    "9": "lipid droplet",
+                    "10": "golgi",
+                    "11": "vesicular body",
+                    "13": "not identified compartment"
+                }
+            }
+        }
+    }
+    ```
+
+  The content of the file is based on the content of `organelle_labels.txt` from [EMPIAR-10988 webpage](https://www.ebi.ac.uk/empiar/EMPIAR-10988/). It maps the segment IDs for segmentation from `TS_026.labels.mrc` file to biologically relevant segment names. 
+3. Add `empiar-10988` entry to the internal database
+    To add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+    ```
+    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
+    ```
+
+
+
+
+
+
+<!-- 
     Navigate your browser to EMPIAR-10988 entry web page at EMPIAR website (https://www.ebi.ac.uk/empiar/EMPIAR-10988/), scroll down to `Browse All Files` section. Open the dropdown under `Download` button, unselect all the files, select only the following files:
     - `11756/data/tomoman_minimal_project/cryocare_bin4_tomoname/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc`
     - `11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_nucleosome_bin1_tomo_649.star`
@@ -175,7 +236,7 @@ It will create a database entry with two geometric segmentations (segmentation I
  
 ```
 python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path test_db
-```
+``` -->
 
 
 #### EMPIAR-11756
