@@ -97,6 +97,8 @@ def set_volume_custom_data(internal_volume: InternalVolume, zarr_structure: zarr
     if 'extra_data' in zarr_structure.attrs:
         if 'volume' in zarr_structure.attrs['extra_data']:
             internal_volume.custom_data = zarr_structure.attrs['extra_data']['volume']
+        else:
+            internal_volume.custom_data = {}
     else:
         internal_volume.custom_data = {}
 
@@ -104,6 +106,8 @@ def set_segmentation_custom_data(internal_segmentation: InternalSegmentation, za
     if 'extra_data' in zarr_structure.attrs:
         if 'segmentation' in zarr_structure.attrs['extra_data']:
             internal_segmentation.custom_data = zarr_structure.attrs['extra_data']['segmentation']
+        else:
+            internal_segmentation.custom_data = {}
     else:
         internal_segmentation.custom_data = {}
 
