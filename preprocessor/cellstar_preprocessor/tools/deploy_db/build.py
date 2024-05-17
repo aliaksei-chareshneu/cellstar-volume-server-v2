@@ -28,7 +28,7 @@ PROCESS_IDS_LIST = []
 
 def parse_script_args():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--db_building_parameters_json', type=Path, default=DB_BUILDING_PARAMETERS_JSON, help='')
+    parser.add_argument('--db_building_parameters_json', type=str, default=DB_BUILDING_PARAMETERS_JSON, help='')
     # parser.add_argument('--raw_input_files_dir', type=Path, default=RAW_INPUT_FILES_DIR, help='dir with raw input files')
     parser.add_argument("--db_path", type=str, default=DEFAULT_DB_PATH, help='path to db folder')
     parser.add_argument("--temp_zarr_hierarchy_storage_path", type=str, default=TEMP_ZARR_HIERARCHY_STORAGE_PATH, help='path to db working directory')
@@ -70,7 +70,7 @@ def _preprocessor_internal_wrapper(input_for_building: InputForBuildingDatabase,
             quantize_downsampling_levels=quantize_downsampling_levels,
             force_volume_dtype=input_for_building.get('force_volume_dtype'),
             max_size_per_downsampling_lvl_mb=input_for_building.get('max_size_per_downsampling_lvl_mb'),
-            min_size_per_downsampling_lvl_mb=input_for_building.get('min_size_per_downsampling_lvl_mb'),
+            min_size_per_downsampling_lvl_mb=input_for_building.get('min_size_per_downsampling_lvl_mb', 5.0),
             max_downsampling_level=input_for_building.get('max_downsampling_level'),
             min_downsampling_level=input_for_building.get('min_downsampling_level'),
             remove_original_resolution=input_for_building.get('remove_original_resolution'),
@@ -151,8 +151,7 @@ def build(args):
     # clean_up_raw_input_files_dir(args.raw_input_files_dir)
 
     # NOTE: this function should parse JSON to list[tuple[InputForBuildingDatabase]
-    config = json_to_list_of_inputs_for_building(args.db_building_parameters_json)
-    print('JSON was parsed')
+    config = json_to_list_of_inputs_for_building(Path(args.db_building_parameters_json))
     
     # this function should create arguments list
     # arguments_list: list[tuple[InputForBuildingDatabase, str, str]]
