@@ -13,6 +13,7 @@ import shutil
 import subprocess
 from pathlib import Path
 import urllib.request
+import ome_zarr
 
 # from _old.input_data_model import QuantizationDtype
 from cellstar_db.models import InputForBuildingDatabase, RawInputFileInfo, RawInputFileResourceInfo, RawInputFilesDownloadParams
@@ -22,6 +23,7 @@ from cellstar_preprocessor.model.input import InputKind
 from cellstar_preprocessor.preprocess import PreprocessorMode, main_preprocessor
 from cellstar_preprocessor.tools.deploy_db.deploy_process_helper import clean_up_processes
 from cellstar_preprocessor.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import csv_to_config_list_of_dicts, json_to_list_of_inputs_for_building, prepare_input_for_preprocessor
+import ome_zarr.utils
 # from preprocessor_old.main import remove_temp_zarr_hierarchy_storage_folder
 # from preprocessor_old.src.preprocessors.implementations.sff.preprocessor.constants import CSV_WITH_ENTRY_IDS_FILE, DB_NAME_FOR_OME_TIFF, DEFAULT_DB_PATH, RAW_INPUT_FILES_DIR, TEMP_ZARR_HIERARCHY_STORAGE_PATH
 # from preprocessor_old.src.tools.deploy_db.deploy_process_helper import clean_up_processes, clean_up_raw_input_files_dir, clean_up_temp_zarr_hierarchy_storage
@@ -54,22 +56,33 @@ def _get_filename_from_uri(uri: str):
     return filename
 
 def _download(uri: str, final_path: Path, kind: InputKind):
+    filename = _get_filename_from_uri(uri)
+    # difference is that it should use final_path
     if kind == InputKind.omezarr:
-        # TODO: ome-zarr-py 
-        return Path()
+        complete_path = final_path / filename
+        if complete_path.exists():
+            shutil.rmtree(complete_path)
+        
+        # NOTE: using final_path here as it requires the directory inside
+        # of which another directory will be created (idr-XXXX.zarr)
+        ome_zarr.utils.download(uri, str(final_path.resolve()))
+        return complete_path
     else:
         # regular download
         # filename construct based on last component of uri
-        filename = _get_filename_from_uri(uri)
         complete_path = final_path / filename
-        final_path.mkdir(parents=True, exist_ok=True)
-        req_output = urllib.request.urlretrieve(uri, complete_path.resolve())
+        if complete_path.exists():
+            shutil.rmtree(complete_path)
+        final_path.mkdir(parents=True, exist_ok=True)    
+        req_output = urllib.request.urlretrieve(uri, str(complete_path.resolve()))
         #  check if returns filename
         return complete_path
     
 def _copy_file(uri: str, final_path: Path, kind: InputKind):
     filename = _get_filename_from_uri(uri)
-    final_path.mkdir(parents=True, exist_ok=True)
+    if final_path.exists():
+        shutil.rmtree(final_path)
+    final_path.mkdir(parents=True)
     complete_path = final_path / filename
     # if omezarr - copy_tree
     if kind == InputKind.omezarr:
@@ -80,8 +93,9 @@ def _copy_file(uri: str, final_path: Path, kind: InputKind):
     return complete_path
 
 def _gunzip(gz_path: Path):
+    # only maps
     filename = gz_path.name
-    gunzipped_filename = gz_path.parent / filename.split('.')[0]
+    gunzipped_filename = gz_path.parent / filename.removesuffix('.gz')
     with gzip.open(str(gz_path.resolve()), 'rb') as f_in:
         # bytes?
         # NOTE: only map gz is supported, therefore bytes
