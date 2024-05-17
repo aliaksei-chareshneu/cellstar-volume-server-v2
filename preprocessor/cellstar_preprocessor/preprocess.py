@@ -942,7 +942,7 @@ async def main_preprocessor(
     db_path: Path,
     input_paths: list[Path],
     input_kinds: list[InputKind],
-    min_size_per_downsampling_lvl_mb: typing.Optional[float] = 5,
+    min_size_per_downsampling_lvl_mb: typing.Optional[float] = 5.0,
 ):
     if quantize_downsampling_levels:
         quantize_downsampling_levels = quantize_downsampling_levels.split(" ")
@@ -1009,7 +1009,7 @@ def main(
     ] = None,
     force_volume_dtype: Annotated[typing.Optional[str], typer.Option(None)] = None,
     max_size_per_downsampling_lvl_mb: Annotated[typing.Optional[float], typer.Option(None)] = None,
-    min_size_per_downsampling_lvl_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5,
+    min_size_per_downsampling_lvl_mb: Annotated[typing.Optional[float], typer.Option(None)] = 5.0,
     min_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
     max_downsampling_level: Annotated[typing.Optional[int], typer.Option(None)] = None,
     remove_original_resolution: Annotated[typing.Optional[bool], typer.Option(None)] = False,
