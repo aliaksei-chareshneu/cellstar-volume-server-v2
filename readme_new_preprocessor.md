@@ -9,7 +9,7 @@ The `preprocess` command of `preprocessor/cellstar_preprocessor/preprocess.py` s
   |`--quantize-downsampling-levels` | Specify which downsampling level should be quantized as a sequence of numbers, e.g. `1 2`. Not used by default |
   |`--force-volume-dtype` | optional data type of volume data to be used instead of the one used volume file. Not used by default |
   |`--max-size-per-downsampling-lvl-mb` | Maximum size of data per downsampling level in MB. Used to deterimine the number of downsampling steps data from which will be stored |
-  |`--min-size-per-channel-mb` | Minimum size of data per downsampling level in MB. Used to deterimine the number of downsampling steps data from which will be stored. Default is `5` |
+  |`--min-size-per-downsampling-lvl-mb` | Minimum size of data per downsampling level in MB. Used to deterimine the number of downsampling steps data from which will be stored. Default is `5` |
   |`--min-downsampling-level` | Minimum downsampling level |
   |`--max-downsampling-level` | Maximum downsampling level |
   |`--remove-original-resolution` | Optional flag for removing original resolution data |
