@@ -114,7 +114,7 @@ In order to add an `empiar-10988` entry with geometric segmentation to the inter
     ```json
     {
         "segmentation": {
-            "segment_ids_to_segment_names_mapping": {
+            "custom_segment_ids_mapping": {
                 "TS_026.labels": {
                     "1": "cytoplasm",
                     "2": "mitochondria",
@@ -213,7 +213,7 @@ It will create a database entry with two geometric segmentations (segmentation I
   ```json
   {
       "segmentation": {
-          "segment_ids_to_segment_names_mapping": {
+          "custom_segment_ids_mapping": {
               "TS_026.labels": {
                   "1": "cytoplasm",
                   "2": "mitochondria",
