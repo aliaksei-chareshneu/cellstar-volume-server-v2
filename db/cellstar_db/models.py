@@ -55,7 +55,7 @@ class OMETIFFSpecificExtraData(TypedDict):
 class VolumeExtraData(TypedDict):
     voxel_size: list[float, float, float]
     # map channel number (dimension) to channel id (string)
-    channel_ids_mapping: dict[int, str]
+    channel_ids_mapping: dict[str, str]
     dataset_specific_data: Optional[object]
 
 class SegmentationExtraData(TypedDict):
