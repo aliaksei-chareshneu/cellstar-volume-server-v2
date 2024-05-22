@@ -84,7 +84,7 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 #### EMPIAR-10988
 
 
-In order to add an `empiar-10988` entry with geometric segmentation to the internal database, follow the steps below:
+In order to add an `empiar-10988` entry with lattice segmentations based on masks to the internal database, follow the steps below:
 1. Obtain the raw input files
 
 	Create `test-data/preprocessor/sample_volumes/empiar/empiar-10988` folder, change current directory to it, and download electron density map file, e.g. using wget:
@@ -95,7 +95,7 @@ In order to add an `empiar-10988` entry with geometric segmentation to the inter
     wget https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/tomograms/TS_026.rec
 	```
 
-	Next, `create test-data/preprocessor/sample_segmentations/empiar/empiar-10988` directory, change current directory to it, and download two `.star` files:
+	Next, `create test-data/preprocessor/sample_segmentations/empiar/empiar-10988` directory, change current directory to it, and download electron density mask files, e.g.:
 
     
     ```shell
@@ -114,7 +114,7 @@ In order to add an `empiar-10988` entry with geometric segmentation to the inter
     ```json
     {
         "segmentation": {
-            "custom_segment_ids_mapping": {
+            "segment_ids_to_segment_names_mapping": {
                 "TS_026.labels": {
                     "1": "cytoplasm",
                     "2": "mitochondria",
@@ -141,7 +141,7 @@ In order to add an `empiar-10988` entry with geometric segmentation to the inter
     In order to add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
     
 ```shell
-    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
+    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --min-downsampling-level 4 --remove-original-resolution --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
 ```
 
 
@@ -213,7 +213,7 @@ It will create a database entry with two geometric segmentations (segmentation I
   ```json
   {
       "segmentation": {
-          "custom_segment_ids_mapping": {
+          "segment_ids_to_segment_names_mapping": {
               "TS_026.labels": {
                   "1": "cytoplasm",
                   "2": "mitochondria",
