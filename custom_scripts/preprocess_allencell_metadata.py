@@ -4,19 +4,7 @@ from pathlib import Path
 import pandas as pd
 import zarr
 
-# PLAN:
 
-# open CSV file
-# find raw with that cellId
-# get channel names
-# all necessary info
-# put to .attrs ['extra_data']
-# access those attrs in extract_ometiff_metadata
-
-# pandas.read_csv
-
-# need to know cell_id
-# can be still provided to script, no problem
 def process_allencell_metadata_csv(csv_path: Path, custom_data_json_path: Path, cell_id: int):
     
     df = pd.read_csv(str(csv_path.resolve()))
