@@ -28,13 +28,6 @@ def _is_channels_correct(source_ometiff_metadata):
 
 
 def _get_ome_tiff_channel_ids_dict(root: zarr.Group, internal_volume: InternalVolume):
-    # TODO: fix this part
-    # if 'extra_data' in root.attrs:
-    #     return root.attrs['extra_data']['name_dict']['crop_raw']
-    # if internal_volume.custom_data:
-        # Need to check if there is mapping provided
-        # if not return artificial channel ids
-        # if 'channel_ids_mapping' in internal_volume.custom_data:
     return internal_volume.custom_data['channel_ids_mapping']
 
     # elif 'ometiff' in internal_volume.custom_data:
