@@ -70,7 +70,7 @@ class VolumeAndSegmentationContext:
         zarr.copy_store(source=temp_store, dest=self.store, source_path=VOLUME_DATA_GROUPNAME, dest_path=VOLUME_DATA_GROUPNAME)
         print('Volume added')
 
-    def add_segmentation(self, id: str, kind: Literal["lattice", "mesh", "primitive"]):
+    def add_segmentation(self, id: str, kind: Literal["lattice", "mesh", "geometric_segmentation"]):
         temp_store = zarr.DirectoryStore(
                 str(self.intermediate_zarr_structure)
             )
@@ -94,7 +94,7 @@ class VolumeAndSegmentationContext:
             
             zarr.copy_store(source=temp_store, dest=self.store, source_path=source_path, dest_path=source_path)    
             
-        elif kind == 'primitive':
+        elif kind == 'geometric_segmentation':
             geometric_segmentation_data: list[GeometricSegmentationData] = temp_zarr_structure.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS]
             # find that segmentation by id
             filter_results = list(filter(lambda g: g["segmentation_id"] == id, geometric_segmentation_data))
@@ -124,7 +124,7 @@ class VolumeAndSegmentationContext:
         del perm_root[VOLUME_DATA_GROUPNAME]
         print('Volumes deletes')
 
-    def remove_segmentation(self, id: str, kind: Literal["lattice", "mesh", "primitive"]):
+    def remove_segmentation(self, id: str, kind: Literal["lattice", "mesh", "geometric_segmentation"]):
         # plan:
         perm_root = zarr.group(self.store)
         # find that segmentation by id
@@ -136,7 +136,7 @@ class VolumeAndSegmentationContext:
         elif kind == 'mesh':
             source_path = f'{MESH_SEGMENTATION_DATA_GROUPNAME}/{id}'
             del perm_root[source_path]
-        elif kind == 'primitive':
+        elif kind == 'geometric_segmentation':
             shape_primitives_path: Path = self.path_to_entry / GEOMETRIC_SEGMENTATION_FILENAME
             # if (shape_primitives_path).exists():
             d: list[GeometricSegmentationData] = open_json_file(path=shape_primitives_path)

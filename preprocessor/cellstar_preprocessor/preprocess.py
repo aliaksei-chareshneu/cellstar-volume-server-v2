@@ -921,7 +921,7 @@ class Preprocessor:
             for id in segmentation_mesh_ids:
                 db_edit_context.add_segmentation(id=id, kind='mesh')
             for id in geometric_segmentation_ids:
-                db_edit_context.add_segmentation(id=id, kind='primitive')
+                db_edit_context.add_segmentation(id=id, kind='geometric_segmentation')
 
         print("Data stored to db")
 
