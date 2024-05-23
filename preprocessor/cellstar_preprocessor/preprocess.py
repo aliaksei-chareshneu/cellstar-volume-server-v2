@@ -1059,7 +1059,7 @@ def delete_entry(
     if new_db_path.is_dir() == False:
         new_db_path.mkdir()
 
-    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+    db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
     asyncio.run(
         db.delete(namespace=source_db, key=entry_id)
     )
@@ -1076,7 +1076,7 @@ def remove_volume(
     if new_db_path.is_dir() == False:
         new_db_path.mkdir()
 
-    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+    db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
 
     with db.edit_data(
         namespace=source_db,
@@ -1100,7 +1100,7 @@ def remove_segmentation(
     if new_db_path.is_dir() == False:
         new_db_path.mkdir()
 
-    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+    db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
 
     with db.edit_data(
         namespace=source_db,
@@ -1122,7 +1122,7 @@ def remove_segment_annotations(
     if new_db_path.is_dir() == False:
         new_db_path.mkdir()
 
-    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+    db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
 
     with db.edit_annotations(
         namespace=source_db,
@@ -1145,7 +1145,7 @@ def remove_descriptions(
     if new_db_path.is_dir() == False:
         new_db_path.mkdir()
 
-    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+    db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
 
     with db.edit_annotations(
         namespace=source_db,
@@ -1169,7 +1169,7 @@ def edit_segment_annotations(
     if new_db_path.is_dir() == False:
         new_db_path.mkdir()
 
-    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+    db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
 
     parsedSegmentAnnotations: list[SegmentAnnotationData] = open_json_file(Path(data_json_path))
 
@@ -1195,7 +1195,7 @@ def edit_descriptions(
     if new_db_path.is_dir() == False:
         new_db_path.mkdir()
 
-    db = FileSystemVolumeServerDB(db_path, store_type="zip")
+    db = FileSystemVolumeServerDB(new_db_path, store_type="zip")
 
     parsedDescriptionData: list[DescriptionData] = open_json_file(Path(data_json_path))
 
