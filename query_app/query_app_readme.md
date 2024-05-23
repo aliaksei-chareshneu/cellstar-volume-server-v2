@@ -1,6 +1,4 @@
-# Query App
-
-Query App (CVSX)
+# VSQueryTool
 
 # Usage
 ## Quick start
