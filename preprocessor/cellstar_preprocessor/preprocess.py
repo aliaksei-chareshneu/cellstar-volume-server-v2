@@ -1110,8 +1110,8 @@ def remove_segmentation(
         db_edit_context: VolumeAndSegmentationContext
         db_edit_context.remove_segmentation(id=id, kind=kind)
 
-@app.command("remove-annotations")
-def remove_annotations(
+@app.command("remove-segment-annotations")
+def remove_segment_annotations(
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
     id: list[str] = typer.Option(default=...),
