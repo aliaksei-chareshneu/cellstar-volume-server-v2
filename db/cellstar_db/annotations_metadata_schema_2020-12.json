@@ -12,7 +12,9 @@
                 "color": {
                     "type": "array",
                     "items": {
-                        "type": "number"
+                        "type": "number",
+                        "minItems": 4,
+                        "maxItems": 4
                     }
                 },
                 "label": {
