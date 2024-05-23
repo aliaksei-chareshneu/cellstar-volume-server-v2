@@ -938,9 +938,9 @@ async def main_preprocessor(
     source_db: str,
     source_db_id: str,
     source_db_name: str,
-    working_folder: Path,
-    db_path: Path,
-    input_paths: list[Path],
+    working_folder: str,
+    db_path: str,
+    input_paths: list[str],
     input_kinds: list[InputKind],
     min_size_per_downsampling_lvl_mb: typing.Optional[float] = 5.0,
 ):
@@ -1017,9 +1017,9 @@ def main(
     source_db: str = typer.Option(default=...),
     source_db_id: str = typer.Option(default=...),
     source_db_name: str = typer.Option(default=...),
-    working_folder: Path = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...),
-    input_path: list[Path] = typer.Option(default=...),
+    working_folder: str = typer.Option(default=...),
+    db_path: str = typer.Option(default=...),
+    input_path: list[str] = typer.Option(default=...),
     input_kind: list[InputKind] = typer.Option(default=...),
     # add_segmentation_to_entry: bool = typer.Option(default=False),
     # add_custom_annotations: bool = typer.Option(default=False),
@@ -1052,7 +1052,7 @@ def main(
 def delete_entry(
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...)
+    db_path: str = typer.Option(default=...)
     ):
     print(f"Deleting db entry: {entry_id} {source_db}")
     new_db_path = Path(db_path)
@@ -1068,8 +1068,8 @@ def delete_entry(
 def remove_volume(
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...),
-    working_folder: Path = typer.Option(default=...)
+    db_path: str = typer.Option(default=...),
+    working_folder: str = typer.Option(default=...)
     ):
     print(f"Deleting volumes for entry: {entry_id} {source_db}")
     new_db_path = Path(db_path)
@@ -1081,7 +1081,7 @@ def remove_volume(
     with db.edit_data(
         namespace=source_db,
         key=entry_id,
-        working_folder=working_folder
+        working_folder=Path(working_folder)
     ) as db_edit_context:
         db_edit_context: VolumeAndSegmentationContext
         db_edit_context.remove_volume()
@@ -1092,8 +1092,8 @@ def remove_segmentation(
     source_db: str = typer.Option(default=...),
     id: str = typer.Option(default=...),
     kind: str = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...),
-    working_folder: Path = typer.Option(default=...),
+    db_path: str = typer.Option(default=...),
+    working_folder: str = typer.Option(default=...),
     ):
     print(f"Deleting segmentation for entry: {entry_id} {source_db}")
     new_db_path = Path(db_path)
@@ -1105,7 +1105,7 @@ def remove_segmentation(
     with db.edit_data(
         namespace=source_db,
         key=entry_id,
-        working_folder=working_folder
+        working_folder=Path(working_folder)
     ) as db_edit_context:
         db_edit_context: VolumeAndSegmentationContext
         db_edit_context.remove_segmentation(id=id, kind=kind)
@@ -1115,7 +1115,7 @@ def remove_annotations(
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
     id: list[str] = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...),
+    db_path: str = typer.Option(default=...),
     ):
     print(f"Deleting annotation for entry: {entry_id} {source_db}")
     new_db_path = Path(db_path)
@@ -1138,7 +1138,7 @@ def remove_descriptions(
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
     id: list[str] = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...),
+    db_path: str = typer.Option(default=...),
     ):
     print(f"Deleting descriptions for entry: {entry_id} {source_db}")
     new_db_path = Path(db_path)
@@ -1161,8 +1161,8 @@ def edit_segment_annotations(
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
     # id: list[str] = typer.Option(default=...),
-    data_json_path: Path = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...),
+    data_json_path: str = typer.Option(default=...),
+    db_path: str = typer.Option(default=...),
     ):
     # print(f"Deleting descriptions for entry: {entry_id} {source_db}")
     new_db_path = Path(db_path)
@@ -1171,7 +1171,7 @@ def edit_segment_annotations(
 
     db = FileSystemVolumeServerDB(db_path, store_type="zip")
 
-    parsedSegmentAnnotations: list[SegmentAnnotationData] = open_json_file(data_json_path)
+    parsedSegmentAnnotations: list[SegmentAnnotationData] = open_json_file(Path(data_json_path))
 
     with db.edit_annotations(
         namespace=source_db,
@@ -1187,8 +1187,8 @@ def edit_descriptions(
     entry_id: str = typer.Option(default=...),
     source_db: str = typer.Option(default=...),
     # id: list[str] = typer.Option(default=...),
-    data_json_path: Path = typer.Option(default=...),
-    db_path: Path = typer.Option(default=...),
+    data_json_path: str = typer.Option(default=...),
+    db_path: str = typer.Option(default=...),
     ):
     # print(f"Deleting descriptions for entry: {entry_id} {source_db}")
     new_db_path = Path(db_path)
@@ -1197,7 +1197,7 @@ def edit_descriptions(
 
     db = FileSystemVolumeServerDB(db_path, store_type="zip")
 
-    parsedDescriptionData: list[DescriptionData] = open_json_file(data_json_path)
+    parsedDescriptionData: list[DescriptionData] = open_json_file(Path(data_json_path))
 
     with db.edit_annotations(
         namespace=source_db,
