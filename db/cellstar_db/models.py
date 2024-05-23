@@ -53,25 +53,25 @@ class OMETIFFSpecificExtraData(TypedDict):
     ometiff_source_metadata: Optional[dict]
 
 class VolumeExtraData(TypedDict):
-    voxel_size: list[float, float, float]
+    voxel_size: list[float, float, float] | None
     # map sequential channel ID (e.g. "1" as string)
     # to biologically meaningfull channel id (string)
-    channel_ids_mapping: dict[str, str]
-    dataset_specific_data: Optional[object]
+    channel_ids_mapping: dict[str, str] | None
+    dataset_specific_data: object | None
 
 class SegmentationExtraData(TypedDict):
-    voxel_size: list[float, float, float]
+    voxel_size: list[float, float, float] | None
     # map segmentation number (dimension) in case of >3D array (e.g. OMETIFF)
     # or in case segmentation ids are given as numbers by default
     # to segmentation id (string)
-    segmentation_ids_mapping: dict[str, str]
+    segmentation_ids_mapping: dict[str, str] | None
     # lattice_id (artificial, keys from segmentation_ids_mapping)
     # to dict with keys = segment ids and values = segment names?
     # could work, easier than modify descriptions via preprocessor command
     # CURRENTLY IS A KEY THAT IS PROVIDED IN SEGMENTATION_IDS_MAPPING
-    segment_ids_to_segment_names_mapping: dict[str, dict[str, str]]
+    segment_ids_to_segment_names_mapping: dict[str, dict[str, str]] | None
     # could have key = "ometiff"
-    dataset_specific_data: Optional[object]
+    dataset_specific_data: object | None 
 
 class ExtraData(TypedDict):
     volume: Optional[VolumeExtraData]
