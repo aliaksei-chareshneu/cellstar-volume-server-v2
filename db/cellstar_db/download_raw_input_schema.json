@@ -4,6 +4,9 @@
     "items": {
         "type": "object",
         "properties": {
+            "raw_input_files_dir_path": {
+                "type": "string"
+            },
             "source_db_name": {
                 "type": "string"
             },
