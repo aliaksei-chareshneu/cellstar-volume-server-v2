@@ -94,61 +94,17 @@
         }
     },
     "properties": {
-        "name": {
-            "type": [
-                "string",
-                "null"
+        "volume": {
+            "oneOf": [
+                {"type": "null"},
+                {"$ref": "#/$defs/VolumeExtraData"}
             ]
         },
-        "entry_id": {
-            "type": "object",
-            "properties": {
-                "source_db_name": {
-                    "type": "string"
-                },
-                "source_db_id": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "source_db_name",
-                "source_db_id"
+        "segmentation": {
+            "oneOf": [
+                {"type": "null"},
+                {"$ref": "#/$defs/SegmentationExtraData"}
             ]
-        },
-        "descriptions": {
-            "type": "object",
-            "propertyNames": {
-                "format": "uuid"
-            },
-            "additionalProperties": {
-                "$ref": "#/$defs/DescriptionData"
-            }
-        },
-        "annotations": {
-            "type": "array",
-            "items": {
-                "$ref": "#/$defs/SegmentAnnotationData"
-            }
-        },
-        "details": {
-            "type": [
-                "string",
-                "null"
-            ]
-        },
-        "volume_channels_annotations": {
-            "type": [
-                "array",
-                "null"
-            ],
-            "items": {
-                "$ref": "#/$defs/ChannelAnnotation"
-            }
         }
-    },
-    "required": [
-        "entry_id",
-        "descriptions",
-        "annotations"
-    ]
+    }
 }
