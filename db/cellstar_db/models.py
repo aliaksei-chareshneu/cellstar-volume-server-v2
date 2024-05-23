@@ -69,7 +69,7 @@ class SegmentationExtraData(TypedDict):
     # to dict with keys = segment ids and values = segment names?
     # could work, easier than modify descriptions via preprocessor command
     # CURRENTLY IS A KEY THAT IS PROVIDED IN SEGMENTATION_IDS_MAPPING
-    custom_segment_ids_mapping: dict[str, dict[str, str]]
+    segment_ids_to_segment_names_mapping: dict[str, dict[str, str]]
     # could have key = "ometiff"
     dataset_specific_data: Optional[object]
 
@@ -77,8 +77,8 @@ class ExtraData(TypedDict):
     volume: Optional[VolumeExtraData]
     segmentation: Optional[SegmentationExtraData]
     # for custom things
-    metadata: Optional[object]
-    dataset_specific_data: Optional[object]
+    # metadata: Optional[object]
+    # dataset_specific_data: Optional[object]
 
 # METADATA DATA MODEL
 
