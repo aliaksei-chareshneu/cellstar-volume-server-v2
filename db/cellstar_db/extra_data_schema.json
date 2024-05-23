@@ -1,0 +1,154 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "$defs": {
+        "DatasetSpecificData": {
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "SegmentIDsToSegmentNamesMapping": {
+            "type": "object",
+            "propertyNames": {
+                "format": "string"
+            },
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "CustomSegmentIDsMapping": {
+            "type": "object",
+            "propertyNames": {
+                "format": "string"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/SegmentIDsToSegmentNamesMapping"
+            }
+        },
+        "VolumeExtraData": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "voxel_size": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                },
+                "channel_ids_mapping": {
+                    "type": "object",
+                    "propertyNames": {
+                        "format": "string"
+                    },
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "dataset_specific_data": {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/DatasetSpecificData"
+                        }
+                    ]
+                }
+            }
+        },
+        "SegmentationExtraData": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "voxel_size": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                },
+                "segmentation_ids_mapping": {
+                    "type": "object",
+                    "propertyNames": {
+                        "format": "string"
+                    },
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "dataset_specific_data": {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/DatasetSpecificData"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "properties": {
+        "name": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "entry_id": {
+            "type": "object",
+            "properties": {
+                "source_db_name": {
+                    "type": "string"
+                },
+                "source_db_id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "source_db_name",
+                "source_db_id"
+            ]
+        },
+        "descriptions": {
+            "type": "object",
+            "propertyNames": {
+                "format": "uuid"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/DescriptionData"
+            }
+        },
+        "annotations": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/SegmentAnnotationData"
+            }
+        },
+        "details": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "volume_channels_annotations": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "$ref": "#/$defs/ChannelAnnotation"
+            }
+        }
+    },
+    "required": [
+        "entry_id",
+        "descriptions",
+        "annotations"
+    ]
+}
