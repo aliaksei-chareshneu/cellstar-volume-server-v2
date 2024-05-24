@@ -32,7 +32,7 @@ The `preprocess` command of `preprocessor/cellstar_preprocessor/preprocess.py` s
 - Download [MAP](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1832/map/emd_1832.map.gz) and extract it to `inputs/emd-1832/emd_1832.map`
 - Download [Segmentation](https://www.ebi.ac.uk/em_static/emdb_sff/18/1832/emd_1832.hff.gz) and extract it to `inputs/emd-1832/emd_1832.hff` -->
 
-- To add an emd-1832 entry to the db, from root directory (`cellstar-volume-server-v2`) run:
+- To add an emd-1832 entry to the internal database, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
 python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff --input-kind sff --entry-id emd-1832 --source-db emdb --source-db-id emd-1832 --source-db-name emdb --working-folder temp_working_folder --db-path preprocessor/temp/test_db --quantize-dtype-str u1
@@ -41,7 +41,7 @@ python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --
 It will add entry `emd-1832` to the database and during preprocessing volume data will be quantized with `u1` option
 
 #### IDR-13457537
-- To add IDR-13457537 entry to the db, unzip `test-data/preprocessor/sample_segmentations/idr/13457537.zarr.zip` file:
+- To add IDR-13457537 entry to the internal database, unzip `test-data/preprocessor/sample_segmentations/idr/13457537.zarr.zip` file:
 ```
 cd test-data/preprocessor/sample_segmentations/idr/idr-13457537
 unzip 13457537.zarr.zip
@@ -56,7 +56,7 @@ It will add entry `idr-13457537` to the database
 
 #### EMD-1832-geometric-segmentation
 
-- To add an emd-1832 entry with artificially created geometric segmentation to the db, from root directory (`cellstar-volume-server-v2`) run:
+- To add an emd-1832 entry with artificially created geometric segmentation to the internal database, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
 python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/EMD-1832.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/geometric_segmentations/geometric_segmentation_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/geometric_segmentations/geometric_segmentation_2.json --input-kind geometric_segmentation  --entry-id emd-1832-geometric-segmentation --source-db emdb --source-db-id emd-1832-geometric-segmentation --source-db-name emdb --working-folder temp_working_folder --db-path preprocessor/temp/test_db
@@ -75,7 +75,7 @@ It will add entry `emd-1832-geometric-segmentation` to the database
     - [Mask 4](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_4.map)
     - [Mask 5](https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_5.map)
 
-4. To add an `emd-1273` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+4. To add an `emd-1273` entry with segmentations based on masks to the internal database, from root directory (`cellstar-volume-server-v2`) run:
 
 ```
 python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/emdb/emd_1273.map --input-kind map --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_1.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_2.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_3.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_4.map --input-kind mask --input-path test-data/preprocessor/sample_segmentations/emdb_masks/emd_1273_msk_5.map --input-kind mask --entry-id emd-1273 --source-db emdb --source-db-id emd-1273 --source-db-name emdb --working-folder temp_working_folder --db-path preprocessor/temp/test_db
@@ -138,7 +138,7 @@ In order to add an `empiar-10988` entry with lattice segmentations based on mask
 
 3. Add `empiar-10988` entry to the internal database
 
-    In order to add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+    In order to add an `empiar-10988` entry with segmentations based on masks to the internal database, from root directory (`cellstar-volume-server-v2`) run:
     
 ```shell
     python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --min-downsampling-level 4 --remove-original-resolution --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
@@ -189,7 +189,7 @@ Note that we are setting minimum downsampling level to 4 by using --min-downsamp
 
 
 3. Add empiar-11756 entry to the internal database
-To add an empiar-11756 entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+To add an empiar-11756 entry with segmentations based on masks to the internal database, from root directory (`cellstar-volume-server-v2`) run:
 
 
 ```shell
@@ -235,7 +235,7 @@ It will create a database entry with two geometric segmentations (segmentation I
 
   The content of the file is based on the content of `organelle_labels.txt` from EMPIAR-10988 webpage. It maps the segment IDs for segmentation from `TS_026.labels.mrc` file to biologically relevant segment names. 
 
- - To add an `empiar-10988` entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+ - To add an `empiar-10988` entry with segmentations based on masks to the internal database, from root directory (`cellstar-volume-server-v2`) run:
  
 ```
 python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path extra_data_empiar_10988.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-10988/TS_026.rec --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026.labels.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_membranes.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_fas.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cytosol.mrc --input-kind mask --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-10988/TS_026_cyto_ribosomes.mrc --input-kind mask --entry-id empiar-10988 --source-db empiar --source-db-id empiar-10988 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/test_db
@@ -266,7 +266,7 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
 
 2. Prepare input files.
 
-	This EMPIAR entry contains relevant data that can be used to render geometric segmentation in .star format. To be able to use this data, .star files need to be parsed into the standard Mol* VS 2.0 format for geometric segmentations. This can be achieved by using custom script `preprocessor/cellstar_preprocessor/tools/parse_star_file/parse_single_star_file.py` that is part of our solution. In parallel, this script allows to set the biologically meaningful segmentation IDs for both geometric segmentations based on the data from EMPIAR entry webpage (i.e. `ribosomes` and `nucleosomes`). In order to parse both .star files, from the root repository directory (cellstar-volume-server-v2 by default) run:
+	This EMPIAR entry contains relevant data that can be used to render geometric segmentation in `.star` format. To be able to use this data, .star files need to be parsed into the standard Mol* VS 2.0 format for geometric segmentations. This can be achieved by using custom script `preprocessor/cellstar_preprocessor/tools/parse_star_file/parse_single_star_file.py` that is part of our solution. In parallel, this script allows to set the biologically meaningful segmentation IDs for both geometric segmentations based on the data from EMPIAR entry webpage (i.e. `ribosomes` and `nucleosomes`). In order to parse both `.star` files, from the root repository directory (cellstar-volume-server-v2 by default) run:
 
     ```shell
     python preprocessor/cellstar_preprocessor/tools/parse_star_file/parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_ribosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --sphere_radius 100 --segmentation_id ribosomes  --sphere_color_hex FFFF00 --pixel_size 7.84 --star_file_coordinate_divisor 4
@@ -293,7 +293,7 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
 
 3. Add empiar-11756 entry to the internal database
 
-    To add an empiar-11756 entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
+    To add an empiar-11756 entry with segmentations based on masks to the internal database, from root directory (`cellstar-volume-server-v2`) run:
 
 
     ```shell
@@ -303,63 +303,179 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
     It will create a database entry with two geometric segmentations (segmentation IDs “ribosomes” and “nucleosomes”).
 
 
-#### CUSTOM-allencell_230741
+#### CUSTOM-hipsc_230741
 <!-- TODO: change -->
-In order to add an custom-allencell_230741 entry to the internal database, follow the steps below:
+<!-- TODO: structure of the dataset -->
+##### Introduction to hipsc_single_cell_image_dataset structure
+Structure of the hipsc_single_cell_image_dataset is explained in [readme](https://open.quiltdata.com/b/allencell/tree/aics/hipsc_single_cell_image_dataset/README.md). In this example we will use imaging data and metadata for cell with CellID 230,741 (the first row in [metadata.csv](https://open.quiltdata.com/b/allencell/tree/aics/hipsc_single_cell_image_dataset/metadata.csv)).
+
+In order to add an custom-hipsc_230741 entry to the internal database, follow the steps below:
 1. Obtain the raw input files
 
-	Create `test-data/preprocessor/sample_volumes/custom/custom-allencell_230741` folder, change current directory to it, and download OME-TIFF image file, e.g. using wget:
+	Create `test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741` folder, change current directory to it, and download OME-TIFF file with volume data, e.g. using wget:
 
     ```shell
-    mkdir -p test-data/preprocessor/sample_volumes/custom/custom-allencell_230741
-    cd test-data/preprocessor/sample_volumes/custom/custom-allencell_230741
-    wget -O allencell_230741_image.ome.tif https://allencell.s3.amazonaws.com/aics/hipsc_single_cell_image_dataset/crop_raw/7922e74b69b77d6b51ea5f1627418397ab6007105a780913663ce1344905db5c_raw.ome.tif?versionId=yQ6YaOj1YgDNgS4DpsnmrNAkOQ.4pgS6
+    mkdir -p test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741
+    cd test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741
+    wget -O hipsc_230741_volume.ome.tif https://allencell.s3.amazonaws.com/aics/hipsc_single_cell_image_dataset/crop_raw/7922e74b69b77d6b51ea5f1627418397ab6007105a780913663ce1344905db5c_raw.ome.tif?versionId=yQ6YaOj1YgDNgS4DpsnmrNAkOQ.4pgS6
 	```
 
-	Next, create `test-data/preprocessor/sample_segmentations/empiar/empiar-11756` directory, change current directory to it, and download two `.star` files:
+	Next, create `test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741` directory, change current directory to it, and download OME-TIFF file with segmentation data. E.g. from the root repository directory (`cellstar-volume-server-v2` by default) run: 
 
     
     ```shell
-    mkdir -p test-data/preprocessor/sample_segmentations/empiar/empiar-11756
-    cd test-data/preprocessor/sample_segmentations/empiar/empiar-11756
-    wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_nucleosome_bin1_tomo_649.star
-    wget https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35/metadata/particles/rln_ribosome_bin1_tomo_649.star
+    mkdir -p test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741
+    cd test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741
+    wget -O hipsc_230741_segmentation.ome.tif https://allencell.s3.amazonaws.com/aics/hipsc_single_cell_image_dataset/crop_seg/a9a2aa179450b1819f0dfc4d22411e6226f22e3c88f7a6c3f593d0c2599c2529_segmentation.ome.tif?versionId=hf7gc1GKeDjgVYeNBEdmvV0w2NUJS38_
     ```
 
-2. Prepare input files.
+2. Prepare addtional input files.
+    
+    OMETIFF input files with volume and segmentation data contains incomplete information for preprocessing and subsequent rendering. To alleviate this, one can create JSON file with extra data, based on the content of [metadata.csv](https://open.quiltdata.com/b/allencell/tree/aics/hipsc_single_cell_image_dataset/metadata.csv).
+    Namely, we need to set voxel size, biologically meaningfull channel IDs for volume data and segmentation IDs for segmentation data, and specify missing OME-TIFF dimenstions. Besides, we can add biologically relavant annotation information (cell stage) that will be rendered in the Mol* VS 2.0 user interface. 
 
-	This EMPIAR entry contains relevant data that can be used to render geometric segmentation in .star format. To be able to use this data, .star files need to be parsed into the standard Mol* VS 2.0 format for geometric segmentations. This can be achieved by using custom script `preprocessor/cellstar_preprocessor/tools/parse_star_file/parse_single_star_file.py` that is part of our solution. In parallel, this script allows to set the biologically meaningful segmentation IDs for both geometric segmentations based on the data from EMPIAR entry webpage (i.e. `ribosomes` and `nucleosomes`). In order to parse both .star files, from the root repository directory (cellstar-volume-server-v2 by default) run:
+    We can extract the necessary information from [metadata.csv](https://open.quiltdata.com/b/allencell/tree/aics/hipsc_single_cell_image_dataset/metadata.csv) using the following approach:
+     - Voxel size: value of `scale_micron` field (`[0.108333, 0.108333, 0.108333]`) converted to Angstroms (`[1083.33, 1083.33, 1083.33]`)
+     - Biologically meaningful channel IDs: can be obtained from content of `name_dict` field, which corresponds to Python dictionary. We need the value of `crop_raw` key (`['dna', 'membrane', 'structure']`)
+     - Biologically meaningful segmentation IDs: can be obtained from content of `name_dict` field as well. We need the value of `crop_seg` key (` ['dna_segmentation', 'membrane_segmentation', 'membrane_segmentation_roof', 'struct_segmentation', 'struct_segmentation_roof']`)
+     - Missing OME-TIFF dimensions: is not specified anywhere. To obtain this, we will need to open OME-TIFF file using `pyometiff` library that should be installed by default while creating the environment for Mol* VS 2.0. 
+     
+        You can use the following script to check the dimensions of OME-TIFF file:
+        ```python
+            from pyometiff import OMETIFFReader
+            from pathlib import Path
 
-    ```shell
-    python preprocessor/cellstar_preprocessor/tools/parse_star_file/parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_ribosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --sphere_radius 100 --segmentation_id ribosomes  --sphere_color_hex FFFF00 --pixel_size 7.84 --star_file_coordinate_divisor 4
-    ```
+            pathes: list[Path] = [
+                Path('test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741/hipsc_230741_volume.ome.tif'),
+                Path('test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/hipsc_230741_segmentation.ome.tif')
+            ]
 
-    ```shell
-    python preprocessor/cellstar_preprocessor/tools/parse_star_file/parse_single_star_file.py --star_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/rln_nucleosome_bin1_tomo_649.star --geometric_segmentation_input_file_path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --sphere_radius 100  --segmentation_id nucleosomes --sphere_color_hex FF0000 --pixel_size 7.84 --star_file_coordinate_divisor 4
-    ```
+            for p in pathes:
+                print(f'Opening {p.name}')
+                reader = OMETIFFReader(fpath=p)
+                img_array, metadata, xml_metadata = reader.read()
+                
 
-    Besides the volume map file from EMPIAR entry webpage has wrong header parameters (voxel size is 0 for all 3 spatial dimensions). To alleviate this, one can use functionality of Preprocessor that allows to overwrite database entry parameters during preprocessing. Based on the data from EMPIAR entry webpage, voxel size should be `1.96` Angstrom for all 3 dimensions. Since we use volume map file from cryocare_bin4_tomoname folder, this value needs to be multiplied by 4, which gives us `7.84` Angstrom. According to this, create `test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json` file with the following content:
+                print(p.name)
+                print('Dimension order: ', metadata['DimOrder BF Array'])
+                print('Data array shape', img_array.shape)     
+        ```
 
+        The output of this script should look like this:
+        ```
+            Opening hipsc_230741_volume.ome.tif
+            Key not found: list index out of range
+            Key not found: list index out of range
+            key not found list index out of range
+            Key not found: list index out of range
+            hipsc_230741_volume.ome.tif
+            Dimension order:  TZCYX
+            Data array shape (119, 3, 281, 268)
+            Opening hipsc_230741_segmentation.ome.tif
+            Key not found: list index out of range
+            Key not found: list index out of range
+            key not found list index out of range
+            Key not found: list index out of range
+            hipsc_230741_segmentation.ome.tif
+            Dimension order:  TZCYX
+            Data array shape (119, 5, 281, 268)
+        ```
+
+        As you can see, the output for both volume and segmentation file is same:
+        ```
+            Dimension order:  TZCYX
+            Data array shape (119, 3, 281, 268)
+        ```
+        It is obvious that the number of dimensions (5) does not correspond to array shape. In that case, most likely time dimension (`T`) is missing from the data array.
+    
+     - We can add biologically relevant annotation data available in [metadata.csv](https://open.quiltdata.com/b/allencell/tree/aics/hipsc_single_cell_image_dataset/metadata.csv). Namely, the content of `cell_stage` field, which, for that cell ID is `M4M5`. 
+
+    Now, when we have obtained all the missing information, create `test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/extra_data.json` JSON file with the following content:
     ```json
     {
         "volume": {
             "voxel_size": [
-                7.84,
-                7.84,
-                7.84
-            ]
-        }   
+                0.108333,
+                0.108333,
+                0.108333
+            ],
+            "channel_ids_mapping": {
+                "0": "dna",
+                "1": "membrane",
+                "2": "structure"
+            },
+            "dataset_specific_data": {
+                "ometiff": {
+                    "cell_stage": "M4M5",
+                    "missing_dimensions": ["T"]
+                }
+            }
+        },
+        "segmentation": {
+            "voxel_size": [
+                0.108333,
+                0.108333,
+                0.108333
+            ],
+            "segmentation_ids_mapping": {
+                "0": "dna_segmentation",
+                "1": "membrane_segmentation",
+                "2": "membrane_segmentation_roof",
+                "3": "struct_segmentation",
+                "4": "struct_segmentation_roof"
+            },
+            "dataset_specific_data": {
+                "ometiff": {
+                    "cell_stage": "M4M5",
+                    "missing_dimensions": ["T"]
+                }
+            }
+        }
     }
-    ```
+    ``` 
 
+3. Add custom-hipsc_230741 entry to the internal database
 
-3. Add empiar-11756 entry to the internal database
+    To add an custom-hipsc_230741 entry to the internal database, from root directory (`cellstar-volume-server-v2`) run:
 
-    To add an empiar-11756 entry with segmentations based on masks to the db, from root directory (`cellstar-volume-server-v2`) run:
-
+    "preprocess",
+                "--mode",
+                "add",
+                "--input-path",
+                "preprocessor/temp/extra_data_ometiff.json",
+                "--input-kind",
+                "extra_data",
+                "--input-path",
+                // seg, works
+                // "preprocessor/temp/allencel_datasets/CellId_230741/crop_seg/a9a2aa179450b1819f0dfc4d22411e6226f22e3c88f7a6c3f593d0c2599c2529_segmentation.ome.tif",
+                // works
+                "preprocessor/temp/allencel_datasets/CellId_230741/crop_raw/7922e74b69b77d6b51ea5f1627418397ab6007105a780913663ce1344905db5c_raw.ome.tif",
+                // does not work
+                // "preprocessor/temp/allencel_datasets/CellId_230741/fov_path/6677e50cfb7370eb6dbbcee4865563d5604a7dc52806933059602a87c4bb3b3b_3500001004_100X_20170623_5-Scene-1-P24-E06.ome.tiff",
+                "--input-kind",
+                "ometiff_image",
+                "--input-path",
+                // seg, works
+                "preprocessor/temp/allencel_datasets/CellId_230741/crop_seg/a9a2aa179450b1819f0dfc4d22411e6226f22e3c88f7a6c3f593d0c2599c2529_segmentation.ome.tif",
+                // works
+                "--input-kind",
+                "ometiff_segmentation",
+                "--entry-id",
+                "custom-230741",
+                "--source-db",
+                "custom",
+                "--source-db-id",
+                "custom-230741",
+                "--source-db-name",
+                "custom",
+                "--working-folder",
+                "preprocessor/temp/temp_zarr_hierarchy_storage",
+                "--db-path",
+                "preprocessor/temp/test_db",
+                // "--force-volume-dtype", "u1"
 
     ```shell
-    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/empiar-11756-extra-data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/empiar/empiar-11756/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc --input-kind map --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json --input-kind geometric_segmentation --input-path test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json --input-kind geometric_segmentation --entry-id empiar-11756 --source-db empiar --source-db-id empiar-11756 --source-db-name empiar --working-folder temp_working_folder --db-path preprocessor/temp/preprocessor/temp/test_db
+    python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/extra_data_ometiff.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741/hipsc_230741_volume.ome.tif --input-kind ometiff_image --input-path test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/hipsc_230741_segmentation.ome.tif --input-kind ometiff_segmentation --entry-id custom-hipsc_230741 --source-db custom --source-db-id custom-hipsc_230741 --source-db-name custom --working-folder temp_working_folder --db-path preprocessor/temp/preprocessor/temp/test_db
     ```
 
     It will create a database entry with two geometric segmentations (segmentation IDs “ribosomes” and “nucleosomes”).
