@@ -309,7 +309,9 @@ In order to add an empiar-11756 entry with geometric segmentation to the interna
 ##### Introduction to hipsc_single_cell_image_dataset structure
 Structure of the hipsc_single_cell_image_dataset is explained in [readme](https://open.quiltdata.com/b/allencell/tree/aics/hipsc_single_cell_image_dataset/README.md). In this example we will use imaging data and metadata for cell with CellID 230,741 (the first row in [metadata.csv](https://open.quiltdata.com/b/allencell/tree/aics/hipsc_single_cell_image_dataset/metadata.csv)).
 
+##### Adding entry to the internal database
 In order to add an custom-hipsc_230741 entry to the internal database, follow the steps below:
+
 1. Obtain the raw input files
 
 	Create `test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741` folder, change current directory to it, and download OME-TIFF file with volume data, e.g. using wget:
@@ -381,7 +383,7 @@ In order to add an custom-hipsc_230741 entry to the internal database, follow th
             Data array shape (119, 5, 281, 268)
         ```
 
-        As you can see, the output for both volume and segmentation file is same:
+        As you can see, the output for both volume and segmentation file is the same:
         ```
             Dimension order:  TZCYX
             Data array shape (119, 3, 281, 268)
