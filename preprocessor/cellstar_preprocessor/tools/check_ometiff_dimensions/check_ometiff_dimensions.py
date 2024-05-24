@@ -2,8 +2,8 @@ from pyometiff import OMETIFFReader
 from pathlib import Path
 
 pathes: list[Path] = [
-    Path('test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741/allencell_230741_volume.ome.tif'),
-    Path('test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/allencell_230741_segmentation.ome.tif')
+    Path('test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741/hipsc_230741_volume.ome.tif'),
+    Path('test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/hipsc_230741_segmentation.ome.tif')
 ]
 
 for p in pathes:
