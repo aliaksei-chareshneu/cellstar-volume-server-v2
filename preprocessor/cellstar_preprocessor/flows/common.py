@@ -352,23 +352,23 @@ def _convert_short_units_to_long(short_unit_name: str):
     else:
         raise Exception('Short unit name is not supported')
 
-
+# TODO: type annotation
 def _get_ometiff_axes_units(ome_tiff_metadata):
     axes_units = {}
     if 'PhysicalSizeXUnit' in ome_tiff_metadata:
         axes_units['x'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeXUnit'])
     else:
-        axes_units['x'] = 'micrometer'
+        axes_units['x'] = 'angstrom'
 
     if 'PhysicalSizeYUnit' in ome_tiff_metadata:
         axes_units['y'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeYUnit'])
     else:
-        axes_units['y'] = 'micrometer'
+        axes_units['y'] = 'angstrom'
 
     if 'PhysicalSizeZUnit' in ome_tiff_metadata:
         axes_units['z'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeZUnit'])
     else:
-        axes_units['z'] = 'micrometer'
+        axes_units['z'] = 'angstrom'
 
     return axes_units
 
@@ -524,3 +524,12 @@ def get_channel_annotations(ome_zarr_attrs: dict):
         )
 
     return volume_channel_annotations
+
+
+def get_ome_tiff_origins(boxes_dict: dict, downsamplings: list[DownsamplingLevelInfo]):
+    # NOTE: origins seem to be 0, 0, 0, as they are not specified
+    available = list(filter(lambda a: a["available"] == True, downsamplings))
+    downsampling_levels = sorted([a['level'] for a in available])
+    for level in downsampling_levels:
+        downsampling_level = str(level)
+        boxes_dict[downsampling_level]['origin'] = [0, 0, 0]
