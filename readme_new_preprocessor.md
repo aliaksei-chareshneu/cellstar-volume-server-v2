@@ -438,42 +438,6 @@ In order to add an custom-hipsc_230741 entry to the internal database, follow th
 
     To add an custom-hipsc_230741 entry to the internal database, from root directory (`cellstar-volume-server-v2`) run:
 
-    "preprocess",
-                "--mode",
-                "add",
-                "--input-path",
-                "preprocessor/temp/extra_data_ometiff.json",
-                "--input-kind",
-                "extra_data",
-                "--input-path",
-                // seg, works
-                // "preprocessor/temp/allencel_datasets/CellId_230741/crop_seg/a9a2aa179450b1819f0dfc4d22411e6226f22e3c88f7a6c3f593d0c2599c2529_segmentation.ome.tif",
-                // works
-                "preprocessor/temp/allencel_datasets/CellId_230741/crop_raw/7922e74b69b77d6b51ea5f1627418397ab6007105a780913663ce1344905db5c_raw.ome.tif",
-                // does not work
-                // "preprocessor/temp/allencel_datasets/CellId_230741/fov_path/6677e50cfb7370eb6dbbcee4865563d5604a7dc52806933059602a87c4bb3b3b_3500001004_100X_20170623_5-Scene-1-P24-E06.ome.tiff",
-                "--input-kind",
-                "ometiff_image",
-                "--input-path",
-                // seg, works
-                "preprocessor/temp/allencel_datasets/CellId_230741/crop_seg/a9a2aa179450b1819f0dfc4d22411e6226f22e3c88f7a6c3f593d0c2599c2529_segmentation.ome.tif",
-                // works
-                "--input-kind",
-                "ometiff_segmentation",
-                "--entry-id",
-                "custom-230741",
-                "--source-db",
-                "custom",
-                "--source-db-id",
-                "custom-230741",
-                "--source-db-name",
-                "custom",
-                "--working-folder",
-                "preprocessor/temp/temp_zarr_hierarchy_storage",
-                "--db-path",
-                "preprocessor/temp/test_db",
-                // "--force-volume-dtype", "u1"
-
     ```shell
     python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/extra_data_ometiff.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741/hipsc_230741_volume.ome.tif --input-kind ometiff_image --input-path test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/hipsc_230741_segmentation.ome.tif --input-kind ometiff_segmentation --entry-id custom-hipsc_230741 --source-db custom --source-db-id custom-hipsc_230741 --source-db-name custom --working-folder temp_working_folder --db-path preprocessor/temp/preprocessor/temp/test_db
     ```
