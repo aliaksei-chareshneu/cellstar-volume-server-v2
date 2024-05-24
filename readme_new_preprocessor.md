@@ -438,7 +438,7 @@ In order to add an custom-hipsc_230741 entry to the internal database, follow th
 
 3. Add custom-hipsc_230741 entry to the internal database
 
-    To add an custom-hipsc_230741 entry to the internal database, from root directory (`cellstar-volume-server-v2`) run:
+    To add a custom-hipsc_230741 entry to the internal database, from root directory (`cellstar-volume-server-v2`) run:
 
     ```shell
     python preprocessor/cellstar_preprocessor/preprocess.py preprocess --mode add --input-path test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/extra_data.json --input-kind extra_data --input-path test-data/preprocessor/sample_volumes/custom/custom-hipsc_230741/hipsc_230741_volume.ome.tif --input-kind ometiff_image --input-path test-data/preprocessor/sample_segmentations/custom/custom-hipsc_230741/hipsc_230741_segmentation.ome.tif --input-kind ometiff_segmentation --entry-id custom-hipsc_230741 --source-db custom --source-db-id custom-hipsc_230741 --source-db-name custom --working-folder temp_working_folder --db-path preprocessor/temp/test_db
