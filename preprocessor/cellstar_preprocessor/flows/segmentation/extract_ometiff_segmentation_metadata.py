@@ -1,6 +1,7 @@
 from decimal import Decimal
 from cellstar_db.models import OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import _get_ome_tiff_voxel_sizes_in_downsamplings, get_downsamplings, open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import get_ome_tiff_origins
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
@@ -113,12 +114,6 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
 #                 _convert_to_angstroms(ometiff_physical_size_dict['y'] * int(downsampling_level), ometiff_axes_units_dict['y']),
 #                 _convert_to_angstroms(ometiff_physical_size_dict['z'] * int(downsampling_level), ometiff_axes_units_dict['z'])
 #             ]
-
-def _get_ome_tiff_origins(boxes_dict: dict, downsamplings):
-    # NOTE: origins seem to be 0, 0, 0, as they are not specified
-    for level in downsamplings:
-        downsampling_level = str(level)
-        boxes_dict[downsampling_level]['origin'] = [0, 0, 0]
 
 def _get_allencell_voxel_size(root: zarr.Group) -> list[float, float, float]:
     return root.attrs['extra_data']['scale_micron']
@@ -234,7 +229,7 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
                 ][str(lattice_id)],
             )
 
-            _get_ome_tiff_origins(
+            get_ome_tiff_origins(
                 boxes_dict=metadata_dict["segmentation_lattices"][
                     "segmentation_sampling_info"
                 ][str(lattice_id)]["boxes"],
