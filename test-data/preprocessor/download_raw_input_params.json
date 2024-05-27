@@ -1,0 +1,61 @@
+[
+    {
+        "entry_id": "emd-1832",
+        "source_db": "emdb",
+        "source_db_id": "emd-1832",
+        "source_db_name": "emdb",
+        "inputs": [
+            {
+                "kind": "map",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1832/map/emd_1832.map.gz"
+                }
+            },
+            {
+                "kind": "sff",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://www.ebi.ac.uk/em_static/emdb_sff/18/1832/emd_1832.hff.gz"
+                }
+            }
+        ]
+    },
+    {
+        "entry_id": "idr-13457537",
+        "source_db": "idr",
+        "source_db_id": "idr-13457537",
+        "source_db_name": "idr",
+        "inputs": [
+            {
+                "kind": "omezarr",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0101A/13457537.zarr"
+                }
+            }
+        ]
+    },
+    {
+        "entry_id": "empiar-10070",
+        "source_db": "empiar",
+        "source_db_id": "empiar-10070",
+        "source_db_name": "empiar",
+        "inputs": [
+            {
+                "kind": "map",
+                "resource": {
+                    "kind": "local",
+                    "uri": "test-data/preprocessor/sample_volumes/empiar/b3talongmusc20130301.mrc"
+                }
+            },
+            {
+                "kind": "sff",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://www.ebi.ac.uk/em_static/emdb_sff/empiar_10070_b3talongmusc20130301/empiar_10070_b3talongmusc20130301.hff.gz"
+                }
+            }
+        ]
+    }
+]
