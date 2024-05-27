@@ -1,6 +1,6 @@
 from decimal import Decimal
 from uuid import uuid4
-from cellstar_db.models import AnnotationsMetadata, DescriptionData, DescriptionText, SegmentAnnotationData, TargetId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
+from cellstar_db.models import AnnotationsMetadata, DescriptionData, DetailsText, SegmentAnnotationData, TargetId, TimeInfo, VolumeSamplingInfo, VolumesMetadata
 from cellstar_preprocessor.flows.common import get_downsamplings, get_ometiff_source_metadata, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.common import _convert_to_angstroms
@@ -78,7 +78,7 @@ def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSeg
         description: DescriptionData = {
             'id': description_id,
             'target_kind': "lattice",
-            'description': None,
+            'details': None,
             'is_hidden': None,
             'metadata': None,
             'time': time,
@@ -96,7 +96,7 @@ def extract_ome_tiff_segmentation_annotations(internal_segmentation: InternalSeg
             'time': time
         }
         d['descriptions'][description_id] = description
-        d['annotations'].append(segment_annotation)
+        d['segment_annotations'].append(segment_annotation)
 
         count = count + 1
     

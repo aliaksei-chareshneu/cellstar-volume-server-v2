@@ -2,9 +2,9 @@
 
 
 from cellstar_db.models import AnnotationsMetadata, DescriptionData, SegmentAnnotationData
-from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
+from cellstar_preprocessor.flows.common import convert_hex_to_rgba_fractional, open_zarr_structure_from_path
 from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import ome_zarr_labels_preprocessing
-from cellstar_preprocessor.flows.volume.extract_omezarr_annotations import convert_hex_to_rgba_fractional, extract_omezarr_annotations
+from cellstar_preprocessor.flows.volume.extract_omezarr_annotations import extract_omezarr_annotations
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tests.helper_methods import initialize_intermediate_zarr_structure_for_tests
@@ -90,7 +90,7 @@ def test_extract_omezarr_annotations(internal_volume_and_segmentation: tuple[Int
                 assert description_item['target_kind'] == 'lattice'
 
                 # find segment annotation
-                segment_annotations: list[SegmentAnnotationData] = d['annotations']
+                segment_annotations: list[SegmentAnnotationData] = d['segment_annotations']
                 segment_annotation_filter_results = list(filter(lambda a: a['segment_id'] == label_value and \
                     a['segment_kind'] == 'lattice' and a['segmentation_id'] == label_gr_name, segment_annotations))
                 assert len(segment_annotation_filter_results) == 1

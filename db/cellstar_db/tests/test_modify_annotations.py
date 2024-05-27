@@ -21,7 +21,7 @@ async def test_modify_annotations(generate_test_data):
             TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
             TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
         )
-        current_annotations = annotations_metadata['annotations']
+        current_annotations = annotations_metadata['segment_annotations']
 
         for annotation in test_data['modify_annotations']:
             filter_results = list(filter(lambda a: a['id'] == annotation['id'], current_annotations))

@@ -212,7 +212,7 @@ class TargetId(TypedDict):
     segmentation_id: str
     segment_id: int
 
-class DescriptionText(TypedDict):
+class DetailsText(TypedDict):
     format: Literal["text", "markdown"]
     text: str
 
@@ -226,7 +226,7 @@ class DescriptionData(TypedDict):
     is_hidden: Optional[bool]
     time: Optional[int | list[int | tuple[int, int]]]
 
-    description: Optional[DescriptionText]
+    details: Optional[DetailsText]
     metadata: Union[dict[str, Any], None]
 
 
@@ -236,7 +236,7 @@ class AnnotationsMetadata(TypedDict):
     # id => DescriptionData
     descriptions: dict[str, DescriptionData]
     # NOTE: on frontend, segment key = `${kind}:{segmentation_id}:{segment_id}`
-    annotations: list[SegmentAnnotationData]
+    segment_annotations: list[SegmentAnnotationData]
     # Only in SFF
     details: Optional[str]
     volume_channels_annotations: Optional[list[ChannelAnnotation]]

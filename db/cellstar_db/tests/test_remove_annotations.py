@@ -29,11 +29,11 @@ async def test_remove_annotations(generate_test_data):
             TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
         )
 
-        assert len(annotations_metadata_before_removing['annotations']) - \
+        assert len(annotations_metadata_before_removing['segment_annotations']) - \
             len(test_data['remove_annotations']) == \
-            len(annotations_metadata_after_removing['annotations'])
+            len(annotations_metadata_after_removing['segment_annotations'])
 
-        current_annotations = annotations_metadata_after_removing['annotations']
+        current_annotations = annotations_metadata_after_removing['segment_annotations']
         current_annotation_ids = [a['id'] for a in current_annotations]
         # here check that annotation with ids from remove annotations
         # are no longer present

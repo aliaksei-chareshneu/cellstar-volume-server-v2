@@ -12,7 +12,7 @@ def _preprocess_external_references(raw_external_references: list[ExternalRefere
     for x in raw_external_references:
         r: ExternalReference = {
             'accession': x['accession'],
-            'description': x['description'],
+            'details': x['details'],
             'id': str(x['id']),
             'label': x['label'],
             'resource': x['resource'],
@@ -60,7 +60,7 @@ def extract_annotations_from_sff_segmentation(
                     description: DescriptionData = {
                         'id': description_id,
                         'target_kind': "lattice",
-                        'description': None,
+                        'details': None,
                         'is_hidden': None,
                         'metadata': None,
                         'time': time,
@@ -79,7 +79,7 @@ def extract_annotations_from_sff_segmentation(
                         'time': time
                     }
                     d['descriptions'][description_id] = description
-                    d['annotations'].append(segment_annotation)
+                    d['segment_annotations'].append(segment_annotation)
 
     elif internal_segmentation.primary_descriptor == SegmentationPrimaryDescriptor.mesh_list:
         for set_id, set_gr in root[MESH_SEGMENTATION_DATA_GROUPNAME].groups():
@@ -94,7 +94,7 @@ def extract_annotations_from_sff_segmentation(
                 description: DescriptionData = {
                     'id': description_id,
                     'target_kind': "mesh",
-                    'description': None,
+                    'details': None,
                     'is_hidden': None,
                     'metadata': None,
                     'time': time,
@@ -111,7 +111,7 @@ def extract_annotations_from_sff_segmentation(
                     'time': time
                 }
                 d['descriptions'][description_id] = description
-                d['annotations'].append(segment_annotation)
+                d['segment_annotations'].append(segment_annotation)
 
     root.attrs["annotations_dict"] = d
     print("Annotations extracted")

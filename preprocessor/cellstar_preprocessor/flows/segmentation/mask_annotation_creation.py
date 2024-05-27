@@ -92,7 +92,7 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
                 description: DescriptionData = {
                     'id': description_id,
                     'target_kind': "lattice",
-                    'description': None,
+                    'details': None,
                     'is_hidden': None,
                     'metadata': None,
                     'time': 0,
@@ -119,7 +119,7 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
                     'time': 0
                 }
                 d['descriptions'][description_id] = description
-                d['annotations'].append(segment_annotation)
+                d['segment_annotations'].append(segment_annotation)
 
     root.attrs["annotations_dict"] = d
     print("Annotations extracted")

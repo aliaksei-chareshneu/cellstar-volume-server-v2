@@ -73,9 +73,9 @@ class AnnnotationsEditContext:
          # 1. read annotations.json file using existing read_annotations function to AnnotationsMetadata TypedDict in d variable
         d = await self.db.read_annotations(namespace=self.namespace, key=self.key)
         # filter annotations list to leave only those which id is not in ids
-        old_annotations_list: list[SegmentAnnotationData] = d['annotations']
+        old_annotations_list: list[SegmentAnnotationData] = d['segment_annotations']
         new_annotations_list = list(filter(lambda a: a['id'] not in ids, old_annotations_list))
-        d['annotations'] = new_annotations_list
+        d['segment_annotations'] = new_annotations_list
         path = self.db._path_to_object(namespace=self.namespace, key=self.key)
         save_dict_to_json_file(d, ANNOTATION_METADATA_FILENAME, path)
 
@@ -90,19 +90,19 @@ class AnnnotationsEditContext:
             else:
                 annotation_id = str(uuid4())
             # id exists, replacing annotation    
-            if any(a['id'] == annotation_id for a in d['annotations']):
-                for idx, item in enumerate(d['annotations']):
+            if any(a['id'] == annotation_id for a in d['segment_annotations']):
+                for idx, item in enumerate(d['segment_annotations']):
                     if item['id'] == annotation_id:
                         # do stuff on item
                         for field_name in x.keys():
                             item[field_name] = x[field_name]
 
-                        d['annotations'][idx] = item
+                        d['segment_annotations'][idx] = item
 
                 print(f'Annotation with id {annotation_id} was modified')
             # id does not exist, add annotation
             else:
-                d['annotations'].append(x)
+                d['segment_annotations'].append(x)
                 print(f'Annotation with id {annotation_id} was added')
 
         path = self.db._path_to_object(namespace=self.namespace, key=self.key)

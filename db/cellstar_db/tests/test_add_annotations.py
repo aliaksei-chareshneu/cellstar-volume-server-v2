@@ -29,11 +29,11 @@ async def test_add_annotations(generate_test_data):
             TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
         )
 
-        assert len(annotations_metadata_before_adding['annotations']) + \
+        assert len(annotations_metadata_before_adding['segment_annotations']) + \
             len(test_data['add_annotations']) == \
-            len(annotations_metadata_after_adding['annotations'])
+            len(annotations_metadata_after_adding['segment_annotations'])
 
-        current_annotations = annotations_metadata_after_adding['annotations']
+        current_annotations = annotations_metadata_after_adding['segment_annotations']
 
         for annotation in test_data['add_annotations']:
             # here just check that annotation is in current_annotations

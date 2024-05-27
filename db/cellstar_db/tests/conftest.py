@@ -114,11 +114,11 @@ FAKE_SEGMENT_ANNOTATIONS: list[SegmentAnnotationData] = [
 
 FAKE_DESCRIPTIONS: list[DescriptionData] = [
     {
-        "description": None,
+        "details": None,
         "external_references": [
             {
                 "accession": "GO_0006260",
-                "description": "FAKE TO BE REPLACED",
+                "details": "FAKE TO BE REPLACED",
                 "id": 51,
                 "label": "DNA replication",
                 "resource": "go",
@@ -126,7 +126,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
             },
             {
                 "accession": "GO_0030174",
-                "description": "Any process that modulates the frequency, rate or extent of initiation of DNA-dependent DNA replication; the process in which DNA becomes competent to replicate. In eukaryotes, replication competence is established in early G1 and lost during the ensuing S phase.",
+                "details": "Any process that modulates the frequency, rate or extent of initiation of DNA-dependent DNA replication; the process in which DNA becomes competent to replicate. In eukaryotes, replication competence is established in early G1 and lost during the ensuing S phase.",
                 "id": 52,
                 "label": "regulation of DNA-dependent DNA replication initiation",
                 "resource": "go",
@@ -134,7 +134,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
             },
             {
                 "accession": "PR_000010246",
-                "description": "A protein that is a translation product of the human MCM4 gene or a 1:1 ortholog thereof.",
+                "details": "A protein that is a translation product of the human MCM4 gene or a 1:1 ortholog thereof.",
                 "id": 53,
                 "label": "DNA replication licensing factor MCM4",
                 "resource": "pr",
@@ -142,7 +142,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
             },
             {
                 "accession": "NCIT_C33909",
-                "description": "DNA replication licensing factor MCM4 (863 aa, ~97 kDa) is encoded by the human MCM4 gene. This protein is involved in the initiation of DNA replication.",
+                "details": "DNA replication licensing factor MCM4 (863 aa, ~97 kDa) is encoded by the human MCM4 gene. This protein is involved in the initiation of DNA replication.",
                 "id": 54,
                 "label": "DNA Replication Licensing Factor MCM4",
                 "resource": "ncit",
@@ -150,7 +150,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
             },
             {
                 "accession": "Q26454",
-                "description": "undefined (Drosophila melanogaster (Fruit fly))",
+                "details": "undefined (Drosophila melanogaster (Fruit fly))",
                 "id": 55,
                 "label": "MCM4_DROME",
                 "resource": "UniProt",
@@ -169,11 +169,11 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
         "time": 0
     },
     {
-        "description": None,
+        "details": None,
         "external_references": [
             {
                 "accession": "GO_0006260",
-                "description": "The cellular metabolic process in which a cell duplicates one or more molecules of DNA. DNA replication begins when specific sequences, known as origins of replication, are recognized and bound by initiation proteins, and ends when the original DNA molecule has been completely duplicated and the copies topologically separated. The unit of replication usually corresponds to the genome of the cell, an organelle, or a virus. The template for replication can either be an existing DNA molecule or RNA.",
+                "details": "The cellular metabolic process in which a cell duplicates one or more molecules of DNA. DNA replication begins when specific sequences, known as origins of replication, are recognized and bound by initiation proteins, and ends when the original DNA molecule has been completely duplicated and the copies topologically separated. The unit of replication usually corresponds to the genome of the cell, an organelle, or a virus. The template for replication can either be an existing DNA molecule or RNA.",
                 "id": 41,
                 "label": "DNA replication",
                 "resource": "go",
@@ -181,7 +181,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
             },
             {
                 "accession": "GO_0030174",
-                "description": "Any process that modulates the frequency, rate or extent of initiation of DNA-dependent DNA replication; the process in which DNA becomes competent to replicate. In eukaryotes, replication competence is established in early G1 and lost during the ensuing S phase.",
+                "details": "Any process that modulates the frequency, rate or extent of initiation of DNA-dependent DNA replication; the process in which DNA becomes competent to replicate. In eukaryotes, replication competence is established in early G1 and lost during the ensuing S phase.",
                 "id": 42,
                 "label": "regulation of DNA-dependent DNA replication initiation",
                 "resource": "go",
@@ -189,7 +189,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
             },
             {
                 "accession": "PR_000010242",
-                "description": "A protein that is a translation product of the human MCM2 gene or a 1:1 ortholog thereof.",
+                "details": "A protein that is a translation product of the human MCM2 gene or a 1:1 ortholog thereof.",
                 "id": 43,
                 "label": "DNA replication licensing factor MCM2",
                 "resource": "pr",
@@ -197,7 +197,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
             },
             {
                 "accession": "NCIT_C28642",
-                "description": "DNA replication licensing factor MCM2 (904 aa, ~102 kDa) is encoded by the human MCM2 gene. This protein plays a role in cell cycle regulation.",
+                "details": "DNA replication licensing factor MCM2 (904 aa, ~102 kDa) is encoded by the human MCM2 gene. This protein plays a role in cell cycle regulation.",
                 "id": 44,
                 "label": "DNA Replication Licensing Factor MCM2",
                 "resource": "ncit",
@@ -205,7 +205,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
             },
             {
                 "accession": "P49735",
-                "description": "undefined (Drosophila melanogaster (Fruit fly))",
+                "details": "undefined (Drosophila melanogaster (Fruit fly))",
                 "id": 45,
                 "label": "MCM2_DROME",
                 "resource": "UniProt",
@@ -247,7 +247,7 @@ def _generate_test_data_for_modify_annotations(testing_db) -> list[SegmentAnnota
     # first get existing annotation ids from testing db
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
     fake_segment_annotations = copy.deepcopy(FAKE_SEGMENT_ANNOTATIONS)
-    existing_annotation_ids = [a['id'] for a in annotations['annotations']]
+    existing_annotation_ids = [a['id'] for a in annotations['segment_annotations']]
     first_fake_segment_annotation = fake_segment_annotations[0]
     first_fake_segment_annotation['id'] = existing_annotation_ids[0]
     second_fake_segment_annotation = fake_segment_annotations[1]
@@ -267,7 +267,7 @@ def _generate_test_data_for_add_annotations() -> list[SegmentAnnotationData]:
 def _generate_test_data_for_remove_annotations(testing_db) -> list[str]:
     # get ids of exisiting annotations
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
-    existing_annotation_ids = [a['id'] for a in annotations['annotations']]
+    existing_annotation_ids = [a['id'] for a in annotations['segment_annotations']]
     return [
         existing_annotation_ids[0],
         existing_annotation_ids[1]
