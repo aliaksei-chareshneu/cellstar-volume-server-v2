@@ -12,7 +12,7 @@ def _preprocess_external_references(raw_external_references: list[ExternalRefere
     for x in raw_external_references:
         r: ExternalReference = {
             'accession': x['accession'],
-            'details': x['details'],
+            'description': x['description'],
             'id': str(x['id']),
             'label': x['label'],
             'resource': x['resource'],
