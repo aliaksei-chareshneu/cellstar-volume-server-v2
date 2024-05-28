@@ -4,7 +4,7 @@ import subprocess
 from cellstar_query.query import get_metadata_query
 import pytest
 
-from query_app.tests.constants import QUERY_APP_PATH
+from vs_toolkit.tests.constants import QUERY_APP_PATH
 
 # run app with arguments
 # assert that output file exists 

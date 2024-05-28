@@ -1,32 +1,29 @@
-import json
 from pathlib import Path
 import subprocess
-from cellstar_query.query import get_metadata_query
 import pytest
 
-from query_app.tests.constants import QUERY_APP_PATH
+from vs_toolkit.tests.constants import QUERY_APP_PATH
 
 # run app with arguments
 # assert that output file exists 
 
-OUTPUT_FILE_PATH = Path('query_app/tests/test_output/list_entries_keyword.json')
+OUTPUT_FILE_PATH = Path('query_app/tests/test_output/volume.bcif')
 
-# @pytest.mark.asyncio
-def test_list_entries_keyword_query():
+def test_volume_cell_query():
     commands_lst = [
         "python",
         str(QUERY_APP_PATH.resolve()),
         "--db_path", "preprocessor/temp/test_db",
         "--out", str(OUTPUT_FILE_PATH.resolve()),
-        "list-entries-keyword",
-        "--limit", "100",
-        "--keyword", "emd"
+        "volume-cell",
+        "--entry-id", "emd-1832",
+        "--source-db", "emdb",
+        "--time", "0",
+        "--channel-id", "0",
     ]
-
     subprocess.run(
         commands_lst
     )
-
 
     assert OUTPUT_FILE_PATH.exists()
     assert OUTPUT_FILE_PATH.is_file()

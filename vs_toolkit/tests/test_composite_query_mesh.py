@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import pytest
 
-from query_app.tests.constants import QUERY_APP_PATH
+from vs_toolkit.tests.constants import QUERY_APP_PATH
 
 # run app with arguments
 # assert that output file exists 
@@ -13,8 +13,10 @@ JSON_WITH_QUERY_PARAMS_PATH = Path('query_app/tests/test_output/json_query_param
 
 def _create_json_with_query_params():
     d = {
-        "entry_id": "emd-1832",
-        "source_db": "emdb"
+        "entry_id": "empiar-10070",
+        "source_db": "empiar",
+        "max_points": 100000,
+        "detail_lvl": 9
     }
     
     with (JSON_WITH_QUERY_PARAMS_PATH).open("w") as fp:
@@ -35,7 +37,6 @@ def test_composite_query():
     )
 
     # TODO: read it and assert that there are correct content (just filenames)
-    # for that create a common function
     assert OUTPUT_FILE_PATH.exists()
     assert OUTPUT_FILE_PATH.is_file()
 
