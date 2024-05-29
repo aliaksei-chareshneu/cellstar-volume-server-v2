@@ -21,7 +21,7 @@ def ometiff_image_processing(internal_volume: InternalVolume):
     )
     set_volume_custom_data(internal_volume, zarr_structure)
     
-    print(f"Processing volume file {internal_volume.volume_input_path}")
+    # print(f"Processing volume file {internal_volume.volume_input_path}")
     
     img_array, metadata, xml_metadata = read_ometiff_to_dask(internal_volume)
 
