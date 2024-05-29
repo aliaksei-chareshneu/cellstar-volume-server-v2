@@ -1,5 +1,5 @@
 {
-    "annotations": [
+    "segment_annotations": [
         {
             "color": [
                 1.0,
@@ -35,7 +35,7 @@
     ],
     "descriptions": {
         "41ac3f33-03dd-498a-9bfa-0b27d3885f0f": {
-            "description": null,
+            "details": null,
             "external_references": [],
             "id": "41ac3f33-03dd-498a-9bfa-0b27d3885f0f",
             "is_hidden": null,
