@@ -91,6 +91,22 @@
                     ]
                 }
             }
+        },
+        "EntryMetadata": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "description": {
+                    "type": ["string", "null"]
+                },
+                "url": {
+                    "type": ["string", "null"],
+                    "format": "uri"
+                }
+            }
         }
     },
     "properties": {
@@ -104,6 +120,12 @@
             "oneOf": [
                 {"type": "null"},
                 {"$ref": "#/$defs/SegmentationExtraData"}
+            ]
+        },
+        "entry_metadata": {
+            "oneOf": [
+                {"type": "null"},
+                {"$ref": "#/$defs/EntryMetadata"}
             ]
         }
     }
