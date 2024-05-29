@@ -1,17 +1,16 @@
-name: cellstar-volume-server
+name: cellstar-volume-server-3.10
 channels:
   - https://conda.anaconda.org/conda-forge
   - https://repo.anaconda.com/pkgs/main
   - https://repo.anaconda.com/pkgs/r
   - https://repo.anaconda.com/pkgs/msys2
 dependencies:
-  - python ==3.9.0
+  - python==3.10.0
   - pip
   - asgiref==3.5.0
   - dask==2022.2.1
   - fastapi==0.73.0
   - gemmi==0.5.3
-  - h5py==3.6.0
   - matplotlib==3.5.1
   - mrcfile==1.4.0
   - numcodecs==0.9.1
@@ -21,15 +20,17 @@ dependencies:
   - pytest-benchmark==3.4.1
   - scikit-image==0.19.1
   - scipy
+  - starfile
   - starlette==0.17.1
   - uvicorn==0.17.6
-  - vedo==2022.2.3
+  - numba
   # there were issues with version of this package
   # uncomment if without it it would not work
   # - vtk==9.0.3
   - zarr==2.11.1
   - dask-image
   - pydantic
+  - ome-zarr
 
   - pip:
     # - -r requirements.txt
@@ -46,3 +47,10 @@ dependencies:
     - black
     - pyometiff
     - nibabel
+    - seaborn
+    - -e ./preprocessor
+    - -e ./db
+    - -e ./query
+    - -e ./server
+    - h5py
+    - vedo
