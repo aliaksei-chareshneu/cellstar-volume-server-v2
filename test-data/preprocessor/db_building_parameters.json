@@ -1,13 +1,5 @@
 [
     {
-        "quantize_dtype_str": "u1",
-        "quantize_downsampling_levels": [1, 2],
-        "force_volume_dtype": null,
-        "max_size_per_downsampling_lvl_mb": 100.0,
-        "min_size_per_downsampling_lvl_mb": 6.0,
-        "min_downsampling_level": 2,
-        "max_downsampling_level": 4,
-        "remove_original_resolution": true,
         "entry_id": "emd-1832",
         "source_db": "emdb",
         "source_db_id": "emd-1832",
@@ -34,5 +26,22 @@
                 "omezarr"
             ]
         ]
-    }
+    },
+    {
+        "entry_id": "empiar-10070",
+        "source_db": "empiar",
+        "source_db_id": "empiar-10070",
+        "source_db_name": "empiar",
+        "inputs": [
+            [
+                "test-data/preprocessor/sample_volumes/empiar/b3talongmusc20130301.mrc",
+                "map"
+            ],
+            [
+                "test-data/preprocessor/sample_segmentations/empiar/empiar_10070_b3talongmusc20130301.hff",
+                "sff"
+            ]
+        ]
+    },
+
 ]
