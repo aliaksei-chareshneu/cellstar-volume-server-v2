@@ -20,6 +20,7 @@ dependencies:
   - pytest-benchmark==3.4.1
   - scikit-image==0.19.1
   - scipy
+  - starfile
   - starlette==0.17.1
   - uvicorn==0.17.6
   - numba
@@ -29,6 +30,7 @@ dependencies:
   - zarr==2.11.1
   - dask-image
   - pydantic
+  - ome-zarr
 
   - pip:
     # - -r requirements.txt
