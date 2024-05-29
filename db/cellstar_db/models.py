@@ -7,6 +7,9 @@ import numpy as np
 from pydantic import BaseModel, validator
 import zarr
 
+class EntryMetadata(TypedDict):
+    description: str | None
+    url: str | None
 
 class RawInputFileResourceInfo(TypedDict):
     kind: Literal['local', 'external']
@@ -74,6 +77,7 @@ class SegmentationExtraData(TypedDict):
     dataset_specific_data: object | None 
 
 class ExtraData(TypedDict):
+    entry_metadata: Optional[EntryMetadata]
     volume: Optional[VolumeExtraData]
     segmentation: Optional[SegmentationExtraData]
     # for custom things
@@ -175,7 +179,8 @@ class Metadata(TypedDict):
     segmentation_lattices: Optional[SegmentationLatticesMetadata]
     segmentation_meshes: Optional[MeshSegmentationSetsMetadata]
     geometric_segmentation: Optional[GeometricSegmentationSetsMetadata]
-
+    entry_metadata: EntryMetadata | None
+    
 # END METADATA DATA MODEL
 
 # ANNOTATIONS DATA MODEL

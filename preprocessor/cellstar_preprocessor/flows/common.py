@@ -6,7 +6,7 @@ import re
 from typing import TypedDict, Union
 
 from PIL import ImageColor
-from cellstar_db.models import ChannelAnnotation, DownsamplingLevelInfo, ExtraData, OMETIFFSpecificExtraData
+from cellstar_db.models import ChannelAnnotation, DownsamplingLevelInfo, ExtraData, Metadata, OMETIFFSpecificExtraData
 from cellstar_preprocessor.flows.constants import SHORT_UNIT_NAMES_TO_LONG, SPACE_UNITS_CONVERSION_DICT
 import dask.array as da
 import numpy as np
@@ -110,6 +110,12 @@ def process_extra_data(path: Path, intermediate_zarr_structure: Path):
         intermediate_zarr_structure
     )
     zarr_structure.attrs['extra_data'] = data
+    # NOTE: entry_metadata
+    if 'entry_metadata' in data:
+        metadata_dict: Metadata = zarr_structure.attrs["metadata_dict"]
+        metadata_dict['entry_metadata'] = data['entry_metadata']
+        zarr_structure.attrs["metadata_dict"] = metadata_dict
+    
 
 def update_dict(orig_dict, new_dict: dict):
     for key, val in new_dict.items():
