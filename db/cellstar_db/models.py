@@ -11,6 +11,16 @@ class EntryMetadata(TypedDict):
     description: str | None
     url: str | None
 
+class PreprocessorParameters(TypedDict):
+    quantize_dtype_str: QuantizationDtype | None
+    quantize_downsampling_levels: list[int] | None
+    force_volume_dtype: str | None
+    max_size_per_downsampling_lvl_mb: float | None
+    min_size_per_downsampling_lvl_mb: float | None
+    min_downsampling_level: int | None
+    max_downsampling_level: int | None
+    remove_original_resolution: bool | None
+
 class RawInputFileResourceInfo(TypedDict):
     kind: Literal['local', 'external']
     uri: str
@@ -18,6 +28,7 @@ class RawInputFileResourceInfo(TypedDict):
 class RawInputFileInfo(TypedDict):
     kind: InputKind
     resource: RawInputFileResourceInfo
+    preprocessor_parameters: PreprocessorParameters | None
     
 class RawInputFilesDownloadParams(TypedDict):
     entry_id: str
@@ -49,7 +60,8 @@ class InputForBuildingDatabase(TypedDict):
     # working_folder: str
     # db_path: str
     inputs: list[tuple[str, InputKind]]
-    
+
+
 class OMETIFFSpecificExtraData(TypedDict):
     # missing_dimension: str
     cell_stage: Optional[str]
