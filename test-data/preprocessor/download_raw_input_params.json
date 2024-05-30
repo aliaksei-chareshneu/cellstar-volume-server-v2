@@ -351,6 +351,13 @@
         "source_db_name": "empiar",
         "inputs": [
             {
+                "kind": "extra_data",
+                "resource": {
+                    "kind": "local",
+                    "uri": "test-data/preprocessor/extra_data/empiar/empiar-11756/extra_data_empiar_11756.json"
+                }
+            },
+            {
                 "kind": "map",
                 "resource": {
                     "kind": "external",
@@ -369,6 +376,21 @@
                 "resource": {
                     "kind": "local",
                     "uri": "test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json"
+                }
+            }
+        ]
+    },
+    {
+        "entry_id": "custom-tubhiswt",
+        "source_db": "custom",
+        "source_db_id": "custom-tubhiswt",
+        "source_db_name": "custom",
+        "inputs": [
+            {
+                "kind": "ometiff_image",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://downloads.openmicroscopy.org/images/OME-TIFF/2016-06/tubhiswt-4D.zip"
                 }
             }
         ]
