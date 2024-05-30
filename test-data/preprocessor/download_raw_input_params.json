@@ -185,7 +185,7 @@
                 "kind": "map",
                 "resource": {
                     "kind": "external",
-                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-5250/map/5250.map.gz"
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-5250/map/emd_5250.map.gz"
                 }
             },
             {
@@ -207,7 +207,7 @@
                 "kind": "map",
                 "resource": {
                     "kind": "external",
-                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-6338/map/6338.map.gz"
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-6338/map/emd_6338.map.gz"
                 }
             },
             {
@@ -252,6 +252,21 @@
                 "resource": {
                     "kind": "external",
                     "uri": "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0101A/13457537.zarr"
+                }
+            }
+        ]
+    },
+    {
+        "entry_id": "idr-5025553",
+        "source_db": "idr",
+        "source_db_id": "idr-5025553",
+        "source_db_name": "idr",
+        "inputs": [
+            {
+                "kind": "omezarr",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0054A/5025553.zarr"
                 }
             }
         ]
