@@ -343,5 +343,34 @@
                 }
             }
         ]
+    },
+    {
+        "entry_id": "empiar-11756",
+        "source_db": "empiar",
+        "source_db_id": "empiar-11756",
+        "source_db_name": "empiar",
+        "inputs": [
+            {
+                "kind": "map",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/11756/data/tomoman_minimal_project/cryocare_bin4_tomoname/17072022_BrnoKrios_Arctis_p3ar_grid_Position_35.mrc"
+                }
+            },
+            {
+                "kind": "geometric_segmentation",
+                "resource": {
+                    "kind": "local",
+                    "uri": "test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_1.json"
+                }
+            },
+            {
+                "kind": "geometric_segmentation",
+                "resource": {
+                    "kind": "local",
+                    "uri": "test-data/preprocessor/sample_segmentations/empiar/empiar-11756/geometric_segmentation_input_2.json"
+                }
+            }
+        ]
     }
 ]
