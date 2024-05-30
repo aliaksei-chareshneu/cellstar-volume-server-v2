@@ -272,6 +272,21 @@
         ]
     },
     {
+        "entry_id": "idr-6001240",
+        "source_db": "idr",
+        "source_db_id": "idr-6001240",
+        "source_db_name": "idr",
+        "inputs": [
+            {
+                "kind": "omezarr",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0062A/6001240.zarr"
+                }
+            }
+        ]
+    },
+    {
         "entry_id": "idr-13457537",
         "source_db": "idr",
         "source_db_id": "idr-13457537",
@@ -394,6 +409,67 @@
                 }
             }
         ]
+    },
+    {
+        "entry_id": "empiar-10988",
+        "source_db": "empiar",
+        "source_db_id": "empiar-10988",
+        "source_db_name": "empiar",
+        "inputs": [
+            {
+                "kind": "extra_data",
+                "resource": {
+                    "kind": "local",
+                    "uri": "test-data/preprocessor/extra_data/empiar/empiar-10988/extra_data_empiar_10988.json"
+                }
+            },
+            {
+                "kind": "map",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/tomograms/TS_026.rec"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026_cyto_ribosomes.mrc"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026_cytosol.mrc"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026_fas.mrc"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026_membranes.mrc"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10988/data/DEF/labels/TS_026.labels.mrc"
+                }
+            }
+        ],
+        "preprocessor_parameters": {
+            "min_downsampling_level": "4",
+            "remove_original_resolution": true
+        }
     },
     {
         "entry_id": "custom-tubhiswt",
