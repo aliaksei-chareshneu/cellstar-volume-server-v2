@@ -7,11 +7,10 @@ import atexit
 from collections import defaultdict
 import gzip
 import json
-import multiprocessing
 import os
 import shutil
-import subprocess
 from pathlib import Path
+from typing import Literal
 import urllib.request
 import ome_zarr
 
@@ -24,11 +23,7 @@ from cellstar_preprocessor.preprocess import PreprocessorMode, main_preprocessor
 from cellstar_preprocessor.tools.deploy_db.deploy_process_helper import clean_up_processes
 from cellstar_preprocessor.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import csv_to_config_list_of_dicts, json_to_list_of_inputs_for_building, prepare_input_for_preprocessor
 import ome_zarr.utils
-# from preprocessor_old.main import remove_temp_zarr_hierarchy_storage_folder
-# from preprocessor_old.src.preprocessors.implementations.sff.preprocessor.constants import CSV_WITH_ENTRY_IDS_FILE, DB_NAME_FOR_OME_TIFF, DEFAULT_DB_PATH, RAW_INPUT_FILES_DIR, TEMP_ZARR_HIERARCHY_STORAGE_PATH
-# from preprocessor_old.src.tools.deploy_db.deploy_process_helper import clean_up_processes, clean_up_raw_input_files_dir, clean_up_temp_zarr_hierarchy_storage
-
-# from preprocessor_old.src.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import csv_to_config_list_of_dicts, prepare_input_for_preprocessor
+import zipfile
 
 PROCESS_IDS_LIST = []
 
@@ -51,6 +46,7 @@ def _parse_raw_input_download_params_file(path: Path):
     return json_params
 
 def _get_filename_from_uri(uri: str):
+    # uri gonna be https://downloads.openmicroscopy.org/images/OME-TIFF/2016-06/tubhiswt-4D.zip
     parsed = uri.split('/')
     filename = parsed[-1]
     return filename
@@ -72,8 +68,12 @@ def _download(uri: str, final_path: Path, kind: InputKind):
         # filename construct based on last component of uri
         complete_path = final_path / filename
         if complete_path.exists():
-            shutil.rmtree(complete_path)
-        final_path.mkdir(parents=True, exist_ok=True)    
+            if complete_path.is_dir():
+                shutil.rmtree(complete_path)
+            else:
+                complete_path.unlink()
+        if not final_path.exists():
+            final_path.mkdir(parents=True)    
         req_output = urllib.request.urlretrieve(uri, str(complete_path.resolve()))
         #  check if returns filename
         return complete_path
@@ -106,6 +106,26 @@ def _gunzip(gz_path: Path):
     
     return gunzipped_filename
 
+# TODO: should return path to the first ometiff image
+def _unzip_multiseries_ometiff_zip(zip_path: Path, kind: InputKind):
+    directory_to_extract_to = zip_path.parent
+    with zipfile.ZipFile(str(zip_path.resolve()), 'r') as zip_ref:
+        # where to extract
+        # zip_ref.extractall(str(directory_to_extract_to.resolve()))
+        # for elem in zip_ref.namelist() :
+        #     zip_ref.extract(elem, str(directory_to_extract_to.resolve()))
+        for zip_info in zip_ref.infolist():
+            if zip_info.is_dir():
+                continue
+            zip_info.filename = os.path.basename(zip_info.filename)
+            zip_ref.extract(zip_info, str(directory_to_extract_to.resolve()))
+    
+    zip_path.unlink()
+    
+    p: list[Path] = sorted(list(directory_to_extract_to.glob('*')))
+    first_ometiff = p[0]
+    return first_ometiff
+
 def _get_file(input_file_info: RawInputFileInfo, final_path: Path) -> Path:
     resource = input_file_info['resource']
     if resource['kind'] == 'external':
@@ -135,13 +155,19 @@ def download(args: argparse.Namespace):
         
         for raw_input in raw_inputs:
             kind = raw_input['kind']
+            # here it should be ometiff_image
             final_path = entry_folder_path / kind
             
             complete_path = _get_file(raw_input, final_path)
             
+            # here it is ...something.zip
             # gunzip if needed
             if complete_path.suffix == '.gz':
                 complete_path = _gunzip(complete_path)
+            
+            if complete_path.suffix == '.zip':
+                # complete_path is path to zip file
+                complete_path = _unzip_multiseries_ometiff_zip(complete_path, raw_input['kind'])
             
             inputs_list.append(
                 # TODO:
