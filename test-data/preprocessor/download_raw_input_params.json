@@ -257,6 +257,21 @@
         ]
     },
     {
+        "entry_id": "idr-13457537",
+        "source_db": "idr",
+        "source_db_id": "idr-13457537",
+        "source_db_name": "idr",
+        "inputs": [
+            {
+                "kind": "omezarr",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0101A/13457537.zarr"
+                }
+            }
+        ]
+    },
+    {
         "entry_id": "empiar-10070",
         "source_db": "empiar",
         "source_db_id": "empiar-10070",
@@ -265,8 +280,8 @@
             {
                 "kind": "map",
                 "resource": {
-                    "kind": "local",
-                    "uri": "test-data/preprocessor/sample_volumes/empiar/b3talongmusc20130301.mrc"
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10070/data/b3talongmusc20130301.mrc"
                 }
             },
             {
@@ -279,7 +294,7 @@
         ]
     },
     {
-        "entry_id": "empiar-10087001",
+        "entry_id": "empiar-10087_e64_tomo03",
         "source_db": "empiar",
         "source_db_id": "empiar-10087",
         "source_db_name": "empiar",
@@ -287,15 +302,37 @@
             {
                 "kind": "map",
                 "resource": {
-                    "kind": "local",
-                    "uri": "test-data/preprocessor/sample_volumes/empiar/b3talongmusc20130301.mrc"
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10087/data/E64_tomo03.mrc"
                 }
             },
             {
                 "kind": "sff",
                 "resource": {
                     "kind": "external",
-                    "uri": "https://www.ebi.ac.uk/em_static/emdb_sff/empiar_10070_b3talongmusc20130301/empiar_10070_b3talongmusc20130301.hff.gz"
+                    "uri": "https://www.ebi.ac.uk/em_static/emdb_sff/empiar_10087_e64_tomo03/empiar_10087_e64_tomo03.hff.gz"
+                }
+            }
+        ]
+    },
+    {
+        "entry_id": "empiar-10087_c2_tomo02",
+        "source_db": "empiar",
+        "source_db_id": "empiar-10087",
+        "source_db_name": "empiar",
+        "inputs": [
+            {
+                "kind": "map",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/empiar/world_availability/10087/data/C2_tomo02.mrc"
+                }
+            },
+            {
+                "kind": "sff",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://www.ebi.ac.uk/em_static/emdb_sff/empiar_10087_c2_tomo02/empiar_10087_c2_tomo02.hff.gz"
                 }
             }
         ]
