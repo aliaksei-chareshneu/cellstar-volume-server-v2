@@ -126,7 +126,7 @@
                 "kind": "sff",
                 "resource": {
                     "kind": "external",
-                    "uri": "https://www.ebi.ac.uk/em_static/emdb_sff/20/20293/emd_20293.hff.gz"
+                    "uri": "https://www.ebi.ac.uk/em_static/emdb_sff/20/2/20293/emd_20293.hff.gz"
                 }
             }
         ]
