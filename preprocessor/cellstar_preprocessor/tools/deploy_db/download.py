@@ -185,7 +185,12 @@ def download(args: argparse.Namespace):
             'source_db_name': item['source_db_name'],
             'inputs': inputs_list
         }
-        # TODO: compile an object with data for building db
+        
+        if 'preprocessor_parameters' in raw_input:
+            # iterate over keys
+            for param in raw_input['preprocessor_parameters']:
+                input_for_building_db[param] = raw_input['preprocessor_parameters'][param]
+        
             
         db_building_params.append(input_for_building_db)
         
