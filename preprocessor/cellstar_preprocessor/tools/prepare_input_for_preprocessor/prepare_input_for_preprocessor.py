@@ -13,10 +13,6 @@ from cellstar_db.models import InputForBuildingDatabase
 import pandas as pd
 import numpy as np
 
-from preprocessor_old.src.preprocessors.implementations.sff.preprocessor.constants import APPLICATION_SPECIFIC_SEGMENTATION_EXTENSIONS, CSV_WITH_ENTRY_IDS_FILE, DB_NAME_FOR_OME_TIFF, DEFAULT_DB_PATH
-
-# TODO: check if it works with abs path (starting with /)
-# TODO: changed based on Lukas response
 STATIC_INPUT_FILES_DIR = Path('temp/v2_temp_static_entry_files_dir')
 
 TEST_RAW_INPUT_FILES_DIR = Path('temp/test_raw_input_files_dir')
