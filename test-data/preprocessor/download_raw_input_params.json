@@ -278,6 +278,13 @@
         "source_db_name": "empiar",
         "inputs": [
             {
+                "kind": "extra_data",
+                "resource": {
+                    "kind": "local",
+                    "uri": "test-data/preprocessor/extra_data/empiar/empiar-10070/extra_data_empiar_10070.json"
+                }
+            },
+            {
                 "kind": "map",
                 "resource": {
                     "kind": "external",
