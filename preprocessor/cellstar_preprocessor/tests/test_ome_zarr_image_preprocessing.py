@@ -1,3 +1,4 @@
+import shutil
 import pytest
 import zarr
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
@@ -7,27 +8,19 @@ from cellstar_preprocessor.flows.volume.ome_zarr_image_preprocessing import (
 )
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tests.helper_methods import (
+    get_omezarr_internal_volume,
     initialize_intermediate_zarr_structure_for_tests,
 )
 from cellstar_preprocessor.tests.input_for_tests import (
-    INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES,
-    INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES,
+    OMEZARR_TEST_INPUTS,
+    OMEZarrTestInput,
 )
 
-# TODO:
-# 2 internal volumes - one for ome zarr with 4 axes, one for ome zarr with 5 axes
-
-# TODO: add 5 axes volume
-INTERNAL_VOLUMES = [
-    INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES,
-    INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES,
-]
-
-
-@pytest.mark.parametrize("internal_volume", INTERNAL_VOLUMES)
-def test_ome_zarr_image_preprocessing(internal_volume: InternalVolume):
+@pytest.mark.parametrize("omezar_test_input", OMEZARR_TEST_INPUTS)
+def test_ome_zarr_image_preprocessing(omezar_test_input: OMEZarrTestInput):
     initialize_intermediate_zarr_structure_for_tests()
-
+    internal_volume = get_omezarr_internal_volume(omezar_test_input)
+    
     ome_zarr_image_preprocessing(internal_volume=internal_volume)
 
     ome_zarr_root = zarr.open_group(internal_volume.volume_input_path)
@@ -81,3 +74,6 @@ def test_ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                     volume_gr[volume_arr_resolution][time][channel].dtype
                     == volume_arr.dtype
                 )
+                
+    # remove omezarr
+    shutil.rmtree(internal_volume.volume_input_path)

@@ -1,3 +1,5 @@
+import shutil
+from cellstar_preprocessor.tests.input_for_tests import OMEZARR_TEST_INPUTS, OMEZarrTestInput
 import pytest
 from cellstar_db.models import (
     AnnotationsMetadata,
@@ -14,46 +16,21 @@ from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing impo
 from cellstar_preprocessor.flows.volume.extract_omezarr_annotations import (
     extract_omezarr_annotations,
 )
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
-from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tests.helper_methods import (
+    get_omezarr_internal_segmentation,
+    get_omezarr_internal_volume,
     initialize_intermediate_zarr_structure_for_tests,
 )
-from cellstar_preprocessor.tests.input_for_tests import (
-    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES,
-    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES,
-    INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES,
-    INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES,
-)
 
-# Pair internal volumes and segmentations here
-
-INTERNAL_VOLUMES_AND_SEGMENTATIONS = [
-    (
-        INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES,
-        INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES,
-    ),
-    (
-        INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES,
-        INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES,
-    ),
-]
-
-
-@pytest.mark.parametrize(
-    "internal_volume_and_segmentation", INTERNAL_VOLUMES_AND_SEGMENTATIONS
-)
+@pytest.mark.parametrize("omezar_test_input", OMEZARR_TEST_INPUTS)
 def test_extract_omezarr_annotations(
-    internal_volume_and_segmentation: tuple[InternalVolume, InternalSegmentation]
+    omezar_test_input: OMEZarrTestInput
 ):
     initialize_intermediate_zarr_structure_for_tests()
-
-    # most likely
-    # should produce some zarr structure first
-    # with segmentation
-    # do ome_zarr_labels_preprocessing
-    internal_volume = internal_volume_and_segmentation[0]
-    internal_segmentation = internal_volume_and_segmentation[1]
+    
+    internal_volume = get_omezarr_internal_volume(omezar_test_input)
+    internal_segmentation = get_omezarr_internal_segmentation(omezar_test_input)
+    
 
     ome_zarr_labels_preprocessing(internal_segmentation=internal_segmentation)
     d: AnnotationsMetadata = extract_omezarr_annotations(
@@ -153,3 +130,7 @@ def test_extract_omezarr_annotations(
                 assert segment_annotation_item["segment_kind"] == "lattice"
                 # can be not 0
                 # assert segment_annotation_item['time'] == 0
+
+    # remove omezarr
+    shutil.rmtree(internal_volume.volume_input_path)
+    shutil.rmtree(internal_segmentation.segmentation_input_path)

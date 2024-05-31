@@ -1,3 +1,5 @@
+import shutil
+from cellstar_preprocessor.tests.input_for_tests import OMEZARR_TEST_INPUTS, OMEZarrTestInput
 import pytest
 import zarr
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
@@ -5,25 +7,17 @@ from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROU
 from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import (
     ome_zarr_labels_preprocessing,
 )
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.tests.helper_methods import (
+    get_omezarr_internal_segmentation,
     initialize_intermediate_zarr_structure_for_tests,
 )
-from cellstar_preprocessor.tests.input_for_tests import (
-    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES,
-    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES,
-)
-
-INTERNAL_SEGMENTATIONS = [
-    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES,
-    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES,
-]
 
 
-@pytest.mark.parametrize("internal_segmentation", INTERNAL_SEGMENTATIONS)
-def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
+@pytest.mark.parametrize("omezar_test_input", OMEZARR_TEST_INPUTS)
+def test_ome_zarr_labels_preprocessing(omezar_test_input: OMEZarrTestInput):
     initialize_intermediate_zarr_structure_for_tests()
-
+    internal_segmentation = get_omezarr_internal_segmentation(omezar_test_input)
+    
     ome_zarr_labels_preprocessing(internal_segmentation=internal_segmentation)
 
     zarr_structure = open_zarr_structure_from_path(
@@ -95,3 +89,6 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
                 assert segmentation_gr[label_gr_name][arr_resolution][
                     time
                 ].set_table.shape == (1,)
+
+    # remove omezarr
+    shutil.rmtree(internal_segmentation.segmentation_input_path)

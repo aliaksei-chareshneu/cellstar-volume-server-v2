@@ -116,6 +116,20 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
             assert len(description_filter_results) == 1
             description_item: DescriptionData = description_filter_results[0][1]
 
+            raw_external_references: list[ExternalReference] = segment[
+                    "biological_annotation"
+                ]["external_references"]
+            external_referneces: list[
+                    ExternalReference
+                ] = _preprocess_external_references(raw_external_references)            
+            
+            
+            assert (
+                description_item["external_references"]
+                == external_referneces
+            )
+            assert description_item["name"] == segment["biological_annotation"]["name"]
+            
             assert description_item["target_kind"] == "mesh"
 
             segment_annotations: list[SegmentAnnotationData] = d["segment_annotations"]
