@@ -6,7 +6,7 @@ class _Settings(BaseSettings):
     PORT: int = 9000
     DEV_MODE: bool = False
     DB_PATH: Path = Path('preprocessor/temp/test_db')
-    GIT_TAG: str = ''
-    GIT_SHA: str = ''
+    GIT_TAG: str = ""
+    GIT_SHA: str = ""
 
 settings = _Settings()
