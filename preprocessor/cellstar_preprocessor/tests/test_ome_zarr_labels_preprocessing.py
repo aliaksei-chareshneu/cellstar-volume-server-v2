@@ -61,7 +61,11 @@ def test_ome_zarr_labels_preprocessing(omezar_test_input: OMEZarrTestInput):
 
             original_resolution = ome_zarr_root.attrs["multiscales"][0]["datasets"][0]["path"]
             
-            image_time_dimension = ome_zarr_root[original_resolution].shape[0]
+            if len(axes) == 5 and axes[0]["name"] == "t":
+                image_time_dimension = ome_zarr_root[original_resolution].shape[0]
+            else:
+                image_time_dimension = 1
+                
             label_time_dimension = arr.shape[0]
 
             wrong_time_dimension = False
