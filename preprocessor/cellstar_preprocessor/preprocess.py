@@ -1031,7 +1031,7 @@ class Preprocessor:
             for id in geometric_segmentation_ids:
                 db_edit_context.add_segmentation(id=id, kind="geometric_segmentation")
 
-        print("Data stored to db")
+        print(f"Entry {self.preprocessor_input.entry_data.entry_id} stored to db")
 
 
 async def main_preprocessor(
