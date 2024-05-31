@@ -1,15 +1,16 @@
 from enum import Enum
-from pathlib import Path
 from typing import Any, List, Literal, Optional, Protocol, TypedDict, Union
 
-from cellstar_preprocessor.model.input import InputKind, QuantizationDtype
 import numpy as np
-from pydantic import BaseModel, validator
 import zarr
+from cellstar_preprocessor.model.input import InputKind, QuantizationDtype
+from pydantic import BaseModel
+
 
 class EntryMetadata(TypedDict):
     description: str | None
     url: str | None
+
 
 class PreprocessorParameters(TypedDict):
     quantize_dtype_str: QuantizationDtype | None
@@ -21,28 +22,33 @@ class PreprocessorParameters(TypedDict):
     max_downsampling_level: int | None
     remove_original_resolution: bool | None
 
+
 class RawInputFileResourceInfo(TypedDict):
-    kind: Literal['local', 'external']
+    kind: Literal["local", "external"]
     uri: str
+
 
 class RawInputFileInfo(TypedDict):
     kind: InputKind
     resource: RawInputFileResourceInfo
     preprocessor_parameters: PreprocessorParameters | None
-    
+
+
 class RawInputFilesDownloadParams(TypedDict):
     entry_id: str
     source_db: str
     source_db_id: str
     source_db_name: str
     inputs: list[RawInputFileInfo]
-    
+
+
 # JSON - list of InputForBuildingDatabase
 # TODO: can be a JSON schema instead
 # NOTE: Single entry input
 # TODO: infer schema from json
 # TODO: use this class when parsing
-# need to create preprocessor input from 
+# need to create preprocessor input from
+
 
 class InputForBuildingDatabase(TypedDict):
     quantize_dtype_str: QuantizationDtype | None
@@ -67,12 +73,14 @@ class OMETIFFSpecificExtraData(TypedDict):
     cell_stage: Optional[str]
     ometiff_source_metadata: Optional[dict]
 
+
 class VolumeExtraData(TypedDict):
     voxel_size: list[float, float, float] | None
     # map sequential channel ID (e.g. "1" as string)
     # to biologically meaningfull channel id (string)
     channel_ids_mapping: dict[str, str] | None
     dataset_specific_data: object | None
+
 
 class SegmentationExtraData(TypedDict):
     voxel_size: list[float, float, float] | None
@@ -86,7 +94,8 @@ class SegmentationExtraData(TypedDict):
     # CURRENTLY IS A KEY THAT IS PROVIDED IN SEGMENTATION_IDS_MAPPING
     segment_ids_to_segment_names_mapping: dict[str, dict[str, str]] | None
     # could have key = "ometiff"
-    dataset_specific_data: object | None 
+    dataset_specific_data: object | None
+
 
 class ExtraData(TypedDict):
     entry_metadata: Optional[EntryMetadata]
@@ -96,21 +105,26 @@ class ExtraData(TypedDict):
     # metadata: Optional[object]
     # dataset_specific_data: Optional[object]
 
+
 # METADATA DATA MODEL
+
 
 class SamplingBox(TypedDict):
     origin: tuple[int, int, int]
     voxel_size: tuple[float, float, float]
     grid_dimensions: list[int, int, int]
 
+
 class TimeTransformation(TypedDict):
     # to which downsampling level it is applied: can be to specific level, can be to all lvls
-    downsampling_level: Union[int, Literal['all']]
+    downsampling_level: Union[int, Literal["all"]]
     factor: float
+
 
 class DownsamplingLevelInfo(TypedDict):
     level: int
     available: bool
+
 
 class SamplingInfo(TypedDict):
     # Info about "downsampling dimension"
@@ -122,11 +136,13 @@ class SamplingInfo(TypedDict):
     # e.g. (0, 1, 2) as standard
     original_axis_order: list[int, int, int]
 
+
 class TimeInfo(TypedDict):
     kind: str
     start: int
     end: int
     units: str
+
 
 class SegmentationLatticesMetadata(TypedDict):
     # e.g. label groups (Cell, Chromosomes)
@@ -134,29 +150,36 @@ class SegmentationLatticesMetadata(TypedDict):
     segmentation_sampling_info: dict[str, SamplingInfo]
     time_info: dict[str, TimeInfo]
 
+
 class GeometricSegmentationSetsMetadata(TypedDict):
     segmentation_ids: list[str]
     # maps set ids to time info
     time_info: dict[str, TimeInfo]
+
 
 class MeshMetadata(TypedDict):
     num_vertices: int
     num_triangles: int
     num_normals: Optional[int]
 
+
 class MeshListMetadata(TypedDict):
     mesh_ids: dict[int, MeshMetadata]
+
 
 class DetailLvlsMetadata(TypedDict):
     detail_lvls: dict[int, MeshListMetadata]
 
+
 class MeshComponentNumbers(TypedDict):
     segment_ids: dict[int, DetailLvlsMetadata]
+
 
 class MeshesMetadata(TypedDict):
     # maps timeframe index to MeshComponentNumbers
     mesh_timeframes: dict[int, MeshComponentNumbers]
     detail_lvl_to_fraction: dict
+
 
 class MeshSegmentationSetsMetadata(TypedDict):
     segmentation_ids: list[str]
@@ -165,15 +188,18 @@ class MeshSegmentationSetsMetadata(TypedDict):
     # maps set ids to time info
     time_info: dict[str, TimeInfo]
 
+
 class VolumeDescriptiveStatistics(TypedDict):
     mean: float
     min: float
     max: float
     std: float
 
+
 class VolumeSamplingInfo(SamplingInfo):
     # resolution -> time -> channel_id
     descriptive_statistics: dict[int, dict[int, dict[str, VolumeDescriptiveStatistics]]]
+
 
 class VolumesMetadata(TypedDict):
     channel_ids: list[str]
@@ -181,9 +207,11 @@ class VolumesMetadata(TypedDict):
     time_info: TimeInfo
     volume_sampling_info: VolumeSamplingInfo
 
+
 class EntryId(TypedDict):
     source_db_name: str
     source_db_id: str
+
 
 class Metadata(TypedDict):
     entry_id: EntryId
@@ -192,10 +220,12 @@ class Metadata(TypedDict):
     segmentation_meshes: Optional[MeshSegmentationSetsMetadata]
     geometric_segmentation: Optional[GeometricSegmentationSetsMetadata]
     entry_metadata: EntryMetadata | None
-    
+
+
 # END METADATA DATA MODEL
 
 # ANNOTATIONS DATA MODEL
+
 
 class ChannelAnnotation(TypedDict):
     # uuid
@@ -204,17 +234,19 @@ class ChannelAnnotation(TypedDict):
     color: tuple[float, float, float, float]
     label: Optional[str]
 
+
 class SegmentAnnotationData(TypedDict):
     # label-value in NGFF
     # uuid
     id: Optional[str]
-    
+
     segment_kind: Literal["lattice", "mesh", "primitive"]
     segment_id: int
     segmentation_id: str
     color: Optional[tuple[float, float, float, float]]
     time: Optional[int | list[int | tuple[int, int]]]
     # other props added later if needed
+
 
 class ExternalReference(TypedDict):
     # uuid
@@ -225,13 +257,16 @@ class ExternalReference(TypedDict):
     description: Optional[str]
     url: Optional[str]
 
+
 class TargetId(TypedDict):
     segmentation_id: str
     segment_id: int
 
+
 class DetailsText(TypedDict):
     format: Literal["text", "markdown"]
     text: str
+
 
 class DescriptionData(TypedDict):
     # uuid
@@ -258,15 +293,18 @@ class AnnotationsMetadata(TypedDict):
     details: Optional[str]
     volume_channels_annotations: Optional[list[ChannelAnnotation]]
 
+
 # END ANNOTATIONS DATA MODEL
 
 
 # "DATA" DATA MODEL
 
+
 class LatticeSegmentationData(TypedDict):
     grid: zarr.core.Array
     # NOTE: single item in the array which is a Dict
     set_table: zarr.core.Array
+
 
 class SingleMeshZattrs(TypedDict):
     num_vertices: int
@@ -275,12 +313,14 @@ class SingleMeshZattrs(TypedDict):
     num_triangles: int
     num_normals: int
 
+
 class SingleMeshSegmentationData(TypedDict):
     mesh_id: str
     vertices: zarr.core.Array
     triangles: zarr.core.Array
     normals: zarr.core.Array
     attrs: SingleMeshZattrs
+
 
 class ShapePrimitiveKind(str, Enum):
     sphere = "sphere"
@@ -290,20 +330,24 @@ class ShapePrimitiveKind(str, Enum):
     ellipsoid = "ellipsoid"
     pyramid = "pyramid"
 
+
 class ShapePrimitiveBase(TypedDict):
     # NOTE: to be able to refer to it in annotations
     id: int
     kind: ShapePrimitiveKind
     # NOTE: color in annotations
 
+
 class RotationParameters(TypedDict):
     axis: tuple[float, float, float]
     radians: float
+
 
 class Sphere(ShapePrimitiveBase):
     # in angstroms
     center: tuple[float, float, float]
     radius: float
+
 
 class Box(ShapePrimitiveBase):
     # with respect to origin 0, 0, 0
@@ -312,17 +356,20 @@ class Box(ShapePrimitiveBase):
     scaling: tuple[float, float, float]
     rotation: RotationParameters
 
+
 class Cylinder(ShapePrimitiveBase):
     start: tuple[float, float, float]
     end: tuple[float, float, float]
     radius_bottom: float
     radius_top: float  # =0 <=> cone
 
+
 class Ellipsoid(ShapePrimitiveBase):
     dir_major: tuple[float, float, float]
     dir_minor: tuple[float, float, float]
     center: tuple[float, float, float]
     radius_scale: tuple[float, float, float]
+
 
 class Pyramid(ShapePrimitiveBase):
     # with respect to origin 0, 0, 0
@@ -331,21 +378,35 @@ class Pyramid(ShapePrimitiveBase):
     scaling: tuple[float, float, float]
     rotation: RotationParameters
 
+
 class ShapePrimitiveData(TypedDict):
     shape_primitive_list: list[ShapePrimitiveBase]
+
 
 class GeometricSegmentationData(TypedDict):
     segmentation_id: str
     # maps timeframe index to ShapePrimitivesData
     primitives: dict[int, ShapePrimitiveData]
 
+
 class ZarrRoot(TypedDict):
     # resolution => timeframe index => channel
     volume_data: list[dict[int, list[dict[int, list[dict[int, zarr.core.Array]]]]]]
     # segmentation_id => downsampling => timeframe index
-    lattice_segmentation_data: list[dict[str, list[dict[int, list[dict[int, LatticeSegmentationData]]]]]]
+    lattice_segmentation_data: list[
+        dict[str, list[dict[int, list[dict[int, LatticeSegmentationData]]]]]
+    ]
     # segmentation_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
-    mesh_segmentation_data: list[str, dict[int, list[dict[int, list[dict[int, list[dict[int, SingleMeshSegmentationData]]]]]]]]
+    mesh_segmentation_data: list[
+        str,
+        dict[
+            int,
+            list[
+                dict[int, list[dict[int, list[dict[int, SingleMeshSegmentationData]]]]]
+            ],
+        ],
+    ]
+
 
 # Files:
 # NOTE: saved as JSON/Msgpack directly, without temporary storing in .zattrs
@@ -356,13 +417,16 @@ GeometricSegmentationJson = list[GeometricSegmentationData]
 
 # SERVER OUTPUT DATA MODEL (MESHES, SEGMENTATION LATTICES, VOLUMES)
 
+
 class MeshData(TypedDict):
     mesh_id: int
     vertices: np.ndarray  # shape = (n_vertices, 3)
     triangles: np.ndarray  # shape = (n_triangles, 3)
     normals: Optional[np.ndarray]
-    
+
+
 MeshesData = list[MeshData]
+
 
 class LatticeSegmentationSliceData(TypedDict):
     # array with set ids
@@ -371,6 +435,7 @@ class LatticeSegmentationSliceData(TypedDict):
     category_set_dict: dict
     lattice_id: int
 
+
 class VolumeSliceData(TypedDict):
     # changed segm slice to another typeddict
     segmentation_slice: Optional[LatticeSegmentationSliceData]
@@ -378,41 +443,49 @@ class VolumeSliceData(TypedDict):
     channel_id: Optional[str]
     time: int
 
+
 # END SERVER OUTPUT DATA MODEL
 
 # INPUT DATA MODEL
-    
+
+
 class ShapePrimitiveInputParams(BaseModel):
     id: int
     color: list[float, float, float, float]
+
 
 class RotationInputParameters(BaseModel):
     axis: tuple[float, float, float]
     radians: float
 
+
 class SphereInputParams(ShapePrimitiveInputParams):
     center: tuple[float, float, float]
     radius: float
-    
+
+
 class BoxInputParams(ShapePrimitiveInputParams):
     # with respect to origin 0, 0, 0
     translation: tuple[float, float, float]
     # default size 2, 2, 2 in angstroms for pdbe-1.rec
     scaling: tuple[float, float, float]
     rotation: RotationInputParameters
-    
+
+
 class CylinderInputParams(ShapePrimitiveInputParams):
     start: tuple[float, float, float]
     end: tuple[float, float, float]
     radius_bottom: float
     radius_top: float  # =0 <=> cone
 
+
 class EllipsoidInputParams(ShapePrimitiveInputParams):
     dir_major: tuple[float, float, float]
     dir_minor: tuple[float, float, float]
     center: tuple[float, float, float]
     radius_scale: tuple[float, float, float]
-    
+
+
 class PyramidInputParams(ShapePrimitiveInputParams):
     # with respect to origin 0, 0, 0
     translation: tuple[float, float, float]
@@ -430,8 +503,9 @@ class ShapePrimitiveInputData(BaseModel):
         CylinderInputParams,
         BoxInputParams,
         SphereInputParams,
-        ShapePrimitiveInputParams
+        ShapePrimitiveInputParams,
     ]
+
 
 class GeometricSegmentationInputData(BaseModel):
     # provide id here as optional
@@ -439,7 +513,8 @@ class GeometricSegmentationInputData(BaseModel):
     # maps timeframe index to list of ShapePrimitiveInputData
     shape_primitives_input: dict[int, list[ShapePrimitiveInputData]]
     time_units: Optional[str]
-    
+
+
 # END INPUT DATA MODEL
 
 

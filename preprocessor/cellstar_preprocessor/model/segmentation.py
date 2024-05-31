@@ -17,7 +17,7 @@ class InternalSegmentation:
         color: Optional[float] = None,
         pixel_size: Optional[float] = None,
         star_file_coordinate_divisor: Optional[float] = None,
-        custom_data: Optional[SegmentationExtraData] = None
+        custom_data: Optional[SegmentationExtraData] = None,
     ):
         self.intermediate_zarr_structure_path = intermediate_zarr_structure_path
         self.segmentation_input_path = segmentation_input_path

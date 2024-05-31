@@ -14,7 +14,8 @@ class WithArrays(object):
     def try_shrink_uint_array(array: np.ndarray):
         """Try to cast `array` into a smallest sufficient uint dtype.
         If cannot shrink anymore, return the original array.
-        If `array` is not of integer (int or uint) dtype or contains negative values, return the original array."""
+        If `array` is not of integer (int or uint) dtype or contains negative values, return the original array.
+        """
         if array.dtype.kind not in "iu":  # check if int or uint
             return array
         if array.size == 0:
@@ -83,8 +84,12 @@ class MeshesForCif(WithArrays):
             self.vertex__z[vertex_offset : vertex_offset + nv] = mesh["vertices"][:, 2]
             vertex_offset += nv
             nt = mesh["triangles"].shape[0]
-            self.triangle__mesh_id[triangle_offset : triangle_offset + 3 * nt] = mesh["mesh_id"]
-            self.triangle__vertex_id[triangle_offset : triangle_offset + 3 * nt] = mesh["triangles"].ravel()
+            self.triangle__mesh_id[triangle_offset : triangle_offset + 3 * nt] = mesh[
+                "mesh_id"
+            ]
+            self.triangle__vertex_id[triangle_offset : triangle_offset + 3 * nt] = mesh[
+                "triangles"
+            ].ravel()
             triangle_offset += 3 * nt
 
         self.try_shrink_uint_array_attrs()

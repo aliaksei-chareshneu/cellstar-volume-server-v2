@@ -1,31 +1,28 @@
-from decimal import Decimal
-from cellstar_db.models import OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-from cellstar_preprocessor.flows.common import _get_ome_tiff_voxel_sizes_in_downsamplings, get_downsamplings, open_zarr_structure_from_path
-from cellstar_preprocessor.flows.common import get_ome_tiff_origins
-from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
-from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
-from cellstar_preprocessor.model.volume import InternalVolume
-from cellstar_preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
 import dask.array as da
-import numpy as np
 import zarr
+from cellstar_db.models import OMETIFFSpecificExtraData
+from cellstar_preprocessor.flows.common import (
+    _get_ome_tiff_voxel_sizes_in_downsamplings,
+    get_downsamplings,
+    get_ome_tiff_origins,
+    open_zarr_structure_from_path,
+)
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
+from cellstar_preprocessor.model.segmentation import InternalSegmentation
 
 # SHORT_UNIT_NAMES_TO_LONG = {
 #     'µm': 'micrometer',
 #     # TODO: support other units
 # }
 
+
 def _get_source_axes_units():
     # NOTE: hardcoding this for now
-    spatial_units = 'micrometer'
-    d = {
-        "x": spatial_units,
-        "y": spatial_units,
-        "z": spatial_units
-    }
+    spatial_units = "micrometer"
+    d = {"x": spatial_units, "y": spatial_units, "z": spatial_units}
     # d = {}
     return d
+
 
 # def _convert_short_units_to_long(short_unit_name: str):
 #     # TODO: support conversion of other axes units (currently only µm to micrometer).
@@ -51,7 +48,7 @@ def _get_source_axes_units():
 #         d['z'] = ome_tiff_metadata['PhysicalSizeZ']
 #     else:
 #         d['z'] = 1.0
-    
+
 #     return d
 
 
@@ -66,7 +63,10 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
         }
 
         for time_gr_name, time_gr in res_gr.groups():
-            sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"] = time_gr.grid.shape
+            sampling_info_dict["boxes"][res_gr_name][
+                "grid_dimensions"
+            ] = time_gr.grid.shape
+
 
 # def _get_ometiff_axes_units(ome_tiff_metadata):
 #     axes_units = {}
@@ -84,9 +84,9 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
 #         axes_units['z'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeZUnit'])
 #     else:
 #         axes_units['z'] = 'micrometer'
-    
+
 #     return axes_units
-    
+
 
 # def _get_ome_tiff_voxel_sizes_in_downsamplings(boxes_dict, downsamplings, ometiff_metadata):
 #     # original voxel size - in XML metadata (PhysicalSizeX,Y,Z)
@@ -115,8 +115,9 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
 #                 _convert_to_angstroms(ometiff_physical_size_dict['z'] * int(downsampling_level), ometiff_axes_units_dict['z'])
 #             ]
 
+
 def _get_allencell_voxel_size(root: zarr.Group) -> list[float, float, float]:
-    return root.attrs['extra_data']['scale_micron']
+    return root.attrs["extra_data"]["scale_micron"]
 
 
 def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
@@ -168,20 +169,24 @@ def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
                     "max": max_val,
                     "min": min_val,
                 }
+
+
 def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegmentation):
     root = open_zarr_structure_from_path(
         internal_segmentation.intermediate_zarr_structure_path
     )
     # TODO: same as with volume metadata
     metadata_dict = root.attrs["metadata_dict"]
-    ometiff_custom_data: OMETIFFSpecificExtraData = internal_segmentation.custom_data['dataset_specific_data']['ometiff']
-    ometiff_metadata = ometiff_custom_data['ometiff_source_metadata']
-    
+    ometiff_custom_data: OMETIFFSpecificExtraData = internal_segmentation.custom_data[
+        "dataset_specific_data"
+    ]["ometiff"]
+    ometiff_metadata = ometiff_custom_data["ometiff_source_metadata"]
+
     # ometiff_metadata = internal_segmentation.custom_data['ometiff_metadata']
     # NOTE: sample ometiff has no time
     # channel_ids = _get_allencell_segmentation_channel_ids(root)
     start_time = 0
-    end_time = ometiff_metadata['SizeT'] - 1
+    end_time = ometiff_metadata["SizeT"] - 1
     time_units = "millisecond"
 
     # original_voxel_size_in_micrometers = _get_allencell_voxel_size(root)
@@ -190,12 +195,13 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
         lattice_ids = []
 
         metadata_dict["segmentation_lattices"] = {
-            'segmentation_ids': [],
-            'segmentation_sampling_info': {},
-            'time_info': {}
+            "segmentation_ids": [],
+            "segmentation_sampling_info": {},
+            "time_info": {},
         }
-        for label_gr_name, label_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
-
+        for label_gr_name, label_gr in root[
+            LATTICE_SEGMENTATION_DATA_GROUPNAME
+        ].groups():
             # each label group is lattice id
             lattice_id = label_gr_name
 
@@ -206,10 +212,8 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
 
             lattice_ids.append(lattice_id)
 
-            segmentation_downsamplings = get_downsamplings(
-                data_group=label_gr
-                )
-            
+            segmentation_downsamplings = get_downsamplings(data_group=label_gr)
+
             metadata_dict["segmentation_lattices"]["segmentation_sampling_info"][
                 str(lattice_id)
             ] = {
@@ -233,7 +237,7 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
                 boxes_dict=metadata_dict["segmentation_lattices"][
                     "segmentation_sampling_info"
                 ][str(lattice_id)]["boxes"],
-                downsamplings=segmentation_downsamplings
+                downsamplings=segmentation_downsamplings,
             )
 
             _get_ome_tiff_voxel_sizes_in_downsamplings(
@@ -242,7 +246,7 @@ def extract_ometiff_segmentation_metadata(internal_segmentation: InternalSegment
                     "segmentation_sampling_info"
                 ][str(lattice_id)]["boxes"],
                 downsamplings=segmentation_downsamplings,
-                ometiff_metadata=ometiff_metadata
+                ometiff_metadata=ometiff_metadata,
             )
 
             # NOTE: for now time 0

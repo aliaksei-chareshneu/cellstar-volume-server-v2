@@ -3,9 +3,8 @@
 # downsampling_parameters=preprocessor_input.downsampling,
 
 import gc
-import numpy as np
-import zarr
 
+import zarr
 from cellstar_preprocessor.flows.common import (
     create_dataset_wrapper,
     get_channel_annotations,
@@ -15,6 +14,7 @@ from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.model.volume import InternalVolume
 
 # TODO: support 3 axes case?
+
 
 def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
     ome_zarr_root = zarr.open_group(internal_volume.volume_input_path)
@@ -58,24 +58,31 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                     #     shape=corrected_volume_arr_data.shape,
                     #     data=corrected_volume_arr_data
                     # )
-                    
+
                     # Fix this part
-                    
+
                     # could be no target annotations
                     # then label = j
-                    target_annotations = list(filter(lambda a: a['channel_id'] == str(j), volume_channel_annotations))
-                    assert len(target_annotations) <= 1, 'More than one channel with the same ID'
+                    target_annotations = list(
+                        filter(
+                            lambda a: a["channel_id"] == str(j),
+                            volume_channel_annotations,
+                        )
+                    )
+                    assert (
+                        len(target_annotations) <= 1
+                    ), "More than one channel with the same ID"
                     label = j
                     if len(target_annotations) == 1:
                         target_annotation = target_annotations[0]
-                        if 'label' in target_annotation:
-                            label = target_annotation['label']
+                        if "label" in target_annotation:
+                            label = target_annotation["label"]
                     # store = root.store
                     # old_channel_array_path = f'{VOLUME_DATA_GROUPNAME}/{resolution}/{timeframe_index}/{channel_id}'
-                    
+
                     # new_channel_array_path = f'{VOLUME_DATA_GROUPNAME}/{resolution}/{timeframe_index}/{label}'
                     # print(f'Renaming {old_channel_array_path} to {new_channel_array_path}')
-                    
+
                     our_channel_arr = create_dataset_wrapper(
                         zarr_group=time_group,
                         name=label,
@@ -85,10 +92,12 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                         params_for_storing=internal_volume.params_for_storing,
                     )
 
-                    size_of_data_for_lvl = size_of_data_for_lvl + our_zarr_structure.store.getsize(our_channel_arr.path)
+                    size_of_data_for_lvl = (
+                        size_of_data_for_lvl
+                        + our_zarr_structure.store.getsize(our_channel_arr.path)
+                    )
                     del corrected_volume_arr_data
                     gc.collect()
-                    
 
         elif len(axes) == 4 and axes[0]["name"] == "c":
             time_group = resolution_group.create_group("0")
@@ -102,7 +111,10 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
                     dtype=corrected_volume_arr_data.dtype,
                     params_for_storing=internal_volume.params_for_storing,
                 )
-                size_of_data_for_lvl = size_of_data_for_lvl + our_zarr_structure.store.getsize(our_channel_arr.path)
+                size_of_data_for_lvl = (
+                    size_of_data_for_lvl
+                    + our_zarr_structure.store.getsize(our_channel_arr.path)
+                )
                 del corrected_volume_arr_data
                 gc.collect()
         # TODO: later
@@ -133,38 +145,46 @@ def ome_zarr_image_preprocessing(internal_volume: InternalVolume):
         #         pass
         else:
             raise Exception("Axes number/order is not supported")
-        
-        size_of_data_for_lvl_mb = size_of_data_for_lvl / 1024 ** 2
-        print(f'size of data for lvl in mb: {size_of_data_for_lvl_mb}')
-        if internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb and size_of_data_for_lvl_mb > internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb:
-            print(f'Data for resolution {volume_arr_resolution} removed for volume')
+
+        size_of_data_for_lvl_mb = size_of_data_for_lvl / 1024**2
+        print(f"size of data for lvl in mb: {size_of_data_for_lvl_mb}")
+        if (
+            internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb
+            and size_of_data_for_lvl_mb
+            > internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb
+        ):
+            print(f"Data for resolution {volume_arr_resolution} removed for volume")
             del volume_data_gr[volume_arr_resolution]
 
     print("Volume processed")
-    
+
     all_resolutions = sorted(ome_zarr_root.array_keys())
     original_resolution = all_resolutions[0]
-    if internal_volume.downsampling_parameters.remove_original_resolution:    
+    if internal_volume.downsampling_parameters.remove_original_resolution:
         if original_resolution in volume_data_gr:
             del volume_data_gr[original_resolution]
-            print('Original resolution data removed for volume')
-    
+            print("Original resolution data removed for volume")
+
     if internal_volume.downsampling_parameters.max_downsampling_level is not None:
         for downsampling, downsampling_gr in volume_data_gr.groups():
-            if int(downsampling) > internal_volume.downsampling_parameters.max_downsampling_level:
+            if (
+                int(downsampling)
+                > internal_volume.downsampling_parameters.max_downsampling_level
+            ):
                 del volume_data_gr[downsampling]
-                print(f'Data for downsampling {downsampling} removed for volume')
+                print(f"Data for downsampling {downsampling} removed for volume")
 
     if internal_volume.downsampling_parameters.min_downsampling_level is not None:
         for downsampling, downsampling_gr in volume_data_gr.groups():
-            if int(downsampling) < internal_volume.downsampling_parameters.min_downsampling_level and \
-                downsampling != original_resolution:
+            if (
+                int(downsampling)
+                < internal_volume.downsampling_parameters.min_downsampling_level
+                and downsampling != original_resolution
+            ):
                 del volume_data_gr[downsampling]
-                print(f'Data for downsampling {downsampling} removed for volume')
-
+                print(f"Data for downsampling {downsampling} removed for volume")
 
     if len(sorted(volume_data_gr.group_keys())) == 0:
         raise Exception(
-                f"No downsamplings will be saved: max_size_per_downsampling_lvl_mb {internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb} is too low"
-            )
-    
+            f"No downsamplings will be saved: max_size_per_downsampling_lvl_mb {internal_volume.downsampling_parameters.max_size_per_downsampling_lvl_mb} is too low"
+        )

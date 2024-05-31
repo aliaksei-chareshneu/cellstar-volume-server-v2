@@ -1,7 +1,6 @@
 import unittest
 
 import requests
-
 from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 

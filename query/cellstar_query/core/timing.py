@@ -10,9 +10,16 @@ class Timing:
     @param  `mute`  Supress all printing (measured time can still be accessed by .time)
     """
 
-    def __init__(self, name: str = "", file: Union[TextIO, Literal["stdout", "stderr"]] = "stdout", mute=False):
+    def __init__(
+        self,
+        name: str = "",
+        file: Union[TextIO, Literal["stdout", "stderr"]] = "stdout",
+        mute=False,
+    ):
         self.name = name
-        self.file = sys.stdout if file == "stdout" else sys.stderr if file == "stderr" else file
+        self.file = (
+            sys.stdout if file == "stdout" else sys.stderr if file == "stderr" else file
+        )
         self.mute = mute
         self.time = None
 

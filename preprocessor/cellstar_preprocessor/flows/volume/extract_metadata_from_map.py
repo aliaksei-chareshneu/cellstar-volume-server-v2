@@ -2,8 +2,12 @@ from decimal import ROUND_CEILING, Decimal, getcontext
 
 import dask.array as da
 import numpy as np
-from cellstar_db.models import DownsamplingLevelInfo, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-
+from cellstar_db.models import (
+    DownsamplingLevelInfo,
+    TimeInfo,
+    VolumeSamplingInfo,
+    VolumesMetadata,
+)
 from cellstar_preprocessor.flows.common import (
     get_downsamplings,
     open_zarr_structure_from_path,
@@ -66,7 +70,7 @@ def _get_origin_and_voxel_sizes_from_map_header(
 
     voxel_sizes_in_downsamplings: dict = {}
     for level in volume_downsamplings:
-        rate = level['level']
+        rate = level["level"]
         voxel_sizes_in_downsamplings[rate] = tuple(
             [float(Decimal(i) * Decimal(rate)) for i in original_voxel_size]
         )
@@ -183,19 +187,23 @@ def extract_metadata_from_map(internal_volume: InternalVolume):
         mrc_header=map_header,
         volume_downsamplings=volume_downsamplings,
     )
-    
+
     # NOTE: remove original level resolution data
     if internal_volume.downsampling_parameters.remove_original_resolution:
         del root[VOLUME_DATA_GROUPNAME]["1"]
         print("Original resolution volume data removed")
-        
-        current_levels: list[DownsamplingLevelInfo] = metadata_dict["volumes"]['volume_sampling_info']['spatial_downsampling_levels']
+
+        current_levels: list[DownsamplingLevelInfo] = metadata_dict["volumes"][
+            "volume_sampling_info"
+        ]["spatial_downsampling_levels"]
         for i, item in enumerate(current_levels):
             if item["level"] == 1:
                 current_levels[i]["available"] = False
-        
-        metadata_dict["volumes"]['volume_sampling_info']['spatial_downsampling_levels'] = current_levels
-        
+
+        metadata_dict["volumes"]["volume_sampling_info"][
+            "spatial_downsampling_levels"
+        ] = current_levels
+
     root.attrs["metadata_dict"] = metadata_dict
-    
+
     return metadata_dict

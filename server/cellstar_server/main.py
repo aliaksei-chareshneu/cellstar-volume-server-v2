@@ -1,18 +1,17 @@
+import cellstar_server.app.api.v1 as api_v1
 from cellstar_db.file_system.db import FileSystemVolumeServerDB
+from cellstar_query.core.service import VolumeServerService
+from cellstar_server.app.settings import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-import cellstar_server.app.api.v1 as api_v1
-from cellstar_query.core.service import VolumeServerService
-from cellstar_server.app.settings import settings
-
 print("Server Settings: ", settings.dict())
 
-description = f'''
+description = f"""
 GIT TAG: {settings.GIT_TAG}
 GIT SHA: {settings.GIT_SHA}
-'''
+"""
 
 app = FastAPI(description=description)
 
@@ -28,7 +27,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=3)  # Default compresslevel=9 is veeery slow
+app.add_middleware(
+    GZipMiddleware, minimum_size=1000, compresslevel=3
+)  # Default compresslevel=9 is veeery slow
 
 # initialize dependencies
 db = FileSystemVolumeServerDB(folder=settings.DB_PATH)

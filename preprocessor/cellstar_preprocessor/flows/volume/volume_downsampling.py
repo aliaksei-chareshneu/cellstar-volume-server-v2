@@ -1,8 +1,7 @@
 import math
-import zarr
-import dask.array as da
-from dask_image.ndfilters import convolve as dask_convolve
 
+import dask.array as da
+import zarr
 from cellstar_preprocessor.flows.common import (
     compute_downsamplings_to_be_stored,
     compute_number_of_downsampling_steps,
@@ -22,6 +21,8 @@ from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tools.quantize_data.quantize_data import (
     decode_quantized_data,
 )
+from dask_image.ndfilters import convolve as dask_convolve
+
 
 # this should work for e.g. ometiff
 # potentially for several channels and timeframes
@@ -46,16 +47,22 @@ def volume_downsampling(internal_volume: InternalVolume):
         for channel_id, channel_arr in timegr.arrays():
             # NOTE: skipping convolve if one of dimensions is 1
             if 1 in channel_arr.shape:
-                print(f"Downsampling skipped for volume channel {channel_id}, timeframe {time}")
+                print(
+                    f"Downsampling skipped for volume channel {channel_id}, timeframe {time}"
+                )
                 continue
 
-            original_data_arr = zarr_structure[VOLUME_DATA_GROUPNAME]["1"][str(time)][str(channel_id)]
+            original_data_arr = zarr_structure[VOLUME_DATA_GROUPNAME]["1"][str(time)][
+                str(channel_id)
+            ]
             if QUANTIZATION_DATA_DICT_ATTR_NAME in original_data_arr.attrs:
                 data_dict = original_data_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME]
                 data_dict["data"] = da.from_zarr(url=original_data_arr)
                 dask_arr: da.Array = decode_quantized_data(data_dict)
             else:
-                dask_arr = da.from_zarr(url=original_data_arr, chunks=original_data_arr.chunks)
+                dask_arr = da.from_zarr(
+                    url=original_data_arr, chunks=original_data_arr.chunks
+                )
 
             kernel = generate_kernel_3d_arr(list(DOWNSAMPLING_KERNEL))
             current_level_data = dask_arr
@@ -106,5 +113,3 @@ def volume_downsampling(internal_volume: InternalVolume):
     # if internal_volume.downsampling_parameters.remove_original_resolution:
     #     del zarr_structure[VOLUME_DATA_GROUPNAME]["1"]
     #     print("Original resolution data removed")
-
-

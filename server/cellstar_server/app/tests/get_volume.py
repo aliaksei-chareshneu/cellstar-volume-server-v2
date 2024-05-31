@@ -1,7 +1,6 @@
 import unittest
 
 import requests
-
 from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 test_configs = {
@@ -66,7 +65,7 @@ class FetchVolumeTest(ServerTestBase):
     def __fetch_for_test(self, db: str, entry: str, params: dict) -> str:
         r = requests.get(
             # @app.get("/v1/{source}/{id}/volume/box/{time}/{channel_id}/{a1}/{a2}/{a3}/{b1}/{b2}/{b3}")
-            f'{self.serverUrl()}/v1/{db}/{entry}/volume/box/0/0'
+            f"{self.serverUrl()}/v1/{db}/{entry}/volume/box/0/0"
             f'/{params.get("x_min")}/{params.get("y_min")}/{params.get("z_min")}'
             f'/{params.get("x_max")}/{params.get("y_max")}/{params.get("z_max")}'
             f'?max_points={params.get("max_points")}'
@@ -84,25 +83,43 @@ class FetchVolumeTest(ServerTestBase):
                     for entry_id in entries.keys():
                         entry = entries.get(entry_id)
 
-                        out_of_boundaries = self.__fetch_for_test(db, entry_id, entry.get("out_of_boundaries"))
+                        out_of_boundaries = self.__fetch_for_test(
+                            db, entry_id, entry.get("out_of_boundaries")
+                        )
                         print(
                             "[VolumeTests] Case *out_of_boundaries* -> received body of len : "
                             + str(len(out_of_boundaries))
                         )
 
-                        down_sampled = self.__fetch_for_test(db, entry_id, entry.get("down_sampled"))
-                        print("[VolumeTests] Case *down_sampled* -> received body of len : " + str(len(down_sampled)))
+                        down_sampled = self.__fetch_for_test(
+                            db, entry_id, entry.get("down_sampled")
+                        )
+                        print(
+                            "[VolumeTests] Case *down_sampled* -> received body of len : "
+                            + str(len(down_sampled))
+                        )
 
-                        self.assertAlmostEqual(len(out_of_boundaries) / (8 * len(down_sampled)), 1, delta=0.4)
+                        self.assertAlmostEqual(
+                            len(out_of_boundaries) / (8 * len(down_sampled)),
+                            1,
+                            delta=0.4,
+                        )
 
                         entry.pop("out_of_boundaries")
                         entry.pop("down_sampled")
 
                         case_results = []
                         for case in entry.keys():
-                            case_response = self.__fetch_for_test(db, entry_id, entry.get(case))
+                            case_response = self.__fetch_for_test(
+                                db, entry_id, entry.get(case)
+                            )
                             case = int(case)
-                            print("case " + str(case) + " has len: " + str(len(case_response)))
+                            print(
+                                "case "
+                                + str(case)
+                                + " has len: "
+                                + str(len(case_response))
+                            )
                             case_results.append(len(case_response))
 
                         previous = None

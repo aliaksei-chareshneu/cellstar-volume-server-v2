@@ -1,6 +1,4 @@
 from cellstar_db.models import VolumeMetadata
-from typing import Optional
-
 from cellstar_query.core.models import GridSliceBox
 
 # from cellstar_query.core.models import GridSliceBox
@@ -13,8 +11,8 @@ class VolumeInfo:
         metadata: VolumeMetadata,
         box: GridSliceBox,
         time: int = 0,
-        channel_id: str = '0',
-        axis_order: tuple[int, int, int] = (0, 1, 2)
+        channel_id: str = "0",
+        axis_order: tuple[int, int, int] = (0, 1, 2),
     ):
         self.name = name
         self.metadata = metadata
@@ -29,8 +27,13 @@ class VolumeInfo:
         cartn_origin = metadata.origin(downsampling_rate)
 
         self.cell_size = [voxel_size[i] * full_grid_size[i] for i in range(3)]
-        self.origin = [(cartn_origin[i] + box.bottom_left[i] * voxel_size[i]) / self.cell_size[i] for i in range(3)]
-        self.dimensions = [self.grid_size[i] * voxel_size[i] / self.cell_size[i] for i in range(3)]
+        self.origin = [
+            (cartn_origin[i] + box.bottom_left[i] * voxel_size[i]) / self.cell_size[i]
+            for i in range(3)
+        ]
+        self.dimensions = [
+            self.grid_size[i] * voxel_size[i] / self.cell_size[i] for i in range(3)
+        ]
 
         self.time = time
         # if channel_id:

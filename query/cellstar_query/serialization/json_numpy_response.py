@@ -10,7 +10,12 @@ class JSONNumpyResponse(fastapi.responses.JSONResponse):
 
     def render(self, content: Any) -> bytes:
         return json.dumps(
-            content, ensure_ascii=False, allow_nan=False, indent=None, separators=(",", ":"), cls=_NumpyJsonEncoder
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":"),
+            cls=_NumpyJsonEncoder,
         ).encode("utf-8")
 
 

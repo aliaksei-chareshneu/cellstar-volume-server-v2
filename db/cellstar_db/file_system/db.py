@@ -3,12 +3,9 @@ import os
 import shutil
 from argparse import ArgumentError
 from pathlib import Path
-from sys import stdout
-from typing import Dict
-from cellstar_db.file_system.annotations_context import AnnnotationsEditContext
 
 import zarr
-
+from cellstar_db.file_system.annotations_context import AnnnotationsEditContext
 from cellstar_db.file_system.constants import (
     ANNOTATION_METADATA_FILENAME,
     DB_NAMESPACES,
@@ -19,9 +16,11 @@ from cellstar_db.file_system.constants import (
 )
 from cellstar_db.file_system.models import FileSystemVolumeMedatada
 from cellstar_db.file_system.read_context import FileSystemDBReadContext
+from cellstar_db.file_system.volume_and_segmentation_context import (
+    VolumeAndSegmentationContext,
+)
 from cellstar_db.models import AnnotationsMetadata, Metadata, VolumeMetadata
 from cellstar_db.protocol import DBReadContext, VolumeServerDB
-from cellstar_db.file_system.volume_and_segmentation_context import VolumeAndSegmentationContext
 
 
 class FileSystemVolumeServerDB(VolumeServerDB):
@@ -61,7 +60,7 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         self.filenames_to_be_stored = [
             GRID_METADATA_FILENAME,
             ANNOTATION_METADATA_FILENAME,
-            GEOMETRIC_SEGMENTATION_FILENAME
+            GEOMETRIC_SEGMENTATION_FILENAME,
         ]
 
         if not store_type in ["directory", "zip"]:
@@ -118,8 +117,10 @@ class FileSystemVolumeServerDB(VolumeServerDB):
                     path.unlink()
                 if path.is_dir():
                     shutil.rmtree(path, ignore_errors=True)
-    
-    async def add_custom_annotations(self, namespace: str, key: str, temp_store_path: Path) -> bool:
+
+    async def add_custom_annotations(
+        self, namespace: str, key: str, temp_store_path: Path
+    ) -> bool:
         """
         Takes path to temp zarr structure returned by preprocessor as argument
         """
@@ -148,13 +149,15 @@ class FileSystemVolumeServerDB(VolumeServerDB):
     def store_entry_files(self, temp_store_path: Path, namespace: str, key: str):
         for filename in self.filenames_to_be_stored:
             self._store_entry_file(
-            temp_store_path=temp_store_path,
-            filename=filename,
-            namespace=namespace,
-            key=key
-        )
+                temp_store_path=temp_store_path,
+                filename=filename,
+                namespace=namespace,
+                key=key,
+            )
 
-    def _store_entry_file(self, temp_store_path: Path, filename: str, namespace: str, key: str):
+    def _store_entry_file(
+        self, temp_store_path: Path, filename: str, namespace: str, key: str
+    ):
         if (temp_store_path / filename).exists():
             shutil.copy2(
                 temp_store_path / filename,
@@ -163,8 +166,9 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         else:
             print(f"no {filename} file found, continuing without copying it")
 
-
-    async def add_segmentation_to_entry(self, namespace: str, key: str, temp_store_path: Path) -> bool:
+    async def add_segmentation_to_entry(
+        self, namespace: str, key: str, temp_store_path: Path
+    ) -> bool:
         """
         Takes path to temp zarr structure returned by preprocessor as argument
         """
@@ -194,13 +198,18 @@ class FileSystemVolumeServerDB(VolumeServerDB):
                 path=str(self.path_to_zarr_root_data(namespace, key)),
                 compression=0,
                 allowZip64=True,
-                mode='r'
+                mode="r",
             )
             # Re-create zarr hierarchy from opened store
             existing_root: zarr.Group = zarr.group(store=existing_store)
 
             # copy data from existing to temp store
-            zarr.copy_store(source=existing_store, dest=temp_store, source_path=VOLUME_DATA_GROUPNAME, dest_path=VOLUME_DATA_GROUPNAME)
+            zarr.copy_store(
+                source=existing_store,
+                dest=temp_store,
+                source_path=VOLUME_DATA_GROUPNAME,
+                dest_path=VOLUME_DATA_GROUPNAME,
+            )
 
             existing_store.close()
 
@@ -215,7 +224,7 @@ class FileSystemVolumeServerDB(VolumeServerDB):
                 allowZip64=True,
                 mode="w",
             )
-            zarr.copy_store(temp_store, perm_store) # , log=stdout)
+            zarr.copy_store(temp_store, perm_store)  # , log=stdout)
 
         else:
             raise ArgumentError("store type is wrong: {self.store_type}")
@@ -225,11 +234,9 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         print("B: " + GRID_METADATA_FILENAME)
 
         self.store_entry_files(
-            temp_store_path=temp_store_path,
-            namespace=namespace,
-            key=key
+            temp_store_path=temp_store_path, namespace=namespace, key=key
         )
-        
+
         if self.store_type == "zip":
             perm_store.close()
 
@@ -257,7 +264,7 @@ class FileSystemVolumeServerDB(VolumeServerDB):
 
         if self.store_type == "directory":
             perm_store = zarr.DirectoryStore(str(self._path_to_object(namespace, key)))
-            zarr.copy_store(temp_store, perm_store) # , log=stdout)
+            zarr.copy_store(temp_store, perm_store)  # , log=stdout)
         elif self.store_type == "zip":
             entry_dir_path = self._path_to_object(namespace, key)
             entry_dir_path.mkdir(parents=True, exist_ok=True)
@@ -267,7 +274,7 @@ class FileSystemVolumeServerDB(VolumeServerDB):
                 allowZip64=True,
                 mode="w",
             )
-            zarr.copy_store(temp_store, perm_store) # , log=stdout)
+            zarr.copy_store(temp_store, perm_store)  # , log=stdout)
         else:
             raise ArgumentError("store type is wrong: {self.store_type}")
 
@@ -276,9 +283,7 @@ class FileSystemVolumeServerDB(VolumeServerDB):
         print("B: " + GRID_METADATA_FILENAME)
 
         self.store_entry_files(
-            temp_store_path=temp_store_path,
-            namespace=namespace,
-            key=key
+            temp_store_path=temp_store_path, namespace=namespace, key=key
         )
 
         if self.store_type == "zip":
@@ -291,8 +296,12 @@ class FileSystemVolumeServerDB(VolumeServerDB):
     def read(self, namespace: str, key: str) -> DBReadContext:
         return FileSystemDBReadContext(db=self, namespace=namespace, key=key)
 
-    def edit_data(self, namespace: str, key: str, working_folder: Path) -> VolumeAndSegmentationContext:
-        return VolumeAndSegmentationContext(db=self, namespace=namespace, key=key, working_folder=working_folder)
+    def edit_data(
+        self, namespace: str, key: str, working_folder: Path
+    ) -> VolumeAndSegmentationContext:
+        return VolumeAndSegmentationContext(
+            db=self, namespace=namespace, key=key, working_folder=working_folder
+        )
 
     def edit_annotations(self, namespace: str, key: str) -> AnnnotationsEditContext:
         return AnnnotationsEditContext(db=self, namespace=namespace, key=key)

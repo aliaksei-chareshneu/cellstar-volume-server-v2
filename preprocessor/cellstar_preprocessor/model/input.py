@@ -23,19 +23,19 @@ class InputKind(str, Enum):
     sff = "sff"
     # ometiff = 'ometiff'
     omezarr = "omezarr"
-    mask = 'mask'
+    mask = "mask"
     # do we need to have it as separate types (am, mod, seg), or better to have general one and
     # leave it for a specific conversion function to check the extension and run conversion?
     application_specific_segmentation = "application_specific_segmentation"
-    custom_annotations = 'custom_annotations'
-    nii_volume = 'nii_volume'
-    nii_segmentation = 'nii_segmentation'
-    geometric_segmentation = 'geometric_segmentation'
-    star_file_geometric_segmentation = 'star_file_geometric_segmentation'
-    ometiff_image = 'ometiff_image'
-    ometiff_segmentation = 'ometiff_segmentation'
+    custom_annotations = "custom_annotations"
+    nii_volume = "nii_volume"
+    nii_segmentation = "nii_segmentation"
+    geometric_segmentation = "geometric_segmentation"
+    star_file_geometric_segmentation = "star_file_geometric_segmentation"
+    ometiff_image = "ometiff_image"
+    ometiff_segmentation = "ometiff_segmentation"
     # allencell_metadata_csv = 'extra_data'
-    extra_data = 'extra_data'
+    extra_data = "extra_data"
 
 
 class QuantizationDtype(str, Enum):

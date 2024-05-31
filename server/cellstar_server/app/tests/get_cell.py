@@ -1,23 +1,27 @@
 import unittest
 
 import requests
-
 from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 test_configs = {
     "emdb": {
         "emd-1832": {
-            "cell": {"segmentation": '0',
-                     "time": 0,
-                     "channel_id": '0',
-                     "max_points": 100000000},
-            "down_sampled": {"segmentation": '0',
-                             "time": 0,
-                     "channel_id": '0',
-                     "max_points": 10},
+            "cell": {
+                "segmentation": "0",
+                "time": 0,
+                "channel_id": "0",
+                "max_points": 100000000,
+            },
+            "down_sampled": {
+                "segmentation": "0",
+                "time": 0,
+                "channel_id": "0",
+                "max_points": 10,
+            },
         }
     }
 }
+
 
 # @app.get("/v1/{source}/{id}/volume/cell/{time}/{channel_id}")
 class FetchVolumeTest(ServerTestBase):
@@ -38,15 +42,30 @@ class FetchVolumeTest(ServerTestBase):
                     for entry_id in entries.keys():
                         entry = entries.get(entry_id)
 
-                        out_of_boundaries = self.__fetch_for_test(db, entry_id, entry.get("cell"))
-                        print("[VolumeTests] Case *cell* -> received body of len : " + str(len(out_of_boundaries)))
+                        out_of_boundaries = self.__fetch_for_test(
+                            db, entry_id, entry.get("cell")
+                        )
+                        print(
+                            "[VolumeTests] Case *cell* -> received body of len : "
+                            + str(len(out_of_boundaries))
+                        )
 
-                        down_sampled = self.__fetch_for_test(db, entry_id, entry.get("down_sampled"))
-                        print("[VolumeTests] Case *down_sampled* -> received body of len : " + str(len(down_sampled)))
+                        down_sampled = self.__fetch_for_test(
+                            db, entry_id, entry.get("down_sampled")
+                        )
+                        print(
+                            "[VolumeTests] Case *down_sampled* -> received body of len : "
+                            + str(len(down_sampled))
+                        )
 
-                        self.assertAlmostEqual(len(out_of_boundaries) / (8 * len(down_sampled)), 1, delta=0.4)
+                        self.assertAlmostEqual(
+                            len(out_of_boundaries) / (8 * len(down_sampled)),
+                            1,
+                            delta=0.4,
+                        )
         finally:
             pass
+
 
 # NOTE: this test won't work for segmentation probably
 # because it contains set table which does not scale with downsampling

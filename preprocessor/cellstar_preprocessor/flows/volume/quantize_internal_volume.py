@@ -1,7 +1,6 @@
 import dask.array as da
 import numpy as np
 import zarr
-
 from cellstar_preprocessor.flows.common import (
     create_dataset_wrapper,
     open_zarr_structure_from_path,

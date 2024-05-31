@@ -6,25 +6,40 @@
 
 import argparse
 import json
-from typing import TypedDict
-from cellstar_db.models import GeometricSegmentationInputData, ShapePrimitiveInputData, ShapePrimitiveKind, SphereInputParams
-from cellstar_preprocessor.flows.common import convert_hex_to_rgba_fractional
-import starfile
 from pathlib import Path
 
-STAR_FILE_PATH = Path('preprocessor/temp/pdbe_dataset_scripts/80S_bin1_cryoDRGN-ET_clean_tomo_9.star')
-JSON_PATH = Path('preprocessor/temp/shape_primitives/shape_primitives_9rec_input.json')
+import starfile
+from cellstar_db.models import (
+    GeometricSegmentationInputData,
+    ShapePrimitiveInputData,
+    ShapePrimitiveKind,
+    SphereInputParams,
+)
+from cellstar_preprocessor.flows.common import convert_hex_to_rgba_fractional
+
+STAR_FILE_PATH = Path(
+    "preprocessor/temp/pdbe_dataset_scripts/80S_bin1_cryoDRGN-ET_clean_tomo_9.star"
+)
+JSON_PATH = Path("preprocessor/temp/shape_primitives/shape_primitives_9rec_input.json")
 
 
 # TODO: use rln_ribosome_bin1_tomo_649.star
 
+
 # divisor = 4
-def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: list[float], pixel_size: float, star_file_coordinate_divisor: int, segmentation_id: str):
+def parse_single_star_file(
+    path: Path,
+    sphere_radius: float,
+    sphere_color: list[float],
+    pixel_size: float,
+    star_file_coordinate_divisor: int,
+    segmentation_id: str,
+):
     lst: list[ShapePrimitiveInputData] = []
     df = starfile.read(str(path.resolve()))
     for index, row in df.iterrows():
         # micrograph_name = row['rlnTomoName'].split('_')
-        label = row['rlnTomoName']
+        row["rlnTomoName"]
         # radius = 0.08 * 200
         radius = sphere_radius
         color = sphere_color
@@ -35,38 +50,37 @@ def parse_single_star_file(path: Path, sphere_radius: float, sphere_color: list[
                 id=index,
                 # kind=ShapePrimitiveKind.sphere,
                 center=(
-                    row['rlnCoordinateX']/star_file_coordinate_divisor * pixel_size,
-                    row['rlnCoordinateY']/star_file_coordinate_divisor * pixel_size,
-                    row['rlnCoordinateZ']/star_file_coordinate_divisor * pixel_size
-                    ),
+                    row["rlnCoordinateX"] / star_file_coordinate_divisor * pixel_size,
+                    row["rlnCoordinateY"] / star_file_coordinate_divisor * pixel_size,
+                    row["rlnCoordinateZ"] / star_file_coordinate_divisor * pixel_size,
+                ),
                 color=color,
                 radius=radius,
-            )
+            ),
         )
-        
+
         lst.append(sp_input_data)
-    d = {
-            0: lst
-        }
+    d = {0: lst}
     geometric_segmentation_input = GeometricSegmentationInputData(
-        segmentation_id=segmentation_id,
-        shape_primitives_input=d
+        segmentation_id=segmentation_id, shape_primitives_input=d
     )
-    
+
     return geometric_segmentation_input
 
+
 def parse_script_args():
-    parser=argparse.ArgumentParser()
-    parser.add_argument('--star_file_path', type=str, help='')
-    parser.add_argument('--geometric_segmentation_input_file_path', type=str, help='')
-    parser.add_argument('--sphere_radius', type=float)
-    parser.add_argument('--segmentation_id', type=str)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--star_file_path", type=str, help="")
+    parser.add_argument("--geometric_segmentation_input_file_path", type=str, help="")
+    parser.add_argument("--sphere_radius", type=float)
+    parser.add_argument("--segmentation_id", type=str)
     # TODO: color as hex? => transform to list float
-    parser.add_argument('--sphere_color_hex', type=str)
-    parser.add_argument('--pixel_size', type=float)
-    parser.add_argument('--star_file_coordinate_divisor', type=int, default=4 )
-    args=parser.parse_args()
+    parser.add_argument("--sphere_color_hex", type=str)
+    parser.add_argument("--pixel_size", type=float)
+    parser.add_argument("--star_file_coordinate_divisor", type=int, default=4)
+    args = parser.parse_args()
     return args
+
 
 def main(args: argparse.Namespace):
     star_file_path = Path(args.star_file_path)
@@ -74,23 +88,25 @@ def main(args: argparse.Namespace):
     sphere_color_hex: str = args.sphere_color_hex
     pixel_size = args.pixel_size
     star_file_coordinate_divisor = args.star_file_coordinate_divisor
-    geometric_segmentation_input_file_path = Path(args.geometric_segmentation_input_file_path)
-    
+    geometric_segmentation_input_file_path = Path(
+        args.geometric_segmentation_input_file_path
+    )
+
     sphere_color = convert_hex_to_rgba_fractional(sphere_color_hex)
-    
+
     lst = parse_single_star_file(
         path=star_file_path,
         sphere_radius=sphere_radius,
         sphere_color=sphere_color,
         pixel_size=pixel_size,
         star_file_coordinate_divisor=star_file_coordinate_divisor,
-        segmentation_id=args.segmentation_id
-    )  
-    with (geometric_segmentation_input_file_path).open('w') as fp:
+        segmentation_id=args.segmentation_id,
+    )
+    with (geometric_segmentation_input_file_path).open("w") as fp:
         json.dump(lst.dict(), fp, indent=4)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # lst = parse_single_star_file(STAR_FILE_PATH, 16, 16776960, 7.84, 4)
     args = parse_script_args()
     main(args)
-    

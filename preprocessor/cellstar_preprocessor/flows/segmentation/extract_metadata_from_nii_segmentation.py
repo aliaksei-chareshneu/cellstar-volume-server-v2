@@ -3,8 +3,8 @@ from cellstar_preprocessor.flows.common import (
     open_zarr_structure_from_path,
 )
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
-from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
+
 
 def _get_segmentation_sampling_info(
     root_data_group, sampling_info_dict, volume_sampling_info_dict
@@ -32,6 +32,7 @@ def _get_segmentation_sampling_info(
                     == channel_gr.grid.shape
                 )
 
+
 def extract_metadata_from_nii_segmentation(internal_segmentation: InternalSegmentation):
     # PLAN:
     # takes prefilled metadata dict from nii metadata
@@ -40,7 +41,6 @@ def extract_metadata_from_nii_segmentation(internal_segmentation: InternalSegmen
         internal_segmentation.intermediate_zarr_structure_path
     )
     metadata_dict = root.attrs["metadata_dict"]
-
 
     # nii has one channel
     channel_ids = [0]
@@ -71,14 +71,10 @@ def extract_metadata_from_nii_segmentation(internal_segmentation: InternalSegmen
             sampling_info_dict=metadata_dict["segmentation_lattices"][
                 "segmentation_sampling_info"
             ][str(lattice_id)],
-            volume_sampling_info_dict=metadata_dict["volumes"][
-                "volume_sampling_info"
-            ],
+            volume_sampling_info_dict=metadata_dict["volumes"]["volume_sampling_info"],
         )
 
-        metadata_dict["segmentation_lattices"]["channel_ids"][
-            lattice_id
-        ] = channel_ids
+        metadata_dict["segmentation_lattices"]["channel_ids"][lattice_id] = channel_ids
 
         metadata_dict["segmentation_lattices"]["time_info"][lattice_id] = {
             "kind": "range",
@@ -89,6 +85,5 @@ def extract_metadata_from_nii_segmentation(internal_segmentation: InternalSegmen
 
     metadata_dict["segmentation_lattices"]["segmentation_ids"] = lattice_ids
 
-    
     root.attrs["metadata_dict"] = metadata_dict
     return metadata_dict

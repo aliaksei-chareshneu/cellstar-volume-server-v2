@@ -1,23 +1,26 @@
-from cellstar_preprocessor.flows import segmentation
-from cellstar_preprocessor.flows.common import _convert_to_angstroms
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import numpy as np
 import zarr
 from cellstar_db.file_system.constants import VOLUME_DATA_GROUPNAME
-from cellstar_db.models import DownsamplingLevelInfo, EntryId, Metadata, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-
+from cellstar_db.models import (
+    DownsamplingLevelInfo,
+    EntryId,
+    Metadata,
+    TimeInfo,
+    VolumeSamplingInfo,
+    VolumesMetadata,
+)
 from cellstar_preprocessor.flows.common import (
+    _convert_to_angstroms,
     get_downsamplings,
     open_zarr_structure_from_path,
 )
-from cellstar_preprocessor.flows.constants import (
-    LATTICE_SEGMENTATION_DATA_GROUPNAME,
-)
+from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
 from cellstar_preprocessor.model.volume import InternalVolume
+
 
 def _get_first_available_resolution(downsamplings: list[DownsamplingLevelInfo]):
     available = list(filter(lambda a: a["available"] == True, downsamplings))
-    downsampling_levels = sorted([a['level'] for a in available])
+    downsampling_levels = sorted([a["level"] for a in available])
     first_available_resolution = downsampling_levels[0]
     return first_available_resolution
 
@@ -272,7 +275,9 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
         }
 
         for time_gr_name, time_gr in res_gr.groups():
-            sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"] = time_gr.grid.shape
+            sampling_info_dict["boxes"][res_gr_name][
+                "grid_dimensions"
+            ] = time_gr.grid.shape
 
 
 def _get_source_axes_units(ome_zarr_root_attrs: zarr.Group):
@@ -314,10 +319,16 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
     ome_zarr_root.attrs.put(new_volume_attrs_dict)
 
     volume_downsamplings = get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
-    first_available_image_resolution = _get_first_available_resolution(volume_downsamplings)
-    channel_ids = _get_channel_ids(time_data_group=root[VOLUME_DATA_GROUPNAME][first_available_image_resolution][0])
+    first_available_image_resolution = _get_first_available_resolution(
+        volume_downsamplings
+    )
+    channel_ids = _get_channel_ids(
+        time_data_group=root[VOLUME_DATA_GROUPNAME][first_available_image_resolution][0]
+    )
     start_time, end_time = _get_start_end_time(
-        resolution_data_group=root[VOLUME_DATA_GROUPNAME][first_available_image_resolution]
+        resolution_data_group=root[VOLUME_DATA_GROUPNAME][
+            first_available_image_resolution
+        ]
     )
 
     # 1. Collect common metadata
@@ -374,11 +385,13 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
 
     if LATTICE_SEGMENTATION_DATA_GROUPNAME in root:
         metadata_dict["segmentation_lattices"] = {
-            'segmentation_ids': [],
-            'segmentation_sampling_info': {},
-            'time_info': {}
+            "segmentation_ids": [],
+            "segmentation_sampling_info": {},
+            "time_info": {},
         }
-        for label_gr_name, label_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
+        for label_gr_name, label_gr in root[
+            LATTICE_SEGMENTATION_DATA_GROUPNAME
+        ].groups():
             new_segm_attrs_dict = _add_defaults_to_ome_zarr_attrs(
                 ome_zarr_root=ome_zarr_root.labels[label_gr_name]
             )
@@ -394,11 +407,11 @@ def extract_ome_zarr_metadata(internal_volume: InternalVolume):
 
             lattice_ids.append(lattice_id)
 
-            segmentation_downsamplings = get_downsamplings(
-                data_group=label_gr
-                )
-            
-            first_available_segm_resolution = _get_first_available_resolution(segmentation_downsamplings)
+            segmentation_downsamplings = get_downsamplings(data_group=label_gr)
+
+            first_available_segm_resolution = _get_first_available_resolution(
+                segmentation_downsamplings
+            )
             metadata_dict["segmentation_lattices"]["segmentation_sampling_info"][
                 str(lattice_id)
             ] = {

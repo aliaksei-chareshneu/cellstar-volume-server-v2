@@ -2,17 +2,16 @@ import math
 
 import numpy as np
 import zarr
-
 from cellstar_preprocessor.flows.common import (
     compute_downsamplings_to_be_stored,
     compute_number_of_downsampling_steps,
     open_zarr_structure_from_path,
 )
 from cellstar_preprocessor.flows.constants import (
+    LATTICE_SEGMENTATION_DATA_GROUPNAME,
     MESH_SEGMENTATION_DATA_GROUPNAME,
     MESH_VERTEX_DENSITY_THRESHOLD,
     MIN_GRID_SIZE,
-    LATTICE_SEGMENTATION_DATA_GROUPNAME,
 )
 from cellstar_preprocessor.flows.segmentation.category_set_downsampling_methods import (
     downsample_categorical_data,
@@ -78,7 +77,7 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
                         lattice_id
                     ],
                     params_for_storing=internal_segmentation.params_for_storing,
-                    time_frame=time
+                    time_frame=time,
                 )
 
         # NOTE: removes original level resolution data
@@ -129,7 +128,7 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
                         # if there is no meshes left in dict - break from while loop
                         if not bool(mesh_data_dict):
                             break
-                        
+
                         # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
                         group_ref = store_mesh_data_in_zarr(
                             mesh_data_dict,
@@ -140,7 +139,9 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
 
                     # segment[1]
                     # NOTE: removes original level resolution data
-                    if internal_segmentation.downsampling_parameters.remove_original_resolution:
+                    if (
+                        internal_segmentation.downsampling_parameters.remove_original_resolution
+                    ):
                         del segment[1]
                         # print("Original resolution data removed for segmentation")
         if internal_segmentation.downsampling_parameters.remove_original_resolution:

@@ -1,6 +1,4 @@
 import zarr
-from vedo import Mesh
-
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import (
     LATTICE_SEGMENTATION_DATA_GROUPNAME,
@@ -19,6 +17,7 @@ from cellstar_preprocessor.flows.segmentation.helper_methods import (
 )
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
+from vedo import Mesh
 
 
 def sff_preprocessing(internal_segmentation: InternalSegmentation):
@@ -37,8 +36,8 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
     # 2. Process it with one of 2 methods (3d volume segmentation, mesh segmentation)
     if zarr_structure.primary_descriptor[0] == b"three_d_volume":
         segm_data_gr: zarr.Group = zarr_structure.create_group(
-        LATTICE_SEGMENTATION_DATA_GROUPNAME
-    )
+            LATTICE_SEGMENTATION_DATA_GROUPNAME
+        )
         internal_segmentation.primary_descriptor = (
             SegmentationPrimaryDescriptor.three_d_volume
         )
@@ -50,8 +49,8 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
         )
     elif zarr_structure.primary_descriptor[0] == b"mesh_list":
         segm_data_gr: zarr.Group = zarr_structure.create_group(
-        MESH_SEGMENTATION_DATA_GROUPNAME
-    )
+            MESH_SEGMENTATION_DATA_GROUPNAME
+        )
         internal_segmentation.primary_descriptor = (
             SegmentationPrimaryDescriptor.mesh_list
         )
@@ -60,7 +59,7 @@ def sff_preprocessing(internal_segmentation: InternalSegmentation):
         )
 
         # NOTE: single mesh set group and timeframe group
-        mesh_set_gr = segm_data_gr.create_group('0')
+        mesh_set_gr = segm_data_gr.create_group("0")
         timeframe_gr = mesh_set_gr.create_group(0)
 
         _process_mesh_segmentation_data(
@@ -103,7 +102,7 @@ def _process_mesh_segmentation_data(
     timeframe_gr: zarr.Group,
     zarr_structure: zarr.Group,
     internal_segmentation: InternalSegmentation,
-):  
+):
     params_for_storing = internal_segmentation.params_for_storing
 
     for segment_name, segment in zarr_structure.segment_list.groups():

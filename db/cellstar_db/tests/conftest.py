@@ -1,39 +1,42 @@
 import asyncio
+import copy
 from pathlib import Path
 from typing import TypedDict
-from cellstar_db.file_system.db import FileSystemVolumeServerDB
-from cellstar_db.models import AnnotationsMetadata, DescriptionData, SegmentAnnotationData
-import pytest
-from cellstar_preprocessor.preprocess import main_preprocessor
-import copy
 
-TEST_DB_FOLDER = Path('db/cellstar_db/tests/test_data/testing_db')
+import pytest
+from cellstar_db.file_system.db import FileSystemVolumeServerDB
+from cellstar_db.models import (
+    AnnotationsMetadata,
+    DescriptionData,
+    SegmentAnnotationData,
+)
+from cellstar_preprocessor.preprocess import main_preprocessor
+
+TEST_DB_FOLDER = Path("db/cellstar_db/tests/test_data/testing_db")
 TEST_ENTRY_INPUT_PATHS = [
-    Path('test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map'),
-    Path('test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff')
+    Path("test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map"),
+    Path("test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff"),
 ]
-TEST_ENTRY_INPUT_KINDS = [
-    'map',
-    'sff'
-]
+TEST_ENTRY_INPUT_KINDS = ["map", "sff"]
 
 TEST_ENTRY_PREPROCESSOR_INPUT = dict(
-    mode='add',
+    mode="add",
     quantize_dtype_str=None,
     quantize_downsampling_levels=None,
     force_volume_dtype=None,
     max_size_per_downsampling_lvl_mb=None,
     min_downsampling_level=None,
     max_downsampling_level=None,
-    entry_id='emd-1832',
-    source_db='emdb',
-    source_db_id='emd-1832',
-    source_db_name='emdb',
-    working_folder=Path('db/cellstar_db/tests/test_data/testing_working_folder'),
+    entry_id="emd-1832",
+    source_db="emdb",
+    source_db_id="emd-1832",
+    source_db_name="emdb",
+    working_folder=Path("db/cellstar_db/tests/test_data/testing_working_folder"),
     db_path=TEST_DB_FOLDER,
     input_paths=TEST_ENTRY_INPUT_PATHS,
-    input_kinds=TEST_ENTRY_INPUT_KINDS
+    input_kinds=TEST_ENTRY_INPUT_KINDS,
 )
+
 
 @pytest.fixture(scope="module")
 def testing_db():
@@ -41,33 +44,31 @@ def testing_db():
     if TEST_DB_FOLDER.is_dir() == False:
         TEST_DB_FOLDER.mkdir()
 
-    db = FileSystemVolumeServerDB(
-        folder=TEST_DB_FOLDER,
-        store_type='zip'
-    )
+    db = FileSystemVolumeServerDB(folder=TEST_DB_FOLDER, store_type="zip")
 
     # remove previous test entry if it exists
-    exists = asyncio.run(db.contains(
-        TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
-        TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
-    ))
+    exists = asyncio.run(
+        db.contains(
+            TEST_ENTRY_PREPROCESSOR_INPUT["source_db"],
+            TEST_ENTRY_PREPROCESSOR_INPUT["entry_id"],
+        )
+    )
     if exists:
-        asyncio.run(db.delete(
-            TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
-            TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
-        ))
+        asyncio.run(
+            db.delete(
+                TEST_ENTRY_PREPROCESSOR_INPUT["source_db"],
+                TEST_ENTRY_PREPROCESSOR_INPUT["entry_id"],
+            )
+        )
 
     # create test entry with annotations
     # NOTE: for now just could be emd-1832 sff, 6 descriptions, 6 segment annotations
     # TODO: in future can add to emd-1832 map and sff also geometric segmentation
     # but for testing annotations context emd-1832 sff is sufficient
-    asyncio.run(
-        main_preprocessor(
-            **TEST_ENTRY_PREPROCESSOR_INPUT
-        )
-    )
-    
+    asyncio.run(main_preprocessor(**TEST_ENTRY_PREPROCESSOR_INPUT))
+
     yield db
+
 
 # to modify annotations we need to know annotation ids
 # how to get them?
@@ -91,24 +92,20 @@ def testing_db():
 
 FAKE_SEGMENT_ANNOTATIONS: list[SegmentAnnotationData] = [
     {
-        "color": [
-            0, 0, 0, 1.0
-        ],
+        "color": [0, 0, 0, 1.0],
         "id": "whatever_1",
         "segment_id": 9999999999999,
         # "segment_kind": "lattice",
         "segmentation_id": "999999999",
-        "time": 999999999999999
+        "time": 999999999999999,
     },
     {
-        "color": [
-            1.0, 1.0, 1.0, 1.0
-        ],
+        "color": [1.0, 1.0, 1.0, 1.0],
         "id": "whatever_2",
         "segment_id": 888888888,
         "segment_kind": "lattice",
         "segmentation_id": "888888888",
-        "time": 8888888888
+        "time": 8888888888,
     },
 ]
 
@@ -122,7 +119,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 51,
                 "label": "DNA replication",
                 "resource": "go",
-                "url": "http://purl.obolibrary.org/obo/GO_0006260"
+                "url": "http://purl.obolibrary.org/obo/GO_0006260",
             },
             {
                 "accession": "GO_0030174",
@@ -130,7 +127,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 52,
                 "label": "regulation of DNA-dependent DNA replication initiation",
                 "resource": "go",
-                "url": "http://purl.obolibrary.org/obo/GO_0030174"
+                "url": "http://purl.obolibrary.org/obo/GO_0030174",
             },
             {
                 "accession": "PR_000010246",
@@ -138,7 +135,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 53,
                 "label": "DNA replication licensing factor MCM4",
                 "resource": "pr",
-                "url": "http://purl.obolibrary.org/obo/PR_000010246"
+                "url": "http://purl.obolibrary.org/obo/PR_000010246",
             },
             {
                 "accession": "NCIT_C33909",
@@ -146,7 +143,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 54,
                 "label": "DNA Replication Licensing Factor MCM4",
                 "resource": "ncit",
-                "url": "http://purl.obolibrary.org/obo/NCIT_C33909"
+                "url": "http://purl.obolibrary.org/obo/NCIT_C33909",
             },
             {
                 "accession": "Q26454",
@@ -154,19 +151,16 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 55,
                 "label": "MCM4_DROME",
                 "resource": "UniProt",
-                "url": "https://www.uniprot.org/uniprot/Q26454"
-            }
+                "url": "https://www.uniprot.org/uniprot/Q26454",
+            },
         ],
         "id": "7fbb778a-4a01-41d4-b8e2-e4ca187eb5ff",
         "is_hidden": None,
         "metadata": None,
         "name": "DNA replication licensing factor MCM4",
-        "target_id": {
-            "segment_id": 97,
-            "segmentation_id": "0"
-        },
+        "target_id": {"segment_id": 97, "segmentation_id": "0"},
         "target_kind": "lattice",
-        "time": 0
+        "time": 0,
     },
     {
         "details": None,
@@ -177,7 +171,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 41,
                 "label": "DNA replication",
                 "resource": "go",
-                "url": "http://purl.obolibrary.org/obo/GO_0006260"
+                "url": "http://purl.obolibrary.org/obo/GO_0006260",
             },
             {
                 "accession": "GO_0030174",
@@ -185,7 +179,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 42,
                 "label": "regulation of DNA-dependent DNA replication initiation",
                 "resource": "go",
-                "url": "http://purl.obolibrary.org/obo/GO_0030174"
+                "url": "http://purl.obolibrary.org/obo/GO_0030174",
             },
             {
                 "accession": "PR_000010242",
@@ -193,7 +187,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 43,
                 "label": "DNA replication licensing factor MCM2",
                 "resource": "pr",
-                "url": "http://purl.obolibrary.org/obo/PR_000010242"
+                "url": "http://purl.obolibrary.org/obo/PR_000010242",
             },
             {
                 "accession": "NCIT_C28642",
@@ -201,7 +195,7 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 44,
                 "label": "DNA Replication Licensing Factor MCM2",
                 "resource": "ncit",
-                "url": "http://purl.obolibrary.org/obo/NCIT_C28642"
+                "url": "http://purl.obolibrary.org/obo/NCIT_C28642",
             },
             {
                 "accession": "P49735",
@@ -209,21 +203,19 @@ FAKE_DESCRIPTIONS: list[DescriptionData] = [
                 "id": 45,
                 "label": "MCM2_DROME",
                 "resource": "UniProt",
-                "url": "https://www.uniprot.org/uniprot/P49735"
-            }
+                "url": "https://www.uniprot.org/uniprot/P49735",
+            },
         ],
         "id": "9b590856-bd9a-4edc-9e49-c7b5af12773f",
         "is_hidden": None,
         "metadata": None,
         "name": "DNA replication licensing factor MCM2",
-        "target_id": {
-            "segment_id": 85,
-            "segmentation_id": "0"
-        },
+        "target_id": {"segment_id": 85, "segmentation_id": "0"},
         "target_kind": "lattice",
-        "time": 0
-    }
+        "time": 0,
+    },
 ]
+
 
 class TestData(TypedDict):
     modify_annotations: list[SegmentAnnotationData]
@@ -236,90 +228,95 @@ class TestData(TypedDict):
     # NOTE: uuid
     remove_descriptions: list[str]
 
+
 def __get_annotations(testing_db: FileSystemVolumeServerDB):
-    annotations: AnnotationsMetadata = asyncio.run(testing_db.read_annotations(
-        TEST_ENTRY_PREPROCESSOR_INPUT['source_db'],
-        TEST_ENTRY_PREPROCESSOR_INPUT['entry_id']
-    ))
+    annotations: AnnotationsMetadata = asyncio.run(
+        testing_db.read_annotations(
+            TEST_ENTRY_PREPROCESSOR_INPUT["source_db"],
+            TEST_ENTRY_PREPROCESSOR_INPUT["entry_id"],
+        )
+    )
     return annotations
 
-def _generate_test_data_for_modify_annotations(testing_db) -> list[SegmentAnnotationData]:
+
+def _generate_test_data_for_modify_annotations(
+    testing_db,
+) -> list[SegmentAnnotationData]:
     # first get existing annotation ids from testing db
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
     fake_segment_annotations = copy.deepcopy(FAKE_SEGMENT_ANNOTATIONS)
-    existing_annotation_ids = [a['id'] for a in annotations['segment_annotations']]
+    existing_annotation_ids = [a["id"] for a in annotations["segment_annotations"]]
     first_fake_segment_annotation = fake_segment_annotations[0]
-    first_fake_segment_annotation['id'] = existing_annotation_ids[0]
+    first_fake_segment_annotation["id"] = existing_annotation_ids[0]
     second_fake_segment_annotation = fake_segment_annotations[1]
-    second_fake_segment_annotation['id'] = existing_annotation_ids[1]
+    second_fake_segment_annotation["id"] = existing_annotation_ids[1]
 
-    return [
-        first_fake_segment_annotation,
-        second_fake_segment_annotation
-    ]
+    return [first_fake_segment_annotation, second_fake_segment_annotation]
+
 
 def _generate_test_data_for_add_annotations() -> list[SegmentAnnotationData]:
-    return [
-        FAKE_SEGMENT_ANNOTATIONS[0],
-        FAKE_SEGMENT_ANNOTATIONS[1]
-    ]
+    return [FAKE_SEGMENT_ANNOTATIONS[0], FAKE_SEGMENT_ANNOTATIONS[1]]
+
 
 def _generate_test_data_for_remove_annotations(testing_db) -> list[str]:
     # get ids of exisiting annotations
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
-    existing_annotation_ids = [a['id'] for a in annotations['segment_annotations']]
-    return [
-        existing_annotation_ids[0],
-        existing_annotation_ids[1]
-    ]
+    existing_annotation_ids = [a["id"] for a in annotations["segment_annotations"]]
+    return [existing_annotation_ids[0], existing_annotation_ids[1]]
+
 
 def _generate_test_data_for_modify_descriptions(testing_db) -> list[DescriptionData]:
     # first get existing description ids from testing db
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
 
     fake_descriptions = copy.deepcopy(FAKE_DESCRIPTIONS)
-    existing_description_ids = list(annotations['descriptions'].keys())
-    
+    existing_description_ids = list(annotations["descriptions"].keys())
+
     first_fake_description = fake_descriptions[0]
     first_fake_description["id"] = existing_description_ids[0]
 
-    existing_description_external_reference_id = annotations['descriptions'][
+    existing_description_external_reference_id = annotations["descriptions"][
         existing_description_ids[0]
     ]["external_references"][0]["id"]
-    first_fake_description["external_references"][0]["id"] = existing_description_external_reference_id
+    first_fake_description["external_references"][0][
+        "id"
+    ] = existing_description_external_reference_id
 
     second_fake_description = fake_descriptions[1]
     second_fake_description["id"] = existing_description_ids[1]
 
-    return [
-        first_fake_description,
-        second_fake_description
-    ]
+    return [first_fake_description, second_fake_description]
+
 
 def _generate_test_data_for_add_descriptions():
     return FAKE_DESCRIPTIONS
 
+
 def _generate_test_data_for_remove_descriptions(testing_db):
     # get ids of exisiting descriptions
     annotations: AnnotationsMetadata = __get_annotations(testing_db)
-    existing_description_ids = list(annotations['descriptions'].keys())
-    return [
-        existing_description_ids[0],
-        existing_description_ids[1]
-    ]
+    existing_description_ids = list(annotations["descriptions"].keys())
+    return [existing_description_ids[0], existing_description_ids[1]]
+
 
 @pytest.fixture(scope="module")
 def generate_test_data(testing_db):
-    test_data: TestData = {
+    test_data: TestData = {}
 
-    }
-    
-    test_data['modify_annotations'] = _generate_test_data_for_modify_annotations(testing_db)
-    test_data['add_annotations'] = _generate_test_data_for_add_annotations()
-    test_data['remove_annotations'] = _generate_test_data_for_remove_annotations(testing_db)
-    
-    test_data['modify_descriptions'] = _generate_test_data_for_modify_descriptions(testing_db)
-    test_data['add_descriptions'] = _generate_test_data_for_add_descriptions()
-    test_data['remove_descriptions'] = _generate_test_data_for_remove_descriptions(testing_db)
-    
+    test_data["modify_annotations"] = _generate_test_data_for_modify_annotations(
+        testing_db
+    )
+    test_data["add_annotations"] = _generate_test_data_for_add_annotations()
+    test_data["remove_annotations"] = _generate_test_data_for_remove_annotations(
+        testing_db
+    )
+
+    test_data["modify_descriptions"] = _generate_test_data_for_modify_descriptions(
+        testing_db
+    )
+    test_data["add_descriptions"] = _generate_test_data_for_add_descriptions()
+    test_data["remove_descriptions"] = _generate_test_data_for_remove_descriptions(
+        testing_db
+    )
+
     yield testing_db, test_data

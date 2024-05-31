@@ -1,26 +1,34 @@
-
+import pytest
+import zarr
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME
-from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import ome_zarr_labels_preprocessing
-from cellstar_preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
+from cellstar_preprocessor.flows.segmentation.ome_zarr_labels_preprocessing import (
+    ome_zarr_labels_preprocessing,
+)
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
-from cellstar_preprocessor.tests.helper_methods import initialize_intermediate_zarr_structure_for_tests
-from cellstar_preprocessor.tests.input_for_tests import INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES, INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES
-import zarr
-import pytest
+from cellstar_preprocessor.tests.helper_methods import (
+    initialize_intermediate_zarr_structure_for_tests,
+)
+from cellstar_preprocessor.tests.input_for_tests import (
+    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES,
+    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES,
+)
 
 INTERNAL_SEGMENTATIONS = [
     INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES,
-    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES
+    INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES,
 ]
+
 
 @pytest.mark.parametrize("internal_segmentation", INTERNAL_SEGMENTATIONS)
 def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentation):
     initialize_intermediate_zarr_structure_for_tests()
-    
+
     ome_zarr_labels_preprocessing(internal_segmentation=internal_segmentation)
 
-    zarr_structure = open_zarr_structure_from_path(internal_segmentation.intermediate_zarr_structure_path)
+    zarr_structure = open_zarr_structure_from_path(
+        internal_segmentation.intermediate_zarr_structure_path
+    )
 
     ome_zarr_root = zarr.open_group(internal_segmentation.segmentation_input_path)
 
@@ -37,7 +45,7 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
         axes = label_gr_multiscales[0]["axes"]
 
         for arr_resolution, arr in label_gr.arrays():
-            segm_3d_arr_shape = arr[...].swapaxes(-3, -1).shape[-3:] 
+            segm_3d_arr_shape = arr[...].swapaxes(-3, -1).shape[-3:]
             # i8 is not supported by CIFTools
             if arr.dtype == "i8":
                 segm_3d_arr_dtype = "i4"
@@ -45,8 +53,10 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
                 segm_3d_arr_dtype = arr.dtype
 
             assert str(arr_resolution) in segmentation_gr[label_gr_name]
-            assert isinstance(segmentation_gr[label_gr_name][arr_resolution], zarr.Group)
-            
+            assert isinstance(
+                segmentation_gr[label_gr_name][arr_resolution], zarr.Group
+            )
+
             # check number of time groups
             if len(axes) == 5 and axes[0]["name"] == "t":
                 n_of_time_groups = arr.shape[0]
@@ -54,25 +64,34 @@ def test_ome_zarr_labels_preprocessing(internal_segmentation: InternalSegmentati
                 n_of_time_groups = 1
             else:
                 raise Exception("Axes number/order is not supported")
-            
-            assert len(segmentation_gr[label_gr_name][arr_resolution]) == n_of_time_groups
 
+            assert (
+                len(segmentation_gr[label_gr_name][arr_resolution]) == n_of_time_groups
+            )
 
             # for each time group, check if number of channels == -4 dimension of arr
             for time in range(n_of_time_groups):
                 n_of_channel_groups = arr.shape[-4]
-                assert n_of_channel_groups == 1, 'NGFFs with labels having more than one channel are not supported'
-            
-                assert isinstance(segmentation_gr[label_gr_name][arr_resolution][time], zarr.Group)
-                assert 'grid' in segmentation_gr[label_gr_name][arr_resolution][time]
-                assert segmentation_gr[label_gr_name][arr_resolution][time].grid.shape == segm_3d_arr_shape
-                assert segmentation_gr[label_gr_name][arr_resolution][time].grid.dtype == segm_3d_arr_dtype
+                assert (
+                    n_of_channel_groups == 1
+                ), "NGFFs with labels having more than one channel are not supported"
 
-                assert 'set_table' in segmentation_gr[label_gr_name][arr_resolution][time]
-                assert segmentation_gr[label_gr_name][arr_resolution][time].set_table.shape == (1,)
+                assert isinstance(
+                    segmentation_gr[label_gr_name][arr_resolution][time], zarr.Group
+                )
+                assert "grid" in segmentation_gr[label_gr_name][arr_resolution][time]
+                assert (
+                    segmentation_gr[label_gr_name][arr_resolution][time].grid.shape
+                    == segm_3d_arr_shape
+                )
+                assert (
+                    segmentation_gr[label_gr_name][arr_resolution][time].grid.dtype
+                    == segm_3d_arr_dtype
+                )
 
-
-
-
-
-    
+                assert (
+                    "set_table" in segmentation_gr[label_gr_name][arr_resolution][time]
+                )
+                assert segmentation_gr[label_gr_name][arr_resolution][
+                    time
+                ].set_table.shape == (1,)

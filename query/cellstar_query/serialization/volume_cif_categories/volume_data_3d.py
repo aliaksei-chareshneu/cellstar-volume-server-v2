@@ -1,8 +1,7 @@
 import numpy as np
+from cellstar_query.serialization.volume_cif_categories import encoders
 from ciftools.models.writer import CIFCategoryDesc
 from ciftools.models.writer import CIFFieldDesc as Field
-
-from cellstar_query.serialization.volume_cif_categories import encoders
 
 
 class VolumeData3dCategory(CIFCategoryDesc):
@@ -16,5 +15,10 @@ class VolumeData3dCategory(CIFCategoryDesc):
     def get_field_descriptors(ctx: np.ndarray):
         encoder, dtype = encoders.decide_encoder(ctx, "VolumeData3d")
         return [
-            Field.number_array(name="values", array=lambda volume: volume, encoder=lambda _: encoder, dtype=dtype),
+            Field.number_array(
+                name="values",
+                array=lambda volume: volume,
+                encoder=lambda _: encoder,
+                dtype=dtype,
+            ),
         ]

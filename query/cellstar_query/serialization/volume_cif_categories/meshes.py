@@ -1,10 +1,9 @@
 """CIF categories for mesh encoding (_mesh, _mesh_vertex, _mesh_triangle)"""
 
-from ciftools.models.writer import CIFCategoryDesc
-from ciftools.models.writer import CIFFieldDesc as Field
-
 from cellstar_query.serialization.data.meshes_for_cif import MeshesForCif
 from cellstar_query.serialization.volume_cif_categories import encoders
+from ciftools.models.writer import CIFCategoryDesc
+from ciftools.models.writer import CIFFieldDesc as Field
 
 
 class CategoryWriterProvider_Mesh(CIFCategoryDesc):
@@ -18,7 +17,10 @@ class CategoryWriterProvider_Mesh(CIFCategoryDesc):
     def get_field_descriptors(data: MeshesForCif):
         return [
             Field[MeshesForCif].number_array(
-                name="id", array=lambda d: d.mesh__id, dtype=data.mesh__id.dtype, encoder=encoders.bytearray_encoder
+                name="id",
+                array=lambda d: d.mesh__id,
+                dtype=data.mesh__id.dtype,
+                encoder=encoders.bytearray_encoder,
             ),  # usually only 1 row
         ]
 
@@ -55,13 +57,22 @@ class CategoryWriterProvider_MeshVertex(CIFCategoryDesc):
                 encoder=encoders.delta_rl_encoder,
             ),
             Field[MeshesForCif].number_array(
-                name="x", array=lambda d: d.vertex__x, dtype=data.vertex__x.dtype, encoder=x_encoder
+                name="x",
+                array=lambda d: d.vertex__x,
+                dtype=data.vertex__x.dtype,
+                encoder=x_encoder,
             ),
             Field[MeshesForCif].number_array(
-                name="y", array=lambda d: d.vertex__y, dtype=data.vertex__y.dtype, encoder=y_encoder
+                name="y",
+                array=lambda d: d.vertex__y,
+                dtype=data.vertex__y.dtype,
+                encoder=y_encoder,
             ),
             Field[MeshesForCif].number_array(
-                name="z", array=lambda d: d.vertex__z, dtype=data.vertex__z.dtype, encoder=z_encoder
+                name="z",
+                array=lambda d: d.vertex__z,
+                dtype=data.vertex__z.dtype,
+                encoder=z_encoder,
             ),
         ]
 

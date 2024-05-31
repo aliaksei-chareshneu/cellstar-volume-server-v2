@@ -1,6 +1,14 @@
 import unittest
 
-testmodules = ["start_server", "get_geometric_segmentation", "get_cell", "get_metadata", "get_volume", "get_meshes", "get_entries"]
+testmodules = [
+    "start_server",
+    "get_geometric_segmentation",
+    "get_cell",
+    "get_metadata",
+    "get_volume",
+    "get_meshes",
+    "get_entries",
+]
 
 suite = unittest.TestSuite()
 

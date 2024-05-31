@@ -1,13 +1,10 @@
 import dask.array as da
-import mrcfile
+import nibabel as nib
 import numpy as np
 import zarr
-import nibabel as nib
-
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.helper_methods import (
-    normalize_axis_order_mrcfile,
     store_volume_data_in_zarr_stucture,
 )
 from cellstar_preprocessor.model.volume import InternalVolume
@@ -25,13 +22,11 @@ def nii_preprocessing(internal_volume: InternalVolume):
 
     print(f"Processing volume file {internal_volume.volume_input_path}")
     dask_arr = da.from_array(data)
-    
+
     # dask_arr = normalize_axis_order_mrcfile(dask_arr=dask_arr, mrc_header=header)
 
     # create volume data group
-    volume_data_group: zarr.Group = zarr_structure.create_group(
-        VOLUME_DATA_GROUPNAME
-    )
+    volume_data_group: zarr.Group = zarr_structure.create_group(VOLUME_DATA_GROUPNAME)
 
     if internal_volume.quantize_dtype_str and (
         (internal_volume.volume_force_dtype in (np.uint8, np.int8))

@@ -5,9 +5,8 @@ import unittest
 from abc import ABC
 
 import uvicorn
-from uvicorn import Config
-
 from cellstar_server.main import app
+from uvicorn import Config
 
 
 class TestServerRunner(uvicorn.Server):
@@ -39,6 +38,10 @@ class ServerTestBase(ABC, unittest.TestCase):
     def setUpClass(cls):
         ServerTestBase.app = app
         config = Config(
-            ServerTestBase.app, host=ServerTestBase.ip, port=ServerTestBase.port, log_level="info", loop="asyncio"
+            ServerTestBase.app,
+            host=ServerTestBase.ip,
+            port=ServerTestBase.port,
+            log_level="info",
+            loop="asyncio",
         )
         ServerTestBase.server = TestServerRunner(config=config)

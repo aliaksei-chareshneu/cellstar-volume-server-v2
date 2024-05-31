@@ -1,7 +1,6 @@
 import unittest
 
 import requests
-
 from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 # test_configs = {
@@ -10,10 +9,14 @@ from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 
 test_configs = {
-    "empiar": {"empiar-10070": {
-        "5": {"segmentation_id": "0", "segment_id": 1, "detail_lvl": 5, "time": 0},
-        "1": {"segmentation_id": "0", "segment_id": 1, "detail_lvl": 1, "time": 0}}}
+    "empiar": {
+        "empiar-10070": {
+            "5": {"segmentation_id": "0", "segment_id": 1, "detail_lvl": 5, "time": 0},
+            "1": {"segmentation_id": "0", "segment_id": 1, "detail_lvl": 1, "time": 0},
+        }
+    }
 }
+
 
 # @app.get("/v1/{source}/{id}/mesh/{segmentation_id}/{time}/{segment_id}/{detail_lvl}")
 class FetchMeshesTest(ServerTestBase):
@@ -37,9 +40,16 @@ class FetchMeshesTest(ServerTestBase):
 
                         case_results = []
                         for case in entry.keys():
-                            case_response = self.__fetch_for_test(db, entry_id, entry.get(case))
+                            case_response = self.__fetch_for_test(
+                                db, entry_id, entry.get(case)
+                            )
                             case = int(case)
-                            print("case " + str(case) + " has len: " + str(len(case_response)))
+                            print(
+                                "case "
+                                + str(case)
+                                + " has len: "
+                                + str(len(case_response))
+                            )
                             case_results.append(len(case_response))
 
                         previous = None
@@ -74,9 +84,16 @@ class FetchMeshesBcifTest(ServerTestBase):
 
                         case_results = []
                         for case in entry.keys():
-                            case_response = self.__fetch_for_test(db, entry_id, entry.get(case))
+                            case_response = self.__fetch_for_test(
+                                db, entry_id, entry.get(case)
+                            )
                             case = int(case)
-                            print("case " + str(case) + " has len: " + str(len(case_response)))
+                            print(
+                                "case "
+                                + str(case)
+                                + " has len: "
+                                + str(len(case_response))
+                            )
                             case_results.append(len(case_response))
 
                         previous = None
@@ -88,6 +105,7 @@ class FetchMeshesBcifTest(ServerTestBase):
 
         finally:
             pass
+
 
 if __name__ == "__main__":
     unittest.main()

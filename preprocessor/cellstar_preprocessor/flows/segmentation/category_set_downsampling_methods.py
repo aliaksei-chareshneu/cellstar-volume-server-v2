@@ -1,7 +1,6 @@
 import numcodecs
 import numpy as np
 import zarr
-
 from cellstar_preprocessor.flows.common import create_dataset_wrapper
 from cellstar_preprocessor.flows.segmentation.downsampling_level_dict import (
     DownsamplingLevelDict,
@@ -12,6 +11,7 @@ from cellstar_preprocessor.flows.segmentation.segmentation_set_table import (
 from cellstar_preprocessor.tools.magic_kernel_downsampling_3d.magic_kernel_downsampling_3d import (
     MagicKernel3dDownsampler,
 )
+
 
 def store_downsampling_levels_in_zarr(
     levels_list: list[DownsamplingLevelDict],
@@ -24,11 +24,9 @@ def store_downsampling_levels_in_zarr(
         table = level_dict.get_set_table()
         ratio = level_dict.get_ratio()
 
-        new_level_group: zarr.Group = lattice_data_group.create_group(
-            str(ratio)
-        )
+        new_level_group: zarr.Group = lattice_data_group.create_group(str(ratio))
         time_frame_data_group = new_level_group.create_group(time_frame)
-        
+
         grid_arr = create_dataset_wrapper(
             zarr_group=time_frame_data_group,
             data=grid,

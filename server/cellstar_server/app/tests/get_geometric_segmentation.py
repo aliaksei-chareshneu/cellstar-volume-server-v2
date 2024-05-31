@@ -1,4 +1,3 @@
-
 import requests
 from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
@@ -14,6 +13,7 @@ from cellstar_server.app.tests._test_server_runner import ServerTestBase
 # get the first available id
 # and create test config
 
+
 class FetchGeometricSegmentationTest(ServerTestBase):
     def __create_test_configs(self):
         # another
@@ -27,12 +27,16 @@ class FetchGeometricSegmentationTest(ServerTestBase):
         self.assertIsNotNone(grid_metadata)
         grid_metadata: dict = dict(grid_metadata)
 
-        segmentation_id = grid_metadata.get("geometric_segmentation").get("segmentation_ids")[0]
-        
+        segmentation_id = grid_metadata.get("geometric_segmentation").get(
+            "segmentation_ids"
+        )[0]
+
         test_configs = {
-            "empiar": {"empiar-11756": {
-                segmentation_id: {"segmentation_id": segmentation_id, "time": 0},
-                }}
+            "empiar": {
+                "empiar-11756": {
+                    segmentation_id: {"segmentation_id": segmentation_id, "time": 0},
+                }
+            }
         }
 
         return test_configs
@@ -57,8 +61,12 @@ class FetchGeometricSegmentationTest(ServerTestBase):
                         entry = entries.get(entry_id)
 
                         for case in entry.keys():
-                            case_response = self.__fetch_for_test(db, entry_id, entry.get(case))
-                            print("case " + case + " has len: " + str(len(case_response)))
+                            case_response = self.__fetch_for_test(
+                                db, entry_id, entry.get(case)
+                            )
+                            print(
+                                "case " + case + " has len: " + str(len(case_response))
+                            )
                             # self.assertIsNotNone(case_response)
 
         finally:

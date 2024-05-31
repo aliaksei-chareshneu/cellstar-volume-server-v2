@@ -1,31 +1,34 @@
-from decimal import Decimal
-import re
-from cellstar_db.models import DownsamplingLevelInfo, OMETIFFSpecificExtraData, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-from cellstar_preprocessor.flows.common import _get_ome_tiff_channel_ids_dict, get_ome_tiff_origins, _get_ome_tiff_voxel_sizes_in_downsamplings, get_downsamplings, open_zarr_structure_from_path
-from cellstar_preprocessor.flows.constants import LATTICE_SEGMENTATION_DATA_GROUPNAME, QUANTIZATION_DATA_DICT_ATTR_NAME, VOLUME_DATA_GROUPNAME
-from cellstar_preprocessor.flows.volume.extract_omezarr_metadata import _convert_to_angstroms
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
-from cellstar_preprocessor.model.volume import InternalVolume
-from cellstar_preprocessor.tools.quantize_data.quantize_data import decode_quantized_data
 import dask.array as da
-import numpy as np
 import zarr
+from cellstar_db.models import (
+    OMETIFFSpecificExtraData,
+    TimeInfo,
+    VolumeSamplingInfo,
+    VolumesMetadata,
+)
+from cellstar_preprocessor.flows.common import (
+    _get_ome_tiff_channel_ids_dict,
+    _get_ome_tiff_voxel_sizes_in_downsamplings,
+    get_downsamplings,
+    get_ome_tiff_origins,
+    open_zarr_structure_from_path,
+)
+from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
+from cellstar_preprocessor.model.volume import InternalVolume
 
 SHORT_UNIT_NAMES_TO_LONG = {
-    'µm': 'micrometer',
+    "µm": "micrometer",
     # TODO: support other units
 }
 
+
 def _get_source_axes_units():
     # NOTE: hardcoding this for now
-    spatial_units = 'micrometer'
-    d = {
-        "x": spatial_units,
-        "y": spatial_units,
-        "z": spatial_units
-    }
+    spatial_units = "micrometer"
+    d = {"x": spatial_units, "y": spatial_units, "z": spatial_units}
     # d = {}
     return d
+
 
 def _convert_short_units_to_long(short_unit_name: str):
     # TODO: support conversion of other axes units (currently only µm to micrometer).
@@ -33,25 +36,26 @@ def _convert_short_units_to_long(short_unit_name: str):
     if short_unit_name in SHORT_UNIT_NAMES_TO_LONG:
         return SHORT_UNIT_NAMES_TO_LONG[short_unit_name]
     else:
-        raise Exception('Short unit name is not supported')
+        raise Exception("Short unit name is not supported")
+
 
 def _get_ometiff_physical_size(ome_tiff_metadata):
     d = {}
-    if 'PhysicalSizeX' in ome_tiff_metadata:
-        d['x'] = ome_tiff_metadata['PhysicalSizeX']
+    if "PhysicalSizeX" in ome_tiff_metadata:
+        d["x"] = ome_tiff_metadata["PhysicalSizeX"]
     else:
-        d['x'] = 1.0
+        d["x"] = 1.0
 
-    if 'PhysicalSizeY' in ome_tiff_metadata:
-        d['y'] = ome_tiff_metadata['PhysicalSizeY']
+    if "PhysicalSizeY" in ome_tiff_metadata:
+        d["y"] = ome_tiff_metadata["PhysicalSizeY"]
     else:
-        d['y'] = 1.0
+        d["y"] = 1.0
 
-    if 'PhysicalSizeZ' in ome_tiff_metadata:
-        d['z'] = ome_tiff_metadata['PhysicalSizeZ']
+    if "PhysicalSizeZ" in ome_tiff_metadata:
+        d["z"] = ome_tiff_metadata["PhysicalSizeZ"]
     else:
-        d['z'] = 1.0
-    
+        d["z"] = 1.0
+
     return d
 
 
@@ -66,27 +70,36 @@ def _get_segmentation_sampling_info(root_data_group, sampling_info_dict):
         }
 
         for time_gr_name, time_gr in res_gr.groups():
-            sampling_info_dict["boxes"][res_gr_name]["grid_dimensions"] = time_gr.grid.shape
+            sampling_info_dict["boxes"][res_gr_name][
+                "grid_dimensions"
+            ] = time_gr.grid.shape
+
 
 def _get_ometiff_axes_units(ome_tiff_metadata):
     axes_units = {}
-    if 'PhysicalSizeXUnit' in ome_tiff_metadata:
-        axes_units['x'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeXUnit'])
+    if "PhysicalSizeXUnit" in ome_tiff_metadata:
+        axes_units["x"] = _convert_short_units_to_long(
+            ome_tiff_metadata["PhysicalSizeXUnit"]
+        )
     else:
-        axes_units['x'] = 'micrometer'
+        axes_units["x"] = "micrometer"
 
-    if 'PhysicalSizeYUnit' in ome_tiff_metadata:
-        axes_units['y'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeYUnit'])
+    if "PhysicalSizeYUnit" in ome_tiff_metadata:
+        axes_units["y"] = _convert_short_units_to_long(
+            ome_tiff_metadata["PhysicalSizeYUnit"]
+        )
     else:
-        axes_units['y'] = 'micrometer'
+        axes_units["y"] = "micrometer"
 
-    if 'PhysicalSizeZUnit' in ome_tiff_metadata:
-        axes_units['z'] = _convert_short_units_to_long(ome_tiff_metadata['PhysicalSizeZUnit'])
+    if "PhysicalSizeZUnit" in ome_tiff_metadata:
+        axes_units["z"] = _convert_short_units_to_long(
+            ome_tiff_metadata["PhysicalSizeZUnit"]
+        )
     else:
-        axes_units['z'] = 'micrometer'
-    
+        axes_units["z"] = "micrometer"
+
     return axes_units
-    
+
 
 def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
     for res_gr_name, res_gr in root_data_group.groups():
@@ -140,22 +153,27 @@ def _get_volume_sampling_info(root_data_group: zarr.Group, sampling_info_dict):
                     "min": min_val,
                 }
 
+
 def _get_allencell_image_channel_ids(root: zarr.Group):
-    return root.attrs['extra_data']['name_dict']['crop_raw']
+    return root.attrs["extra_data"]["name_dict"]["crop_raw"]
+
 
 def _get_allencell_voxel_size(root: zarr.Group) -> list[float, float, float]:
-    return root.attrs['extra_data']['scale_micron']
+    return root.attrs["extra_data"]["scale_micron"]
+
 
 def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     root = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
     )
-    ometiff_custom_data: OMETIFFSpecificExtraData = internal_volume.custom_data['dataset_specific_data']['ometiff']
-    ometiff_metadata = ometiff_custom_data['ometiff_source_metadata']
+    ometiff_custom_data: OMETIFFSpecificExtraData = internal_volume.custom_data[
+        "dataset_specific_data"
+    ]["ometiff"]
+    ometiff_metadata = ometiff_custom_data["ometiff_source_metadata"]
 
     source_db_name = internal_volume.entry_data.source_db_name
     source_db_id = internal_volume.entry_data.source_db_id
-    
+
     # NOTE: sample ometiff has no time
     # TODO: get channel ids same way as in preprocessor_old
     # channel_ids = _get_allencell_image_channel_ids(root)
@@ -166,7 +184,7 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     # or do metadata sizeT
 
     start_time = 0
-    end_time = ometiff_metadata['SizeT'] - 1
+    end_time = ometiff_metadata["SizeT"] - 1
     time_units = "millisecond"
 
     volume_downsamplings = get_downsamplings(data_group=root[VOLUME_DATA_GROUPNAME])
@@ -193,14 +211,14 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     )
     _get_volume_sampling_info(
         root_data_group=root[VOLUME_DATA_GROUPNAME],
-        sampling_info_dict=metadata_dict["volumes"]["volume_sampling_info"]
+        sampling_info_dict=metadata_dict["volumes"]["volume_sampling_info"],
     )
 
     _get_ome_tiff_voxel_sizes_in_downsamplings(
         internal_volume_or_segmentation=internal_volume,
-        boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
+        boxes_dict=metadata_dict["volumes"]["volume_sampling_info"]["boxes"],
         downsamplings=volume_downsamplings,
-        ometiff_metadata=ometiff_metadata
+        ometiff_metadata=ometiff_metadata,
     )
     # _get_allencell_voxel_sizes_in_downsamplings(
     #     boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
@@ -209,8 +227,8 @@ def extract_ometiff_image_metadata(internal_volume: InternalVolume):
     # )
 
     get_ome_tiff_origins(
-        boxes_dict=metadata_dict['volumes']['volume_sampling_info']['boxes'],
-        downsamplings=volume_downsamplings
+        boxes_dict=metadata_dict["volumes"]["volume_sampling_info"]["boxes"],
+        downsamplings=volume_downsamplings,
     )
 
     root.attrs["metadata_dict"] = metadata_dict

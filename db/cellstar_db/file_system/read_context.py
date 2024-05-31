@@ -1,5 +1,4 @@
 import json
-from fastapi import HTTPException
 import logging
 from pathlib import Path
 from timeit import default_timer as timer
@@ -9,18 +8,23 @@ import dask.array as da
 import numpy as np
 import tensorstore as ts
 import zarr
-
 from cellstar_db.file_system.constants import (
     GEOMETRIC_SEGMENTATION_FILENAME,
+    LATTICE_SEGMENTATION_DATA_GROUPNAME,
     MESH_SEGMENTATION_DATA_GROUPNAME,
     QUANTIZATION_DATA_DICT_ATTR_NAME,
-    LATTICE_SEGMENTATION_DATA_GROUPNAME,
     VOLUME_DATA_GROUPNAME,
 )
-from cellstar_db.models import GeometricSegmentationData, GeometricSegmentationJson, MeshData, ShapePrimitiveData, VolumeSliceData, MeshesData
+from cellstar_db.models import (
+    GeometricSegmentationData,
+    MeshData,
+    MeshesData,
+    VolumeSliceData,
+)
 from cellstar_db.protocol import DBReadContext, VolumeServerDB
 from cellstar_db.utils.box import normalize_box
 from cellstar_db.utils.quantization import decode_quantized_data
+from fastapi import HTTPException
 
 
 class FileSystemDBReadContext(DBReadContext):
@@ -32,7 +36,7 @@ class FileSystemDBReadContext(DBReadContext):
         time: int,
         mode: str = "dask",
         timer_printout=False,
-        lattice_id: str = '0',
+        lattice_id: str = "0",
     ) -> VolumeSliceData:
         """
         Reads a slice from a specific (down)sampling of segmentation and volume data
@@ -41,7 +45,6 @@ class FileSystemDBReadContext(DBReadContext):
         and slice box (vec3, vec3)
         """
         try:
-
             box = normalize_box(box)
 
             root: zarr.Group = zarr.group(self.store)
@@ -59,14 +62,20 @@ class FileSystemDBReadContext(DBReadContext):
                     down_sampling_ratio
                 ][time].set_table[0]
             else:
-                raise HTTPException(status_code=404, detail="No segmentation data is available for the the given entry or lattice_id is None")
+                raise HTTPException(
+                    status_code=404,
+                    detail="No segmentation data is available for the the given entry or lattice_id is None",
+                )
 
             if VOLUME_DATA_GROUPNAME in root and (down_sampling_ratio is not None):
                 volume_arr: zarr.core.Array = root[VOLUME_DATA_GROUPNAME][
                     down_sampling_ratio
                 ][time][channel_id]
             else:
-                raise HTTPException(status_code=404, detail="No volume data is available for the the given entry or down_sampling_ratio is None")
+                raise HTTPException(
+                    status_code=404,
+                    detail="No volume data is available for the the given entry or down_sampling_ratio is None",
+                )
 
             assert (
                 np.array(box[0]) >= np.array([0, 0, 0])
@@ -102,22 +111,22 @@ class FileSystemDBReadContext(DBReadContext):
                     "segmentation_slice": {
                         "category_set_ids": segm_slice,
                         "category_set_dict": segm_dict,
-                        "lattice_id": lattice_id
+                        "lattice_id": lattice_id,
                     },
                     "volume_slice": volume_slice,
                     "time": time,
-                    "channel_id": channel_id
+                    "channel_id": channel_id,
                 }
             else:
                 d = {
                     "segmentation_slice": {
                         "category_set_ids": None,
                         "category_set_dict": None,
-                        "lattice_id": lattice_id
+                        "lattice_id": lattice_id,
                     },
                     "volume_slice": volume_slice,
                     "time": time,
-                    "channel_id": channel_id
+                    "channel_id": channel_id,
                 }
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
@@ -125,11 +134,9 @@ class FileSystemDBReadContext(DBReadContext):
 
         return d
 
-    async def read_meshes(self,
-                          segmentation_id: str,
-                          time: int,
-                          segment_id: int,
-                          detail_lvl: int) -> MeshesData:
+    async def read_meshes(
+        self, segmentation_id: str, time: int, segment_id: int, detail_lvl: int
+    ) -> MeshesData:
         """
         Returns list of meshes for a given segment, entry, detail lvl
         """
@@ -139,17 +146,16 @@ class FileSystemDBReadContext(DBReadContext):
 
             # # segmentation_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
             # mesh_segmentation_data: list[str, dict[int, list[dict[int, list[dict[int, list[dict[int, SingleMeshSegmentationData]]]]]]]]
-            mesh_list_group = root[MESH_SEGMENTATION_DATA_GROUPNAME][
-                segmentation_id
-            ][time][segment_id][detail_lvl]
-            
-            
+            mesh_list_group = root[MESH_SEGMENTATION_DATA_GROUPNAME][segmentation_id][
+                time
+            ][segment_id][detail_lvl]
+
             for mesh_name, mesh in mesh_list_group.groups():
                 mesh_data: MeshData = {"mesh_id": int(mesh_name)}
                 for mesh_component_name, mesh_component_arr in mesh.arrays():
                     mesh_data[f"{mesh_component_name}"] = mesh_component_arr[...]
-                assert 'vertices' in mesh_data
-                assert 'triangles' in mesh_data
+                assert "vertices" in mesh_data
+                assert "triangles" in mesh_data
                 mesh_list.append(mesh_data)
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
@@ -157,14 +163,18 @@ class FileSystemDBReadContext(DBReadContext):
 
         return mesh_list
 
-    async def read_geometric_segmentation(self, segmentation_id: str, time: int) -> GeometricSegmentationData:
+    async def read_geometric_segmentation(
+        self, segmentation_id: str, time: int
+    ) -> GeometricSegmentationData:
         try:
             # GeometricSegmentationJson = list[GeometricSegmentationData]
             path: Path = Path(self.store.path).parent / GEOMETRIC_SEGMENTATION_FILENAME
             with open(path.resolve(), "r", encoding="utf-8") as f:
                 # reads into dict
                 read_json: list[GeometricSegmentationData] = json.load(f)
-                filter_results = list(filter(lambda i: i['segmentation_id'] == segmentation_id, read_json))
+                filter_results = list(
+                    filter(lambda i: i["segmentation_id"] == segmentation_id, read_json)
+                )
                 assert len(filter_results) == 1
                 target_segmentation: GeometricSegmentationData = filter_results[0]
                 target_timeframe_data = target_segmentation["primitives"][str(time)]
@@ -173,7 +183,7 @@ class FileSystemDBReadContext(DBReadContext):
             raise e
 
         return target_timeframe_data
-    
+
     async def read_volume_slice(
         self,
         down_sampling_ratio: int,
@@ -221,9 +231,13 @@ class FileSystemDBReadContext(DBReadContext):
                 return {
                     "volume_slice": volume_slice,
                     "time": time,
-                    "channel_id": channel_id}
+                    "channel_id": channel_id,
+                }
             else:
-                raise HTTPException(status_code=404, detail="No volume data is available for the the given entry or down_sampling_ratio is None")
+                raise HTTPException(
+                    status_code=404,
+                    detail="No volume data is available for the the given entry or down_sampling_ratio is None",
+                )
 
         except Exception as e:
             logging.error(e, stack_info=True, exc_info=True)
@@ -239,7 +253,6 @@ class FileSystemDBReadContext(DBReadContext):
         timer_printout=False,
     ) -> VolumeSliceData:
         try:
-
             box = normalize_box(box)
 
             root: zarr.Group = zarr.group(self.store)
@@ -257,8 +270,10 @@ class FileSystemDBReadContext(DBReadContext):
                     down_sampling_ratio
                 ][time].set_table[0]
             else:
-                raise HTTPException(status_code=404, detail="No segmentation data is available for the the given entry or lattice_id is None")
-            
+                raise HTTPException(
+                    status_code=404,
+                    detail="No segmentation data is available for the the given entry or lattice_id is None",
+                )
 
             start = timer()
             segm_slice = self._do_slicing(arr=segm_arr, box=box, mode=mode)
@@ -271,7 +286,7 @@ class FileSystemDBReadContext(DBReadContext):
                 "segmentation_slice": {
                     "category_set_ids": segm_slice,
                     "category_set_dict": segm_dict,
-                    "lattice_id": lattice_id
+                    "lattice_id": lattice_id,
                 },
                 "time": time,
             }
@@ -286,7 +301,6 @@ class FileSystemDBReadContext(DBReadContext):
         box: Tuple[Tuple[int, int, int], Tuple[int, int, int]],
         mode: str,
     ) -> np.ndarray:
-
         if mode == "zarr_colon":
             # 2: zarr slicing via : notation
             arr_slice = self.__get_slice_from_zarr_three_d_arr(arr=arr, box=box)

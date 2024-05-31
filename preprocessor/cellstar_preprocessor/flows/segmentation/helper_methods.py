@@ -8,9 +8,6 @@ import h5py
 import numcodecs
 import numpy as np
 import zarr
-from sfftkrw.schema.adapter_v0_8_0_dev1 import SFFSegmentation
-from vedo import Mesh
-
 from cellstar_preprocessor.flows.common import (
     chunk_numpy_arr,
     create_dataset_wrapper,
@@ -27,6 +24,8 @@ from cellstar_preprocessor.flows.segmentation.segmentation_set_table import (
 )
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
+from sfftkrw.schema.adapter_v0_8_0_dev1 import SFFSegmentation
+from vedo import Mesh
 
 temp_zarr_structure_path = None
 
@@ -183,7 +182,7 @@ def store_segmentation_data_in_zarr_structure(
         levels,
         lattice_data_group,
         params_for_storing=params_for_storing,
-        time_frame="0"
+        time_frame="0",
     )
 
 
@@ -272,7 +271,7 @@ def _get_mesh_data_from_vedo_obj(vedo_obj):
     d["arrays"]["vertices"] = np.array(vedo_obj.vertices, dtype=np.float32)
     d["arrays"]["triangles"] = np.array(vedo_obj.cells, dtype=np.int32)
     d["arrays"]["normals"] = np.array(vedo_obj.cell_normals, dtype=np.float32)
-    
+
     d["attrs"]["area"] = vedo_obj.area()
     # d['attrs']['volume'] = vedo_obj.volume()
     d["attrs"]["num_vertices"] = len(d["arrays"]["vertices"])

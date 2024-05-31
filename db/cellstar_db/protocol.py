@@ -1,7 +1,13 @@
 from pathlib import Path
-from typing import Dict, Protocol, Tuple
+from typing import Protocol, Tuple
 
-from cellstar_db.models import AnnotationsMetadata, GeometricSegmentationData, GeometricSegmentationJson, MeshesData, VolumeMetadata, VolumeSliceData
+from cellstar_db.models import (
+    AnnotationsMetadata,
+    GeometricSegmentationData,
+    MeshesData,
+    VolumeMetadata,
+    VolumeSliceData,
+)
 
 
 class DBReadContext(Protocol):
@@ -13,7 +19,7 @@ class DBReadContext(Protocol):
         time: int,
         mode: str = "dask",
         timer_printout=False,
-        lattice_id: str = '0',
+        lattice_id: str = "0",
     ) -> VolumeSliceData:
         """
         Reads a slice from a specific (down)sampling of segmentation and volume data
@@ -23,17 +29,17 @@ class DBReadContext(Protocol):
         """
         ...
 
-    async def read_meshes(self,
-                          segmentation_id: str,
-                          time: int,
-                          segment_id: int,
-                          detail_lvl: int) -> MeshesData:
+    async def read_meshes(
+        self, segmentation_id: str, time: int, segment_id: int, detail_lvl: int
+    ) -> MeshesData:
         """
         Returns list of meshes for a given segment, entry, detail lvl
         """
         ...
 
-    async def read_geometric_segmentation(self, segmentation_id: str, time: int) -> GeometricSegmentationData:
+    async def read_geometric_segmentation(
+        self, segmentation_id: str, time: int
+    ) -> GeometricSegmentationData:
         """
         Returns list of shape primitives for geometric segmentation
         """

@@ -1,12 +1,15 @@
 from pathlib import Path
+
 from cellstar_db.models import AnnotationsMetadata, Metadata
 
-CSV_WITH_ENTRY_IDS_FILE = Path('test-data/preprocessor/db_building_parameters_custom_entries.csv')
-DEFAULT_DB_PATH = 'preprocessor/temp/test_db_build_by_script'
-RAW_INPUT_FILES_DIR = 'test-data/preprocessor//raw_input_files'
-DB_BUILDING_PARAMETERS_JSON = 'test-data/preprocessor/db_building_parameters.json'
-RAW_INPUT_DOWNLOAD_PARAMS_JSON = 'test-data/preprocessor/download_raw_input_params.json'
-TEMP_ZARR_HIERARCHY_STORAGE_PATH = 'preprocessor/temp/temp_zarr_hierarchy_storage'
+CSV_WITH_ENTRY_IDS_FILE = Path(
+    "test-data/preprocessor/db_building_parameters_custom_entries.csv"
+)
+DEFAULT_DB_PATH = "preprocessor/temp/test_db_build_by_script"
+RAW_INPUT_FILES_DIR = "test-data/preprocessor//raw_input_files"
+DB_BUILDING_PARAMETERS_JSON = "test-data/preprocessor/db_building_parameters.json"
+RAW_INPUT_DOWNLOAD_PARAMS_JSON = "test-data/preprocessor/download_raw_input_params.json"
+TEMP_ZARR_HIERARCHY_STORAGE_PATH = "preprocessor/temp/temp_zarr_hierarchy_storage"
 QUANTIZATION_DATA_DICT_ATTR_NAME = "quantization_data_dict"
 LATTICE_SEGMENTATION_DATA_GROUPNAME = "lattice_segmentation_data"
 MESH_SEGMENTATION_DATA_GROUPNAME = "mesh_segmentation_data"
@@ -41,37 +44,34 @@ MESH_VERTEX_DENSITY_THRESHOLD = {
 SPACE_UNITS_CONVERSION_DICT = {"micrometer": 10000, "angstrom": 1}
 
 INIT_ANNOTATIONS_DICT: AnnotationsMetadata = {
-    'descriptions': {},
-    'details': None,
-    'entry_id': {"source_db_name": None, "source_db_id": None},
-    'name': None,
-    'segment_annotations': [],
-    'volume_channels_annotations': []
+    "descriptions": {},
+    "details": None,
+    "entry_id": {"source_db_name": None, "source_db_id": None},
+    "name": None,
+    "segment_annotations": [],
+    "volume_channels_annotations": [],
 }
 
 # TODO: fill more levels if needed
 INIT_METADATA_DICT: Metadata = {
-    'entry_id': {"source_db_name": None, "source_db_id": None},
-    'volumes': {},
-    'geometric_segmentation': {
-        'segmentation_ids': [],
-        'time_info': {}
+    "entry_id": {"source_db_name": None, "source_db_id": None},
+    "volumes": {},
+    "geometric_segmentation": {"segmentation_ids": [], "time_info": {}},
+    "segmentation_lattices": {
+        "segmentation_ids": [],
+        "segmentation_sampling_info": {},
+        "time_info": {},
     },
-    'segmentation_lattices': {
-        'segmentation_ids': [],
-        'segmentation_sampling_info': {},
-        'time_info': {}
+    "segmentation_meshes": {
+        "segmentation_metadata": {},
+        "segmentation_ids": [],
+        "time_info": {},
     },
-    'segmentation_meshes': {
-        'segmentation_metadata': {},
-        'segmentation_ids': [],
-        'time_info': {}
-    }
 }
 
-GEOMETRIC_SEGMENTATIONS_ZATTRS = 'geometric_segmentations'
-RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS = 'raw_geometric_segmentation_input'
+GEOMETRIC_SEGMENTATIONS_ZATTRS = "geometric_segmentations"
+RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS = "raw_geometric_segmentation_input"
 SHORT_UNIT_NAMES_TO_LONG = {
-    'µm': 'micrometer',
+    "µm": "micrometer",
     # TODO: support other units
 }

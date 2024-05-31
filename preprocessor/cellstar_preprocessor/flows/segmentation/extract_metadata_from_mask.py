@@ -1,10 +1,15 @@
 from decimal import ROUND_CEILING, Decimal, getcontext
 
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
 import dask.array as da
 import numpy as np
-from cellstar_db.models import DownsamplingLevelInfo, Metadata, SamplingInfo, SegmentationLatticesMetadata, TimeInfo, VolumeSamplingInfo, VolumesMetadata
-
+from cellstar_db.models import (
+    DownsamplingLevelInfo,
+    Metadata,
+    SamplingInfo,
+    SegmentationLatticesMetadata,
+    TimeInfo,
+    VolumeSamplingInfo,
+)
 from cellstar_preprocessor.flows.common import (
     get_downsamplings,
     open_zarr_structure_from_path,
@@ -12,9 +17,8 @@ from cellstar_preprocessor.flows.common import (
 from cellstar_preprocessor.flows.constants import (
     LATTICE_SEGMENTATION_DATA_GROUPNAME,
     QUANTIZATION_DATA_DICT_ATTR_NAME,
-    VOLUME_DATA_GROUPNAME,
 )
-from cellstar_preprocessor.model.volume import InternalVolume
+from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.tools.quantize_data.quantize_data import (
     decode_quantized_data,
 )
@@ -71,7 +75,7 @@ def _get_origin_and_voxel_sizes_from_map_header(
 
     voxel_sizes_in_downsamplings: dict = {}
     for level in volume_downsamplings:
-        rate = level['level']
+        rate = level["level"]
         voxel_sizes_in_downsamplings[rate] = tuple(
             [float(Decimal(i) * Decimal(rate)) for i in original_voxel_size]
         )
@@ -155,31 +159,37 @@ def extract_metadata_from_mask(internal_segmentation: InternalSegmentation):
     metadata_dict: Metadata = root.attrs["metadata_dict"]
 
     time_info_for_all_lattices: TimeInfo = {
-        'end': 0,
-        'kind': 'range',
-        'start': 0,
-        'units': 'millisecond'
+        "end": 0,
+        "kind": "range",
+        "start": 0,
+        "units": "millisecond",
     }
-    
+
     lattice_ids = []
     source_axes_units = {}
 
-    segmentation_lattices_metadata: SegmentationLatticesMetadata = metadata_dict["segmentation_lattices"]
+    segmentation_lattices_metadata: SegmentationLatticesMetadata = metadata_dict[
+        "segmentation_lattices"
+    ]
 
     for lattice_id, lattice_gr in root[LATTICE_SEGMENTATION_DATA_GROUPNAME].groups():
         downsamplings = get_downsamplings(data_group=lattice_gr)
         lattice_ids.append(lattice_id)
-        
+
         sampling_info: SamplingInfo = {
-            'spatial_downsampling_levels': downsamplings,
-            'boxes': {},
-            'time_transformations': [],
-            'source_axes_units': source_axes_units,
+            "spatial_downsampling_levels": downsamplings,
+            "boxes": {},
+            "time_transformations": [],
+            "source_axes_units": source_axes_units,
             # TODO: original axes order?
-            'original_axis_order': [0, 1, 2]
+            "original_axis_order": [0, 1, 2],
         }
-        segmentation_lattices_metadata["segmentation_sampling_info"][str(lattice_id)] = sampling_info
-        segmentation_lattices_metadata["time_info"][str(lattice_id)] = time_info_for_all_lattices
+        segmentation_lattices_metadata["segmentation_sampling_info"][
+            str(lattice_id)
+        ] = sampling_info
+        segmentation_lattices_metadata["time_info"][
+            str(lattice_id)
+        ] = time_info_for_all_lattices
 
         # _get_segmentation_sampling_info(
         #     root_data_group=lattice_gr,
@@ -188,25 +198,25 @@ def extract_metadata_from_mask(internal_segmentation: InternalSegmentation):
         #         "volume_sampling_info"
         #     ],
         # )
-        
+
         segmentation_sampling_info = SamplingInfo(
             spatial_downsampling_levels=downsamplings,
             boxes={},
             # descriptive_statistics={},
             time_transformations=[],
             source_axes_units=source_axes_units,
-            original_axis_order=_get_axis_order_mrcfile(internal_segmentation.map_header),
+            original_axis_order=_get_axis_order_mrcfile(
+                internal_segmentation.map_header
+            ),
         )
-        
-        segmentation_lattices_metadata["segmentation_sampling_info"][str(lattice_id)] = segmentation_sampling_info
+
+        segmentation_lattices_metadata["segmentation_sampling_info"][
+            str(lattice_id)
+        ] = segmentation_sampling_info
 
     segmentation_lattices_metadata["segmentation_ids"] = lattice_ids
     metadata_dict["segmentation_lattices"] = segmentation_lattices_metadata
 
-    
-    
-    
-    
     # root = open_zarr_structure_from_path(
     #     internal_segmentation.intermediate_zarr_structure_path
     # )
@@ -247,7 +257,7 @@ def extract_metadata_from_mask(internal_segmentation: InternalSegmentation):
     #     mrc_header=map_header,
     #     volume_downsamplings=volume_downsamplings,
     # )
-    
+
     root.attrs["metadata_dict"] = metadata_dict
-    
+
     return metadata_dict
