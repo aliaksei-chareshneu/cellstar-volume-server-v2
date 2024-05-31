@@ -29,9 +29,6 @@ async def test_geometric_segmentation_query():
         "pdbe-1.rec-geometric_segmentation",
         "--source-db",
         "pdbe",
-        # "--time", "0",
-        # "--channel-id", "0",
-        # "--segment-id", "1", "--detail-lvl", "1"
     ]
 
     subprocess.run(metadata_commands_lst)
