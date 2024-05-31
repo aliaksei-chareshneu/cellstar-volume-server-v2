@@ -1,6 +1,7 @@
 import pytest
-from cellstar_db.models import DescriptionData, SegmentAnnotationData
+from cellstar_db.models import DescriptionData, ExternalReference, SegmentAnnotationData
 from cellstar_preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import (
+    _preprocess_external_references,
     extract_annotations_from_sff_segmentation,
 )
 from cellstar_preprocessor.flows.segmentation.helper_methods import (
@@ -61,20 +62,22 @@ def test_extract_annotations_from_sff_segmentation(internal_segmentation):
             assert len(description_filter_results) == 1
             description_item: DescriptionData = description_filter_results[0][1]
 
+            raw_external_references: list[ExternalReference] = segment[
+                    "biological_annotation"
+                ]["external_references"]
+            external_referneces: list[
+                    ExternalReference
+                ] = _preprocess_external_references(raw_external_references)            
+            
+            
             assert (
                 description_item["external_references"]
-                == segment["biological_annotation"]["external_references"]
+                == external_referneces
             )
             assert description_item["name"] == segment["biological_annotation"]["name"]
 
             assert description_item["target_kind"] == "lattice"
 
-            # in segment annotations for that kind
-            # which is a dict where keys are lattice ids
-            # get segment by id
-            # to do it get segment["three_d_volume"]["lattice_id"]
-            # and use that lattice_id to access dict
-            # TODO: change filter
             segment_annotations: list[SegmentAnnotationData] = d["segment_annotations"]
             segment_annotation_filter_results = list(
                 filter(
