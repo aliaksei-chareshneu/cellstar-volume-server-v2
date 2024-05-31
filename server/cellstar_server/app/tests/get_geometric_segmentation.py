@@ -1,13 +1,11 @@
-import unittest
 
 import requests
-
 from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 # no params
 
 # test_configs = {
-#     # "pdbe": {"pdbe-1.rec-geometric_segmentation": {
+#     # "empiar": {"empiar-1.rec-geometric_segmentation": {
 #     #     # "0": {"segmentation_id": "0"}
 #     #     }}
 # }
@@ -18,7 +16,8 @@ from cellstar_server.app.tests._test_server_runner import ServerTestBase
 
 class FetchGeometricSegmentationTest(ServerTestBase):
     def __create_test_configs(self):
-        r = requests.get(f"{self.serverUrl()}/v1/pdbe/pdbe-1.rec-geometric_segmentation/metadata/")
+        # another
+        r = requests.get(f"{self.serverUrl()}/v1/empiar/empiar-11756/metadata/")
         self.assertEqual(r.status_code, 200)
         body: dict = dict(r.json())
         self.assertIsNotNone(body)
@@ -31,7 +30,7 @@ class FetchGeometricSegmentationTest(ServerTestBase):
         segmentation_id = grid_metadata.get("geometric_segmentation").get("segmentation_ids")[0]
         
         test_configs = {
-            "pdbe": {"pdbe-1.rec-geometric_segmentation": {
+            "empiar": {"empiar-11756": {
                 segmentation_id: {"segmentation_id": segmentation_id, "time": 0},
                 }}
         }
@@ -57,7 +56,6 @@ class FetchGeometricSegmentationTest(ServerTestBase):
                     for entry_id in entries.keys():
                         entry = entries.get(entry_id)
 
-                        case_results = []
                         for case in entry.keys():
                             case_response = self.__fetch_for_test(db, entry_id, entry.get(case))
                             print("case " + case + " has len: " + str(len(case_response)))

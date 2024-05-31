@@ -1,9 +1,11 @@
-from typing import TypedDict
 import unittest
+from typing import TypedDict
 
 import requests
-
+from cellstar_db.models import (DownsamplingLevelInfo, SamplingBox,
+                                VolumeDescriptiveStatistics)
 from cellstar_server.app.tests._test_server_runner import ServerTestBase
+
 
 class VolumeDescriptiveStatisticsIndicators(TypedDict):
     mean: list[float]
@@ -16,8 +18,8 @@ class FetchMetadataTest(ServerTestBase):
         try:
             with self.server.run_in_thread():
                 # idr/idr-6001247
-                # r = requests.get(f"{self.serverUrl()}/v1/emdb/emd-1832/metadata/")
-                r = requests.get(f"{self.serverUrl()}/v1/idr/idr-6001247/metadata/")
+                r = requests.get(f"{self.serverUrl()}/v1/emdb/emd-1832/metadata/")
+                # r = requests.get(f"{self.serverUrl()}/v1/idr/idr-6001247/metadata/")
                 self.assertEqual(r.status_code, 200)
                 body: dict = dict(r.json())
                 self.assertIsNotNone(body)
@@ -31,7 +33,7 @@ class FetchMetadataTest(ServerTestBase):
                 volume_metadata = grid_metadata.get("volumes")
 
                 volume_sampling_info: dict = volume_metadata.get('volume_sampling_info')
-                volume_downsamplings: list = volume_sampling_info.get('spatial_downsampling_levels')
+                volume_downsamplings: list[DownsamplingLevelInfo] = volume_sampling_info.get('spatial_downsampling_levels')
                 
                 self.assertIsNotNone(volume_downsamplings)
                 self.assertTrue(len(volume_downsamplings) > 0)
@@ -50,14 +52,16 @@ class FetchMetadataTest(ServerTestBase):
                     segmentation_downsamplings: list = segmentation_sampling_info.get(segmentation_lattice).get('spatial_downsampling_levels')
                     self.assertIsNotNone(segmentation_downsamplings)
 
-                boxes_dict: dict = volume_sampling_info.get('boxes')
+                boxes_dict: dict[int, SamplingBox] = volume_sampling_info.get('boxes')
                 # first check if number of keys of boxes == to length of volume downsamplings
                 self.assertIsNotNone(boxes_dict)
                 self.assertEqual(len(boxes_dict.keys()), len(volume_downsamplings))
 
                 # then check that each downsampling is in volume downsamplings
-                for downsampling in volume_downsamplings:
-                    self.assertTrue(str(downsampling) in boxes_dict.keys())
+                for downsampling_lvl_info in volume_downsamplings:
+                    # downsamplings are dicts
+                    if downsampling_lvl_info['available'] == True:
+                        self.assertTrue(str(downsampling_lvl_info['level']) in boxes_dict.keys())
                       
                 # assert origin exists for each box
                 for idx, box in boxes_dict.items():
@@ -84,12 +88,14 @@ class FetchMetadataTest(ServerTestBase):
                 # if key not exist = create that object
                 # if exists - append to existing object 
 
-                descriptive_statistics = volume_sampling_info.get("descriptive_statistics")
+                descriptive_statistics: dict[int, dict[int, dict[str, VolumeDescriptiveStatistics]]] = volume_sampling_info.get("descriptive_statistics")
                 
-                for downsampling in volume_downsamplings:
-                    self.assertTrue(
-                        str(downsampling) in descriptive_statistics.keys()
-                    )
+                for downsampling_lvl_info in volume_downsamplings:
+                    # downsamplings are dicts
+                    if downsampling_lvl_info['available'] == True:
+                        self.assertTrue(
+                            str(downsampling_lvl_info['level']) in descriptive_statistics.keys()
+                        )
 
                 for resolution, resolution_ds in descriptive_statistics.items():
                     for time, time_ds in resolution_ds.items():
