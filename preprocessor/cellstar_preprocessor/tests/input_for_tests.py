@@ -10,9 +10,8 @@ from cellstar_preprocessor.model.input import (
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.model.volume import InternalVolume
 
-DB_PATH_FOR_TESTS = Path("temp/db_for_tests")
 INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS = Path(
-    "temp/intermediate_zarr_structure_for_tests"
+    "preprocessor/cellstar_preprocessor/tests/test_data/intermediate_zarr_structure_for_tests"
 )
 
 PATH_TO_TEST_DATA_DIR: Path = Path('preprocessor/cellstar_preprocessor/tests/test_data')

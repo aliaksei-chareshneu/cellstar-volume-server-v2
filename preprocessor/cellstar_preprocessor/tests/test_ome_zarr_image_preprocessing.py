@@ -12,6 +12,7 @@ from cellstar_preprocessor.tests.helper_methods import (
     initialize_intermediate_zarr_structure_for_tests,
 )
 from cellstar_preprocessor.tests.input_for_tests import (
+    INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS,
     OMEZARR_TEST_INPUTS,
     OMEZarrTestInput,
 )
@@ -60,20 +61,26 @@ def test_ome_zarr_image_preprocessing(omezar_test_input: OMEZarrTestInput):
             n_of_channel_groups = volume_arr.shape[-4]
             assert len(volume_gr[volume_arr_resolution][time]) == n_of_channel_groups
 
+            # key error 0
             # for each channel, check if shape is equal to shape of volume arr with swapaxes
-            for channel in range(n_of_channel_groups):
+            # channel has a meaningful ID
+            
+            time_gr: zarr.Group = volume_gr[volume_arr_resolution][time]
+            for channel_id, channel_arr in time_gr.groups():
+            # for channel in range(n_of_channel_groups):
                 assert isinstance(
-                    volume_gr[volume_arr_resolution][time][channel], zarr.core.Array
+                    channel_arr, zarr.core.Array
                 )
                 assert (
-                    volume_gr[volume_arr_resolution][time][channel].shape
+                    channel_arr.shape
                     == volume_3d_arr_shape
                 )
                 # check dtype
                 assert (
-                    volume_gr[volume_arr_resolution][time][channel].dtype
+                    channel_arr.dtype
                     == volume_arr.dtype
                 )
                 
     # remove omezarr
     shutil.rmtree(internal_volume.volume_input_path)
+    shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS)

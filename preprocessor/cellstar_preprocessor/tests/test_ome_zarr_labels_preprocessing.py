@@ -1,5 +1,5 @@
 import shutil
-from cellstar_preprocessor.tests.input_for_tests import OMEZARR_TEST_INPUTS, OMEZarrTestInput
+from cellstar_preprocessor.tests.input_for_tests import INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS, OMEZARR_TEST_INPUTS, OMEZarrTestInput
 import pytest
 import zarr
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
@@ -92,3 +92,4 @@ def test_ome_zarr_labels_preprocessing(omezar_test_input: OMEZarrTestInput):
 
     # remove omezarr
     shutil.rmtree(internal_segmentation.segmentation_input_path)
+    shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS)
