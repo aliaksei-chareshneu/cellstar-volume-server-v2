@@ -21,7 +21,7 @@ from cellstar_preprocessor.flows.constants import CSV_WITH_ENTRY_IDS_FILE, DB_BU
 from cellstar_preprocessor.model.input import InputKind
 from cellstar_preprocessor.preprocess import PreprocessorMode, main_preprocessor
 from cellstar_preprocessor.tools.deploy_db.deploy_process_helper import clean_up_processes
-from cellstar_preprocessor.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import csv_to_config_list_of_dicts, json_to_list_of_inputs_for_building, prepare_input_for_preprocessor
+from cellstar_preprocessor.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import json_to_list_of_inputs_for_building, prepare_input_for_preprocessor
 import ome_zarr.utils
 import zipfile
 
@@ -190,7 +190,7 @@ def download(args: argparse.Namespace):
             # iterate over keys
             for param in raw_input['preprocessor_parameters']:
                 input_for_building_db[param] = raw_input['preprocessor_parameters'][param]
-        
+
             
         db_building_params.append(input_for_building_db)
         

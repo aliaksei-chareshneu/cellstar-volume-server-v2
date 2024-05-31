@@ -12,17 +12,11 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-# from _old.input_data_model import QuantizationDtype
 from cellstar_db.models import InputForBuildingDatabase
 from cellstar_preprocessor.flows.constants import CSV_WITH_ENTRY_IDS_FILE, DB_BUILDING_PARAMETERS_JSON, DEFAULT_DB_PATH, TEMP_ZARR_HIERARCHY_STORAGE_PATH
 from cellstar_preprocessor.preprocess import PreprocessorMode, main_preprocessor
 from cellstar_preprocessor.tools.deploy_db.deploy_process_helper import clean_up_processes
-from cellstar_preprocessor.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import csv_to_config_list_of_dicts, json_to_list_of_inputs_for_building, prepare_input_for_preprocessor
-# from preprocessor_old.main import remove_temp_zarr_hierarchy_storage_folder
-# from preprocessor_old.src.preprocessors.implementations.sff.preprocessor.constants import CSV_WITH_ENTRY_IDS_FILE, DB_NAME_FOR_OME_TIFF, DEFAULT_DB_PATH, RAW_INPUT_FILES_DIR, TEMP_ZARR_HIERARCHY_STORAGE_PATH
-# from preprocessor_old.src.tools.deploy_db.deploy_process_helper import clean_up_processes, clean_up_raw_input_files_dir, clean_up_temp_zarr_hierarchy_storage
-
-# from preprocessor_old.src.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import csv_to_config_list_of_dicts, prepare_input_for_preprocessor
+from cellstar_preprocessor.tools.prepare_input_for_preprocessor.prepare_input_for_preprocessor import json_to_list_of_inputs_for_building, prepare_input_for_preprocessor
 
 PROCESS_IDS_LIST = []
 
