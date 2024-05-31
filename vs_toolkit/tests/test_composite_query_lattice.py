@@ -2,13 +2,13 @@ import json
 import subprocess
 from pathlib import Path
 
-from vs_toolkit.tests.constants import QUERY_APP_PATH
+from vs_toolkit.tests.constants import DB_PATH_FOR_VS_TOOLKIT_TESTS, VS_TOOLKIT_PATH
 
 # run app with arguments
 # assert that output file exists
 
-OUTPUT_FILE_PATH = Path("query_app/tests/test_output/results.zip")
-JSON_WITH_QUERY_PARAMS_PATH = Path("query_app/tests/test_output/json_query_params.json")
+OUTPUT_FILE_PATH = Path("vs_toolkit/tests/test_output/results.zip")
+JSON_WITH_QUERY_PARAMS_PATH = Path("vs_toolkit/tests/test_output/json_query_params.json")
 
 
 def _create_json_with_query_params():
@@ -23,9 +23,9 @@ def test_composite_query():
 
     commands_lst = [
         "python",
-        str(QUERY_APP_PATH.resolve()),
+        str(VS_TOOLKIT_PATH.resolve()),
         "--db_path",
-        "preprocessor/temp/test_db",
+        str(DB_PATH_FOR_VS_TOOLKIT_TESTS.resolve()),
         "--out",
         str(OUTPUT_FILE_PATH.resolve()),
         "--json-params-path",
