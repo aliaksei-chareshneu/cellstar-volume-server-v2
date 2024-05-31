@@ -82,5 +82,5 @@ def test_ome_zarr_image_preprocessing(omezar_test_input: OMEZarrTestInput):
                 )
                 
     # remove omezarr
-    shutil.rmtree(internal_volume.volume_input_path)
-    shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS)
+    shutil.rmtree(internal_volume.volume_input_path, ignore_errors=True)
+    shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS, ignore_errors=True)

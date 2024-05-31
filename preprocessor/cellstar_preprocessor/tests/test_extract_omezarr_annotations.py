@@ -132,6 +132,6 @@ def test_extract_omezarr_annotations(
                 # assert segment_annotation_item['time'] == 0
 
     # remove omezarr
-    shutil.rmtree(internal_volume.volume_input_path)
-    shutil.rmtree(internal_segmentation.segmentation_input_path)
-    shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS)
+    shutil.rmtree(internal_volume.volume_input_path, ignore_errors=True)
+    shutil.rmtree(internal_segmentation.segmentation_input_path, ignore_errors=True)
+    shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS, ignore_errors=True)

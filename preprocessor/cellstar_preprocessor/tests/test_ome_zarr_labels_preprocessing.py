@@ -59,9 +59,30 @@ def test_ome_zarr_labels_preprocessing(omezar_test_input: OMEZarrTestInput):
             else:
                 raise Exception("Axes number/order is not supported")
 
-            assert (
-                len(segmentation_gr[label_gr_name][arr_resolution]) == n_of_time_groups
-            )
+            original_resolution = ome_zarr_root.attrs["multiscales"][0]["datasets"][0]["path"]
+            
+            image_time_dimension = ome_zarr_root[original_resolution].shape[0]
+            label_time_dimension = arr.shape[0]
+
+            wrong_time_dimension = False
+            if label_time_dimension < image_time_dimension:
+                print(
+                    f"Time dimension of label {label_time_dimension} is lower than time dimension of image {image_time_dimension}"
+                )
+                print(
+                    "Label data is artificially expanded to time dimension of image using the data of the first label timeframe"
+                )
+                time_dimension = image_time_dimension
+                wrong_time_dimension = True
+                
+            if not wrong_time_dimension:
+                assert (
+                    len(segmentation_gr[label_gr_name][arr_resolution]) == n_of_time_groups
+                )
+            else:
+                assert (
+                    len(segmentation_gr[label_gr_name][arr_resolution]) == time_dimension
+                )
 
             # for each time group, check if number of channels == -4 dimension of arr
             for time in range(n_of_time_groups):
@@ -91,5 +112,5 @@ def test_ome_zarr_labels_preprocessing(omezar_test_input: OMEZarrTestInput):
                 ].set_table.shape == (1,)
 
     # remove omezarr
-    shutil.rmtree(internal_segmentation.segmentation_input_path)
-    shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS)
+    shutil.rmtree(internal_segmentation.segmentation_input_path, ignore_errors=True)
+    shutil.rmtree(INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS, ignore_errors=True)

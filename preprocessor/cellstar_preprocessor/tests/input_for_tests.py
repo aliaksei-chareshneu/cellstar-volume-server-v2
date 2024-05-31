@@ -48,69 +48,6 @@ OMEZARR_TEST_INPUTS = [
     ),
 ]
 
-
-
-# TEST_OME_ZARR_PATH_5_AXES = Path("preprocessor/temp/test_data/5514375.zarr")
-# TEST_OME_ZARR_PATH_4_AXES = Path("preprocessor/temp/test_data/6001247.zarr")
-
-# INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_4_AXES = InternalSegmentation(
-#     intermediate_zarr_structure_path=INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS,
-#     segmentation_input_path=TEST_OME_ZARR_PATH_4_AXES,
-#     params_for_storing=StoringParams(),
-#     downsampling_parameters=DownsamplingParams(),
-#     entry_data=EntryData(
-#         entry_id="idr-6001247",
-#         source_db="idr",
-#         source_db_id="idr-6001247",
-#         source_db_name="idr",
-#     ),
-# )
-
-# INTERNAL_SEGMENTATION_FOR_OMEZARR_TESTING_5_AXES = InternalSegmentation(
-#     intermediate_zarr_structure_path=INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS,
-#     segmentation_input_path=TEST_OME_ZARR_PATH_5_AXES,
-#     params_for_storing=StoringParams(),
-#     downsampling_parameters=DownsamplingParams(),
-#     entry_data=EntryData(
-#         entry_id="idr-5514375",
-#         source_db="idr",
-#         source_db_id="idr-5514375",
-#         source_db_name="idr",
-#     ),
-# )
-
-# INTERNAL_VOLUME_FOR_OMEZARR_TESTING_5_AXES = InternalVolume(
-#     intermediate_zarr_structure_path=INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS,
-#     volume_input_path=TEST_OME_ZARR_PATH_5_AXES,
-#     params_for_storing=StoringParams(),
-#     volume_force_dtype=None,
-#     downsampling_parameters=DownsamplingParams(),
-#     entry_data=EntryData(
-#         entry_id="idr-5514375",
-#         source_db="idr",
-#         source_db_id="idr-5514375",
-#         source_db_name="idr",
-#     ),
-#     quantize_dtype_str=None,
-#     quantize_downsampling_levels=None,
-# )
-
-# INTERNAL_VOLUME_FOR_OMEZARR_TESTING_4_AXES = InternalVolume(
-#     intermediate_zarr_structure_path=INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS,
-#     volume_input_path=TEST_OME_ZARR_PATH_4_AXES,
-#     params_for_storing=StoringParams(),
-#     volume_force_dtype=None,
-#     downsampling_parameters=DownsamplingParams(),
-#     entry_data=EntryData(
-#         entry_id="idr-6001247",
-#         source_db="idr",
-#         source_db_id="idr-6001247",
-#         source_db_name="idr",
-#     ),
-#     quantize_dtype_str=None,
-#     quantize_downsampling_levels=None,
-# )
-
 INTERNAL_VOLUME_FOR_TESTING_XYZ_ORDER = InternalVolume(
     intermediate_zarr_structure_path=INTERMEDIATE_ZARR_STRUCTURE_PATH_FOR_TESTS,
     volume_input_path=TEST_MAP_PATH_XYZ_ORDER,

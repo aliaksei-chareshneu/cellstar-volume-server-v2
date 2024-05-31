@@ -68,9 +68,10 @@ def get_omezarr_internal_segmentation(omezar_test_input: OMEZarrTestInput):
 
 def _download_omezarr_for_tests(url: str):
     omezarr_name = url.split('/')[-1]
+    # omezarr_unique_subfolder = PATH_TO_TEST_DATA_DIR / unique_subfolder
     omezarr_path = PATH_TO_TEST_DATA_DIR / omezarr_name
-    if omezarr_path.exists():
-        shutil.rmtree(omezarr_path)
+    if not omezarr_path.exists():
+        # shutil.rmtree(omezarr_path)
     # get omezarr_path here
-    ome_zarr.utils.download(url, str(PATH_TO_TEST_DATA_DIR.resolve()))
+        ome_zarr.utils.download(url, str(PATH_TO_TEST_DATA_DIR.resolve()))
     return omezarr_path
