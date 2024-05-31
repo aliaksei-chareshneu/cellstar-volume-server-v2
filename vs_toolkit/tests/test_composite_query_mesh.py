@@ -2,7 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from vs_toolkit.tests.constants import VS_TOOLKIT_PATH
+from vs_toolkit.tests.constants import DB_PATH_FOR_VS_TOOLKIT_TESTS, VS_TOOLKIT_PATH
 
 # run app with arguments
 # assert that output file exists
