@@ -51,6 +51,22 @@ query_params = [
     },
     {"entry_id": "emd-1832", "source_db": "emdb"},
     {
+        "entry_id": "idr-13457537",
+        "source_db": "idr"
+},
+    {
+        "entry_id": "idr-13457537",
+        "source_db": "idr",
+        "channel_id": "Hyb probe",
+        "time": 4
+},
+    {
+    "entry_id": "emd-1273",
+    "source_db": "emdb",
+    "max_points": 100000000
+},
+
+    {
          "entry_id": "empiar-11756",
         "source_db": "empiar",
         "segmentation_kind": "geometric-segmentation",
