@@ -457,6 +457,56 @@
         }
     },
     {
+        "entry_id": "emd-1273",
+        "source_db": "emdb",
+        "source_db_id": "emd-1273",
+        "source_db_name": "emdb",
+        "inputs": [
+            {
+                "kind": "map",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/map/emd_1273.map.gz"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_1.map"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_2.map"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_3.map"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_4.map"
+                }
+            },
+            {
+                "kind": "mask",
+                "resource": {
+                    "kind": "external",
+                    "uri": "https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1273/masks/emd_1273_msk_5.map"
+                }
+            }
+        ]
+    },
+    {
         "entry_id": "custom-tubhiswt",
         "source_db": "custom",
         "source_db_id": "custom-tubhiswt",
