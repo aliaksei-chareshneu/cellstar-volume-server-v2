@@ -51,6 +51,10 @@ def parse_script_args():
         default=DB_BUILDING_PARAMETERS_JSON,
         help="",
     )
+    parser.add_argument(
+        "--clean_existing_raw_inputs_folder",
+        action='store_true', default=False
+    )
     # parser.add_argument("--db_path", type=str, default=DEFAULT_DB_PATH, help='path to db folder')
     # parser.add_argument("--temp_zarr_hierarchy_storage_path", type=str, default=TEMP_ZARR_HIERARCHY_STORAGE_PATH, help='path to db working directory')
     # parser.add_argument("--delete_existing_db", action='store_true', default=False, help='remove existing db directory')
@@ -153,8 +157,15 @@ def _get_file(input_file_info: RawInputFileInfo, final_path: Path) -> Path:
 
 def download(args: argparse.Namespace):
     db_building_params: list[InputForBuildingDatabase] = []
-
+        
     raw_unput_files_dir = Path(args.raw_input_files_dir)
+    if args.clean_existing_raw_inputs_folder:
+        for path in raw_unput_files_dir.glob("**/*"):
+            if path.is_file():
+                path.unlink()
+            elif path.is_dir():
+                shutil.rmtree(path)
+
     download_params_file_path = Path(args.raw_input_download_params)
     download_params = _parse_raw_input_download_params_file(download_params_file_path)
 
