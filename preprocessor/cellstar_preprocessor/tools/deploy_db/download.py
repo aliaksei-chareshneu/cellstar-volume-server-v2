@@ -103,11 +103,12 @@ def _download(uri: str, final_path: Path, kind: InputKind):
 
 def _copy_file(uri: str, final_path: Path, kind: InputKind):
     filename = _get_filename_from_uri(uri)
-    if final_path.exists():
-        shutil.rmtree(final_path)
-    final_path.mkdir(parents=True)
+    if not final_path.exists():
+    #     shutil.rmtree(final_path)
+        final_path.mkdir(parents=True)
     complete_path = final_path / filename
     # if omezarr - copy_tree
+    # TODO: check if that would work for local omezarr
     if kind == InputKind.omezarr:
         shutil.copytree(uri, complete_path)
     else:
@@ -136,7 +137,7 @@ def _unzip_multiseries_ometiff_zip(zip_path: Path, kind: InputKind):
     first_ometiff = p[0]
     return first_ometiff
 
-
+# it should download file and copy file 
 def _get_file(input_file_info: RawInputFileInfo, final_path: Path) -> Path:
     resource = input_file_info["resource"]
     if resource["kind"] == "external":
