@@ -1,3 +1,5 @@
+from typing import Literal
+from uuid import uuid4
 import pytest
 import zarr
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
@@ -5,7 +7,10 @@ from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.map_preprocessing import map_preprocessing
 from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tests.helper_methods import (
+    get_internal_XYZ_volume,
+    get_internal_ZYX_volume,
     initialize_intermediate_zarr_structure_for_tests,
+    remove_intermediate_zarr_structure_for_tests,
 )
 from cellstar_preprocessor.tests.input_for_tests import (
     INTERNAL_VOLUME_FOR_TESTING_XYZ_ORDER,
@@ -18,13 +23,26 @@ INTERNAL_VOLUMES = [
 ]
 
 
-@pytest.mark.parametrize("internal_volume", INTERNAL_VOLUMES)
-def test_map_preprocessing(internal_volume: InternalVolume):
+# artificial maps do not need
+
+
+ORDERS = [
+    'XYZ',
+    'ZYX'
+]
+# two maps
+@pytest.mark.parametrize("order", ORDERS)
+def test_map_preprocessing(order: Literal['XYZ', 'ZYX']):
     # TODO: create sample internal volume with all params
     # TODO: test different functions (map preprocessing, quantization, downsampling)
     # using  the same internal volume
-    initialize_intermediate_zarr_structure_for_tests()
-
+    unique_folder_name = str(uuid4())
+    p = initialize_intermediate_zarr_structure_for_tests(unique_folder_name)
+    if order == 'XYZ':    
+        internal_volume = get_internal_XYZ_volume(p)
+    elif order == 'ZYX':
+        internal_volume = get_internal_ZYX_volume(p)
+        
     # internal_volume = INTERNAL_VOLUME_FOR_TESTING
     map_preprocessing(internal_volume=internal_volume)
 
@@ -63,3 +81,5 @@ def test_map_preprocessing(internal_volume: InternalVolume):
     # checks also axis order since ZYX map has shape 4, 3, 2 and XYZ map has shape 2, 3, 4
     # so normalizing ZYX map will give shape 2, 3, 4
     assert volume_gr["1"]["0"]["0"].shape == (2, 3, 4)
+    
+    remove_intermediate_zarr_structure_for_tests(p)

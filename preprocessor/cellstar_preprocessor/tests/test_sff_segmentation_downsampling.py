@@ -1,3 +1,4 @@
+from cellstar_preprocessor.tests.test_context import TestContext, context_for_tests
 import numcodecs
 import numpy as np
 import pytest
@@ -17,11 +18,14 @@ from cellstar_preprocessor.flows.segmentation.sff_preprocessing import sff_prepr
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.tests.helper_methods import (
-    initialize_intermediate_zarr_structure_for_tests,
+    get_sff_internal_segmentation
 )
 from cellstar_preprocessor.tests.input_for_tests import (
     INTERNAL_MESH_SEGMENTATION_FOR_TESTING,
     INTERNAL_SEGMENTATION_FOR_TESTING,
+    SFF_TEST_INPUTS,
+    WORKING_FOLDER_FOR_TESTS,
+    TestInput,
 )
 
 SEGMENTATIONS = [
@@ -30,10 +34,15 @@ SEGMENTATIONS = [
 ]
 
 
-@pytest.mark.parametrize("internal_segmentation", SEGMENTATIONS)
-def test_sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
+@pytest.mark.parametrize("test_input", SFF_TEST_INPUTS)
+def test_sff_segmentation_downsampling(test_input: TestInput):
+    with context_for_tests(
+        test_input, WORKING_FOLDER_FOR_TESTS
+    ) as ctx:
+        ctx: TestContext
+    internal_segmentation = get_sff_internal_segmentation(test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path)
     if internal_segmentation == INTERNAL_SEGMENTATION_FOR_TESTING:
-        initialize_intermediate_zarr_structure_for_tests()
+        # initialize_intermediate_zarr_structure_for_tests()
         internal_segmentation = INTERNAL_SEGMENTATION_FOR_TESTING
         internal_segmentation.primary_descriptor = (
             SegmentationPrimaryDescriptor.three_d_volume
@@ -101,7 +110,7 @@ def test_sff_segmentation_downsampling(internal_segmentation: InternalSegmentati
         )
 
     elif internal_segmentation == INTERNAL_MESH_SEGMENTATION_FOR_TESTING:
-        initialize_intermediate_zarr_structure_for_tests()
+        # initialize_intermediate_zarr_structure_for_tests()
 
         sff_segm_obj = open_hdf5_as_segmentation_object(
             internal_segmentation.segmentation_input_path

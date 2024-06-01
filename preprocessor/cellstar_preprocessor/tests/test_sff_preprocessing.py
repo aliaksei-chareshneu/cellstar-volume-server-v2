@@ -1,3 +1,4 @@
+from cellstar_preprocessor.tests.test_context import TestContext, context_for_tests
 import pytest
 import zarr
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
@@ -12,11 +13,14 @@ from cellstar_preprocessor.flows.segmentation.sff_preprocessing import sff_prepr
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
 from cellstar_preprocessor.model.segmentation import InternalSegmentation
 from cellstar_preprocessor.tests.helper_methods import (
-    initialize_intermediate_zarr_structure_for_tests,
+    get_sff_internal_segmentation
 )
 from cellstar_preprocessor.tests.input_for_tests import (
     INTERNAL_MESH_SEGMENTATION_FOR_TESTING,
     INTERNAL_SEGMENTATION_FOR_TESTING,
+    SFF_TEST_INPUTS,
+    WORKING_FOLDER_FOR_TESTS,
+    TestInput,
 )
 
 SEGMENTATIONS = [
@@ -24,90 +28,93 @@ SEGMENTATIONS = [
     INTERNAL_MESH_SEGMENTATION_FOR_TESTING,
 ]
 
+@pytest.mark.parametrize("test_input", SFF_TEST_INPUTS)
+def test_sff_preprocessing(test_input: TestInput):
+    with context_for_tests(
+        test_input, WORKING_FOLDER_FOR_TESTS
+    ) as ctx:
+        ctx: TestContext
+    
+        internal_segmentation = get_sff_internal_segmentation(test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path)
+        sff_segm_obj = open_hdf5_as_segmentation_object(
+            internal_segmentation.segmentation_input_path
+        )
 
-@pytest.mark.parametrize("internal_segmentation", SEGMENTATIONS)
-def test_sff_preprocessing(internal_segmentation: InternalSegmentation):
-    initialize_intermediate_zarr_structure_for_tests()
+        sff_preprocessing(internal_segmentation=internal_segmentation)
 
-    sff_segm_obj = open_hdf5_as_segmentation_object(
-        internal_segmentation.segmentation_input_path
-    )
+        # check if zarr structure has right format
+        zarr_structure = open_zarr_structure_from_path(
+            internal_segmentation.intermediate_zarr_structure_path
+        )
 
-    sff_preprocessing(internal_segmentation=internal_segmentation)
+        # n of segments
 
-    # check if zarr structure has right format
-    zarr_structure = open_zarr_structure_from_path(
-        internal_segmentation.intermediate_zarr_structure_path
-    )
+        if (
+            internal_segmentation.primary_descriptor
+            == SegmentationPrimaryDescriptor.three_d_volume
+        ):
+            assert LATTICE_SEGMENTATION_DATA_GROUPNAME in zarr_structure
+            segmentation_gr = zarr_structure[LATTICE_SEGMENTATION_DATA_GROUPNAME]
+            assert isinstance(segmentation_gr, zarr.Group)
+            assert len(segmentation_gr) == len(sff_segm_obj.lattice_list)
 
-    # n of segments
+            for lattice_id, lattice_gr in segmentation_gr.groups():
+                # single resolution group
+                assert len(lattice_gr) == 1
+                assert 1 in lattice_gr
+                resolution_gr = lattice_gr[1]
+                assert isinstance(resolution_gr, zarr.Group)
 
-    if (
-        internal_segmentation.primary_descriptor
-        == SegmentationPrimaryDescriptor.three_d_volume
-    ):
-        assert LATTICE_SEGMENTATION_DATA_GROUPNAME in zarr_structure
-        segmentation_gr = zarr_structure[LATTICE_SEGMENTATION_DATA_GROUPNAME]
-        assert isinstance(segmentation_gr, zarr.Group)
-        assert len(segmentation_gr) == len(sff_segm_obj.lattice_list)
+                # single time group
+                assert len(resolution_gr) == 1
+                assert 0 in resolution_gr
+                timeframe_gr = resolution_gr[0]
+                assert isinstance(timeframe_gr, zarr.Group)
 
-        for lattice_id, lattice_gr in segmentation_gr.groups():
-            # single resolution group
-            assert len(lattice_gr) == 1
-            assert 1 in lattice_gr
-            resolution_gr = lattice_gr[1]
-            assert isinstance(resolution_gr, zarr.Group)
+                # grid and set table
+                assert len(timeframe_gr) == 2
+                assert "grid" in timeframe_gr
+                lattice_from_sff = list(
+                    filter(lambda lat: str(lat.id) == lattice_id, sff_segm_obj.lattice_list)
+                )[0]
+                grid_shape = (
+                    lattice_from_sff.size.rows,
+                    lattice_from_sff.size.cols,
+                    lattice_from_sff.size.sections,
+                )
+                assert timeframe_gr.grid.shape == grid_shape
 
-            # single time group
-            assert len(resolution_gr) == 1
-            assert 0 in resolution_gr
-            timeframe_gr = resolution_gr[0]
-            assert isinstance(timeframe_gr, zarr.Group)
+                assert "set_table" in timeframe_gr
+                assert timeframe_gr.set_table.shape == (1,)
 
-            # grid and set table
-            assert len(timeframe_gr) == 2
-            assert "grid" in timeframe_gr
-            lattice_from_sff = list(
-                filter(lambda lat: str(lat.id) == lattice_id, sff_segm_obj.lattice_list)
-            )[0]
-            grid_shape = (
-                lattice_from_sff.size.rows,
-                lattice_from_sff.size.cols,
-                lattice_from_sff.size.sections,
-            )
-            assert timeframe_gr.grid.shape == grid_shape
+        # empiar-10070
+        elif (
+            internal_segmentation.primary_descriptor
+            == SegmentationPrimaryDescriptor.mesh_list
+        ):
+            assert MESH_SEGMENTATION_DATA_GROUPNAME in zarr_structure
+            segmentation_gr = zarr_structure[MESH_SEGMENTATION_DATA_GROUPNAME]
+            assert isinstance(segmentation_gr, zarr.Group)
 
-            assert "set_table" in timeframe_gr
-            assert timeframe_gr.set_table.shape == (1,)
+            # order
+            # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
 
-    # empiar-10070
-    elif (
-        internal_segmentation.primary_descriptor
-        == SegmentationPrimaryDescriptor.mesh_list
-    ):
-        assert MESH_SEGMENTATION_DATA_GROUPNAME in zarr_structure
-        segmentation_gr = zarr_structure[MESH_SEGMENTATION_DATA_GROUPNAME]
-        assert isinstance(segmentation_gr, zarr.Group)
+            # single set
+            assert len(segmentation_gr) == 1
+            set_gr = segmentation_gr[0]
+            # single timeframe
+            assert len(set_gr) == 1
+            timeframe_gr = set_gr[0]
 
-        # order
-        # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist
-
-        # single set
-        assert len(segmentation_gr) == 1
-        set_gr = segmentation_gr[0]
-        # single timeframe
-        assert len(set_gr) == 1
-        timeframe_gr = set_gr[0]
-
-        # number of segments
-        assert len(timeframe_gr) == len(sff_segm_obj.segment_list)
-        for segment_id, segment_gr in timeframe_gr.groups():
-            # single detail lvl group - original
-            assert len(segment_gr) == 1
-            assert 1 in segment_gr
-            detail_lvl_gr = segment_gr[1]
-            for mesh_id, mesh_gr in detail_lvl_gr.groups():
-                assert "triangles" in mesh_gr
-                assert "vertices" in mesh_gr
-                # if there are no more groups
-                assert len(sorted(mesh_gr.group_keys())) == 0
+            # number of segments
+            assert len(timeframe_gr) == len(sff_segm_obj.segment_list)
+            for segment_id, segment_gr in timeframe_gr.groups():
+                # single detail lvl group - original
+                assert len(segment_gr) == 1
+                assert 1 in segment_gr
+                detail_lvl_gr = segment_gr[1]
+                for mesh_id, mesh_gr in detail_lvl_gr.groups():
+                    assert "triangles" in mesh_gr
+                    assert "vertices" in mesh_gr
+                    # if there are no more groups
+                    assert len(sorted(mesh_gr.group_keys())) == 0

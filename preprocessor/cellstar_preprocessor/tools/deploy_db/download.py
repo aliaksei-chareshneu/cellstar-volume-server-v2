@@ -1,6 +1,5 @@
 import argparse
 import atexit
-import gzip
 import json
 import os
 import shutil
@@ -8,6 +7,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+from cellstar_preprocessor.tools.gunzip.gunzip import gunzip
 import ome_zarr
 import ome_zarr.utils
 
@@ -116,21 +116,6 @@ def _copy_file(uri: str, final_path: Path, kind: InputKind):
     return complete_path
 
 
-def _gunzip(gz_path: Path):
-    # only maps
-    filename = gz_path.name
-    gunzipped_filename = gz_path.parent / filename.removesuffix(".gz")
-    with gzip.open(str(gz_path.resolve()), "rb") as f_in:
-        # bytes?
-        # NOTE: only map gz is supported, therefore bytes
-        with open(str(gunzipped_filename.resolve()), "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
-
-    gz_path.unlink()
-
-    return gunzipped_filename
-
-
 # TODO: should return path to the first ometiff image
 def _unzip_multiseries_ometiff_zip(zip_path: Path, kind: InputKind):
     directory_to_extract_to = zip_path.parent
@@ -192,7 +177,7 @@ def download(args: argparse.Namespace):
             # here it is ...something.zip
             # gunzip if needed
             if complete_path.suffix == ".gz":
-                complete_path = _gunzip(complete_path)
+                complete_path = gunzip(complete_path)
 
             if complete_path.suffix == ".zip":
                 # complete_path is path to zip file
