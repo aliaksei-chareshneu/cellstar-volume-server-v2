@@ -46,7 +46,9 @@ class MeshesForCif(WithArrays):
 
     mesh__id: np.ndarray  # int
     vertex__mesh_id: np.ndarray  # int
-    vertex__vertex_id: np.ndarray  # probably unnecessary because it's equal to the vertex's index within the mesh
+    vertex__vertex_id: (
+        np.ndarray
+    )  # probably unnecessary because it's equal to the vertex's index within the mesh
     vertex__x: np.ndarray  # float
     vertex__y: np.ndarray  # float
     vertex__z: np.ndarray  # float

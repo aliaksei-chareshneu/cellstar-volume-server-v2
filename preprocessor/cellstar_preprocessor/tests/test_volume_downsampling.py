@@ -1,16 +1,23 @@
 from uuid import uuid4
-from cellstar_preprocessor.model.input import DownsamplingParams, EntryData, QuantizationDtype, StoringParams
-from cellstar_preprocessor.model.volume import InternalVolume
-from cellstar_preprocessor.tests.input_for_tests import TEST_MAP_PATH, WORKING_FOLDER_FOR_TESTS
+
 import numpy as np
 import zarr
 from cellstar_preprocessor.flows.common import open_zarr_structure_from_path
 from cellstar_preprocessor.flows.constants import VOLUME_DATA_GROUPNAME
 from cellstar_preprocessor.flows.volume.volume_downsampling import volume_downsampling
+from cellstar_preprocessor.model.input import (
+    DownsamplingParams,
+    EntryData,
+    QuantizationDtype,
+    StoringParams,
+)
+from cellstar_preprocessor.model.volume import InternalVolume
 from cellstar_preprocessor.tests.helper_methods import (
     initialize_intermediate_zarr_structure_for_tests,
     remove_intermediate_zarr_structure_for_tests,
 )
+from cellstar_preprocessor.tests.input_for_tests import TEST_MAP_PATH
+
 
 def test_volume_downsampling():
     unique_folder_name = str(uuid4())
@@ -30,7 +37,7 @@ def test_volume_downsampling():
         quantize_dtype_str=QuantizationDtype.u1,
         quantize_downsampling_levels=(1,),
     )
-        
+
     zarr_structure: zarr.Group = open_zarr_structure_from_path(
         internal_volume.intermediate_zarr_structure_path
     )
@@ -48,5 +55,5 @@ def test_volume_downsampling():
         zarr_structure[f"{VOLUME_DATA_GROUPNAME}/2/0/0"][...]
         == np.ones(shape=(32, 32, 32), dtype=internal_volume.volume_force_dtype)
     ).all()
-    
+
     remove_intermediate_zarr_structure_for_tests(p)

@@ -7,7 +7,6 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-from cellstar_preprocessor.tools.gunzip.gunzip import gunzip
 import ome_zarr
 import ome_zarr.utils
 
@@ -27,6 +26,7 @@ from cellstar_preprocessor.model.input import InputKind
 from cellstar_preprocessor.tools.deploy_db.deploy_process_helper import (
     clean_up_processes,
 )
+from cellstar_preprocessor.tools.gunzip.gunzip import gunzip
 
 PROCESS_IDS_LIST = []
 
@@ -52,8 +52,7 @@ def parse_script_args():
         help="",
     )
     parser.add_argument(
-        "--clean_existing_raw_inputs_folder",
-        action='store_true', default=False
+        "--clean_existing_raw_inputs_folder", action="store_true", default=False
     )
     # parser.add_argument("--db_path", type=str, default=DEFAULT_DB_PATH, help='path to db folder')
     # parser.add_argument("--temp_zarr_hierarchy_storage_path", type=str, default=TEMP_ZARR_HIERARCHY_STORAGE_PATH, help='path to db working directory')
@@ -108,7 +107,7 @@ def _download(uri: str, final_path: Path, kind: InputKind):
 def _copy_file(uri: str, final_path: Path, kind: InputKind):
     filename = _get_filename_from_uri(uri)
     if not final_path.exists():
-    #     shutil.rmtree(final_path)
+        #     shutil.rmtree(final_path)
         final_path.mkdir(parents=True)
     complete_path = final_path / filename
     # if omezarr - copy_tree
@@ -141,7 +140,8 @@ def _unzip_multiseries_ometiff_zip(zip_path: Path, kind: InputKind):
     first_ometiff = p[0]
     return first_ometiff
 
-# it should download file and copy file 
+
+# it should download file and copy file
 def _get_file(input_file_info: RawInputFileInfo, final_path: Path) -> Path:
     resource = input_file_info["resource"]
     if resource["kind"] == "external":
@@ -157,7 +157,7 @@ def _get_file(input_file_info: RawInputFileInfo, final_path: Path) -> Path:
 
 def download(args: argparse.Namespace):
     db_building_params: list[InputForBuildingDatabase] = []
-        
+
     raw_unput_files_dir = Path(args.raw_input_files_dir)
     if args.clean_existing_raw_inputs_folder:
         for path in raw_unput_files_dir.glob("**/*"):

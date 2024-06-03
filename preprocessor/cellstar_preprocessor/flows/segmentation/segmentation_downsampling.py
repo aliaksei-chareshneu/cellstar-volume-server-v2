@@ -89,9 +89,9 @@ def sff_segmentation_downsampling(internal_segmentation: InternalSegmentation):
         internal_segmentation.primary_descriptor
         == SegmentationPrimaryDescriptor.mesh_list
     ):
-        simplification_curve: dict[
-            int, float
-        ] = internal_segmentation.simplification_curve
+        simplification_curve: dict[int, float] = (
+            internal_segmentation.simplification_curve
+        )
         calc_mode = "area"
         density_threshold = MESH_VERTEX_DENSITY_THRESHOLD[calc_mode]
         # mesh set_id => timeframe => segment_id => detail_lvl => mesh_id in meshlist

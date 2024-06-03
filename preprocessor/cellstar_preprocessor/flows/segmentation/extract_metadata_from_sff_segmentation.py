@@ -136,9 +136,9 @@ def extract_metadata_from_sff_segmentation(internal_segmentation: InternalSegmen
                         for mesh_id, mesh in detail_lvl_gr.groups():
                             mesh_metadata: MeshMetadata = {}
                             for mesh_component_name, mesh_component in mesh.arrays():
-                                mesh_metadata[
-                                    f"num_{mesh_component_name}"
-                                ] = mesh_component.attrs[f"num_{mesh_component_name}"]
+                                mesh_metadata[f"num_{mesh_component_name}"] = (
+                                    mesh_component.attrs[f"num_{mesh_component_name}"]
+                                )
                             mesh_list_metadata["mesh_ids"][int(mesh_id)] = mesh_metadata
                         detail_lvls_metadata["detail_lvls"][
                             int(detail_lvl)

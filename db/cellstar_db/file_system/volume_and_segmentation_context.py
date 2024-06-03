@@ -123,9 +123,9 @@ class VolumeAndSegmentationContext:
             )
 
         elif kind == "geometric_segmentation":
-            geometric_segmentation_data: list[
-                GeometricSegmentationData
-            ] = temp_zarr_structure.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS]
+            geometric_segmentation_data: list[GeometricSegmentationData] = (
+                temp_zarr_structure.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS]
+            )
             # find that segmentation by id
             filter_results = list(
                 filter(
@@ -217,7 +217,7 @@ class VolumeAndSegmentationContext:
         self.__save_annotations_and_metadata()
 
     def __save_annotations_and_metadata(self):
-        temp_store = zarr.DirectoryStore(str(self.intermediate_zarr_structure))
+        zarr.DirectoryStore(str(self.intermediate_zarr_structure))
         root: zarr.Group = open_zarr_structure_from_path(
             self.intermediate_zarr_structure
         )

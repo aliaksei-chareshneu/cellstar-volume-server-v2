@@ -1,5 +1,3 @@
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
-from cellstar_preprocessor.tests.test_context import TestContext, context_for_tests
 import pytest
 from cellstar_db.models import DescriptionData, ExternalReference, SegmentAnnotationData
 from cellstar_preprocessor.flows.segmentation.extract_annotations_from_sff_segmentation import (
@@ -11,33 +9,36 @@ from cellstar_preprocessor.flows.segmentation.helper_methods import (
 )
 from cellstar_preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
-from cellstar_preprocessor.tests.helper_methods import (
-    get_sff_internal_segmentation
-)
+from cellstar_preprocessor.tests.helper_methods import get_sff_internal_segmentation
 from cellstar_preprocessor.tests.input_for_tests import (
     SFF_TEST_INPUTS,
     WORKING_FOLDER_FOR_TESTS,
     TestInput,
 )
+from cellstar_preprocessor.tests.test_context import TestContext, context_for_tests
+
 
 @pytest.mark.parametrize("test_input", SFF_TEST_INPUTS)
 def test_extract_annotations_from_sff_segmentation(test_input: TestInput):
-    with context_for_tests(
-        test_input, WORKING_FOLDER_FOR_TESTS
-    ) as ctx:
+    with context_for_tests(test_input, WORKING_FOLDER_FOR_TESTS) as ctx:
         ctx: TestContext
-        internal_segmentation = get_sff_internal_segmentation(test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path)
+        internal_segmentation = get_sff_internal_segmentation(
+            test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path
+        )
         sff_preprocessing(internal_segmentation=internal_segmentation)
         d = extract_annotations_from_sff_segmentation(
             internal_segmentation=internal_segmentation
         )
 
-        r = extract_raw_annotations_from_sff(internal_segmentation.segmentation_input_path)
+        r = extract_raw_annotations_from_sff(
+            internal_segmentation.segmentation_input_path
+        )
 
         assert d["details"] == r["details"]
         assert d["name"] == r["name"]
         assert (
-            d["entry_id"]["source_db_id"] == internal_segmentation.entry_data.source_db_id
+            d["entry_id"]["source_db_id"]
+            == internal_segmentation.entry_data.source_db_id
         )
         assert (
             d["entry_id"]["source_db_name"]
@@ -63,22 +64,22 @@ def test_extract_annotations_from_sff_segmentation(test_input: TestInput):
                 description_item: DescriptionData = description_filter_results[0][1]
 
                 raw_external_references: list[ExternalReference] = segment[
-                        "biological_annotation"
-                    ]["external_references"]
-                external_referneces: list[
-                        ExternalReference
-                    ] = _preprocess_external_references(raw_external_references)            
-                
-                
-                assert (
-                    description_item["external_references"]
-                    == external_referneces
+                    "biological_annotation"
+                ]["external_references"]
+                external_referneces: list[ExternalReference] = (
+                    _preprocess_external_references(raw_external_references)
                 )
-                assert description_item["name"] == segment["biological_annotation"]["name"]
+
+                assert description_item["external_references"] == external_referneces
+                assert (
+                    description_item["name"] == segment["biological_annotation"]["name"]
+                )
 
                 assert description_item["target_kind"] == "lattice"
 
-                segment_annotations: list[SegmentAnnotationData] = d["segment_annotations"]
+                segment_annotations: list[SegmentAnnotationData] = d[
+                    "segment_annotations"
+                ]
                 segment_annotation_filter_results = list(
                     filter(
                         lambda a: a["segment_id"] == segment["id"]
@@ -117,22 +118,22 @@ def test_extract_annotations_from_sff_segmentation(test_input: TestInput):
                 description_item: DescriptionData = description_filter_results[0][1]
 
                 raw_external_references: list[ExternalReference] = segment[
-                        "biological_annotation"
-                    ]["external_references"]
-                external_referneces: list[
-                        ExternalReference
-                    ] = _preprocess_external_references(raw_external_references)            
-                
-                
-                assert (
-                    description_item["external_references"]
-                    == external_referneces
+                    "biological_annotation"
+                ]["external_references"]
+                external_referneces: list[ExternalReference] = (
+                    _preprocess_external_references(raw_external_references)
                 )
-                assert description_item["name"] == segment["biological_annotation"]["name"]
-                
+
+                assert description_item["external_references"] == external_referneces
+                assert (
+                    description_item["name"] == segment["biological_annotation"]["name"]
+                )
+
                 assert description_item["target_kind"] == "mesh"
 
-                segment_annotations: list[SegmentAnnotationData] = d["segment_annotations"]
+                segment_annotations: list[SegmentAnnotationData] = d[
+                    "segment_annotations"
+                ]
                 segment_annotation_filter_results = list(
                     filter(
                         lambda a: a["segment_id"] == segment["id"]

@@ -6,7 +6,6 @@ import numpy as np
 
 
 class MagicKernel3dDownsampler:
-
     """Deprecated. Own inefficient implementation of magic kernel downsampling. Current pipeline uses scipy convovle"""
 
     from ._helper_methods import (

@@ -143,8 +143,7 @@ def _parse_json_params(json_path: Path):
 
 # TODO: QueryResponse
 class QueryTaskBase(Protocol):
-    async def execute(self) -> QueryResponse:
-        ...
+    async def execute(self) -> QueryResponse: ...
 
 
 class QueryTaskParams(TypedDict):

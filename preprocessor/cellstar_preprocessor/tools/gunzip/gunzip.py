@@ -4,11 +4,11 @@ from pathlib import Path
 
 
 def gunzip(gz_path: Path):
-    '''
+    """
     Only maps or sff
     Gunzips to same folder
     Removes gz archieve
-    '''
+    """
     filename = gz_path.name
     gunzipped_filename = gz_path.parent / filename.removesuffix(".gz")
     with gzip.open(str(gz_path.resolve()), "rb") as f_in:

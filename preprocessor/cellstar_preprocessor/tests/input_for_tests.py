@@ -14,9 +14,9 @@ WORKING_FOLDER_FOR_TESTS = Path(
     "preprocessor/cellstar_preprocessor/tests/test_data/working_folder"
 )
 
-PATH_TO_TEST_DATA_DIR: Path = Path('preprocessor/cellstar_preprocessor/tests/test_data')
-PATH_TO_INPUTS_FOR_TESTS: Path = PATH_TO_TEST_DATA_DIR / 'inputs_for_tests'
-    
+PATH_TO_TEST_DATA_DIR: Path = Path("preprocessor/cellstar_preprocessor/tests/test_data")
+PATH_TO_INPUTS_FOR_TESTS: Path = PATH_TO_TEST_DATA_DIR / "inputs_for_tests"
+
 TEST_MAP_PATH = Path("test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map")
 TEST_SFF_PATH = Path(
     "test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff"
@@ -31,54 +31,54 @@ TEST_MAP_PATH_XYZ_ORDER = Path(
     "preprocessor/cellstar_preprocessor/tests/test_data/fake_ccp4_XYZ.map"
 )
 
+
 class TestInput(TypedDict):
-    kind: Literal['sff', "map", "omezarr"]
+    kind: Literal["sff", "map", "omezarr"]
     url: str
     entry_id: str
     source_db: str
 
+
 MAP_TEST_INPUTS = [
     TestInput(
-        kind='map',
-        url='https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1832/map/emd_1832.map.gz',
-        entry_id='emd-1832',
-        source_db='emdb'
+        kind="map",
+        url="https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-1832/map/emd_1832.map.gz",
+        entry_id="emd-1832",
+        source_db="emdb",
     )
 ]
 
 SFF_TEST_INPUTS = [
     TestInput(
-        kind='sff',
-        url='https://www.ebi.ac.uk/em_static/emdb_sff/empiar_10070_b3talongmusc20130301/empiar_10070_b3talongmusc20130301.hff.gz',
-        entry_id='empiar-10070',
-        source_db='empiar'
+        kind="sff",
+        url="https://www.ebi.ac.uk/em_static/emdb_sff/empiar_10070_b3talongmusc20130301/empiar_10070_b3talongmusc20130301.hff.gz",
+        entry_id="empiar-10070",
+        source_db="empiar",
     ),
     TestInput(
-        kind='sff',
-        url='https://www.ebi.ac.uk/em_static/emdb_sff/18/1832/emd_1832.hff.gz',
-        entry_id='emd-1832',
-        source_db='emdb'
+        kind="sff",
+        url="https://www.ebi.ac.uk/em_static/emdb_sff/18/1832/emd_1832.hff.gz",
+        entry_id="emd-1832",
+        source_db="emdb",
     ),
 ]
 
 OMEZARR_TEST_INPUTS = [
     TestInput(
-        kind='omezarr',
-        url='https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0062A/6001240.zarr',
-        entry_id='idr-6001240',
-        source_db='idr'
+        kind="omezarr",
+        url="https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0062A/6001240.zarr",
+        entry_id="idr-6001240",
+        source_db="idr",
     ),
     TestInput(
-        kind='omezarr',
-        url='https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0101A/13457537.zarr',
-        entry_id='idr-13457537',
-        source_db='idr'
+        kind="omezarr",
+        url="https://uk1s3.embassy.ebi.ac.uk/idr/zarr/v0.4/idr0101A/13457537.zarr",
+        entry_id="idr-13457537",
+        source_db="idr",
     ),
 ]
 
-MAP_INPUTS_FOR_AXES_TESTING = [
-    
-]
+MAP_INPUTS_FOR_AXES_TESTING = []
 
 INTERNAL_VOLUME_FOR_TESTING_XYZ_ORDER = InternalVolume(
     intermediate_zarr_structure_path=WORKING_FOLDER_FOR_TESTS,

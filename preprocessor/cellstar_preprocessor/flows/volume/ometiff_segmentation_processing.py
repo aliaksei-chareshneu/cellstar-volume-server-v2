@@ -48,9 +48,9 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
     )
 
     if "channel_ids_mapping" not in internal_segmentation.custom_data:
-        internal_segmentation.custom_data[
-            "channel_ids_mapping"
-        ] = artificial_channel_ids
+        internal_segmentation.custom_data["channel_ids_mapping"] = (
+            artificial_channel_ids
+        )
 
     channel_ids_mapping: dict[str, str] = internal_segmentation.custom_data[
         "segmentation_ids_mapping"
@@ -68,9 +68,9 @@ def ometiff_segmentation_processing(internal_segmentation: InternalSegmentation)
         unique = da.unique(arr)
         unique.compute_chunk_sizes()
         for value in unique:
-            internal_segmentation.value_to_segment_id_dict[lattice_id][
+            internal_segmentation.value_to_segment_id_dict[lattice_id][int(value)] = (
                 int(value)
-            ] = int(value)
+            )
 
         # TODO: create datasets etc.
         lattice_id_gr = segmentation_data_gr.create_group(lattice_id)

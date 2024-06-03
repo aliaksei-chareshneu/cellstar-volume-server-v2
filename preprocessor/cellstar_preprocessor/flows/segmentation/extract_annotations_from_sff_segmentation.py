@@ -72,9 +72,9 @@ def extract_annotations_from_sff_segmentation(
                     raw_external_references: list[ExternalReference] = segment[
                         "biological_annotation"
                     ]["external_references"]
-                    external_referneces: list[
-                        ExternalReference
-                    ] = _preprocess_external_references(raw_external_references)
+                    external_referneces: list[ExternalReference] = (
+                        _preprocess_external_references(raw_external_references)
+                    )
 
                     description: DescriptionData = {
                         "id": description_id,
@@ -114,9 +114,9 @@ def extract_annotations_from_sff_segmentation(
                 raw_external_references: list[ExternalReference] = segment[
                     "biological_annotation"
                 ]["external_references"]
-                external_referneces: list[
-                    ExternalReference
-                ] = _preprocess_external_references(raw_external_references)
+                external_referneces: list[ExternalReference] = (
+                    _preprocess_external_references(raw_external_references)
+                )
                 description: DescriptionData = {
                     "id": description_id,
                     "target_kind": "mesh",

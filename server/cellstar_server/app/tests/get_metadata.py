@@ -37,9 +37,9 @@ class FetchMetadataTest(ServerTestBase):
                 volume_metadata = grid_metadata.get("volumes")
 
                 volume_sampling_info: dict = volume_metadata.get("volume_sampling_info")
-                volume_downsamplings: list[
-                    DownsamplingLevelInfo
-                ] = volume_sampling_info.get("spatial_downsampling_levels")
+                volume_downsamplings: list[DownsamplingLevelInfo] = (
+                    volume_sampling_info.get("spatial_downsampling_levels")
+                )
 
                 self.assertIsNotNone(volume_downsamplings)
                 self.assertTrue(len(volume_downsamplings) > 0)

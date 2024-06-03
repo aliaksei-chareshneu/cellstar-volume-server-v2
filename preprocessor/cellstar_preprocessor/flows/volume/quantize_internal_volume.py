@@ -96,9 +96,9 @@ def quantize_internal_volume(internal_volume: InternalVolume):
                         is_empty=True,
                     )
                     # save this dict as attr of zarr arr
-                    zarr_arr.attrs[
-                        QUANTIZATION_DATA_DICT_ATTR_NAME
-                    ] = quantized_data_dict_without_data
+                    zarr_arr.attrs[QUANTIZATION_DATA_DICT_ATTR_NAME] = (
+                        quantized_data_dict_without_data
+                    )
 
                     # TODO: fix arr dtype
                     da.to_zarr(arr=data, url=zarr_arr, overwrite=True, compute=True)

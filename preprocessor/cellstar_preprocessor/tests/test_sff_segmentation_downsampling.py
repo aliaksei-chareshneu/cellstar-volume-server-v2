@@ -1,4 +1,3 @@
-from cellstar_preprocessor.tests.test_context import TestContext, context_for_tests
 import numcodecs
 import numpy as np
 import pytest
@@ -16,10 +15,7 @@ from cellstar_preprocessor.flows.segmentation.segmentation_downsampling import (
 )
 from cellstar_preprocessor.flows.segmentation.sff_preprocessing import sff_preprocessing
 from cellstar_preprocessor.model.input import SegmentationPrimaryDescriptor
-from cellstar_preprocessor.model.segmentation import InternalSegmentation
-from cellstar_preprocessor.tests.helper_methods import (
-    get_sff_internal_segmentation
-)
+from cellstar_preprocessor.tests.helper_methods import get_sff_internal_segmentation
 from cellstar_preprocessor.tests.input_for_tests import (
     INTERNAL_MESH_SEGMENTATION_FOR_TESTING,
     INTERNAL_SEGMENTATION_FOR_TESTING,
@@ -27,6 +23,7 @@ from cellstar_preprocessor.tests.input_for_tests import (
     WORKING_FOLDER_FOR_TESTS,
     TestInput,
 )
+from cellstar_preprocessor.tests.test_context import TestContext, context_for_tests
 
 SEGMENTATIONS = [
     INTERNAL_SEGMENTATION_FOR_TESTING,
@@ -36,11 +33,11 @@ SEGMENTATIONS = [
 
 @pytest.mark.parametrize("test_input", SFF_TEST_INPUTS)
 def test_sff_segmentation_downsampling(test_input: TestInput):
-    with context_for_tests(
-        test_input, WORKING_FOLDER_FOR_TESTS
-    ) as ctx:
+    with context_for_tests(test_input, WORKING_FOLDER_FOR_TESTS) as ctx:
         ctx: TestContext
-    internal_segmentation = get_sff_internal_segmentation(test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path)
+    internal_segmentation = get_sff_internal_segmentation(
+        test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path
+    )
     if internal_segmentation == INTERNAL_SEGMENTATION_FOR_TESTING:
         # initialize_intermediate_zarr_structure_for_tests()
         internal_segmentation = INTERNAL_SEGMENTATION_FOR_TESTING

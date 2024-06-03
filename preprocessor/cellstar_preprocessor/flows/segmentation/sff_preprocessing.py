@@ -126,8 +126,8 @@ def _process_mesh_segmentation_data(
                 vertices = single_mesh_group["vertices"][...]
                 triangles = single_mesh_group["triangles"][...]
                 vedo_mesh_obj = Mesh([vertices, triangles])
-                single_mesh_group.attrs[
-                    "num_vertices"
-                ] = single_mesh_group.vertices.attrs["num_vertices"]
+                single_mesh_group.attrs["num_vertices"] = (
+                    single_mesh_group.vertices.attrs["num_vertices"]
+                )
                 single_mesh_group.attrs["area"] = vedo_mesh_obj.area()
                 # single_mesh_group.attrs['volume'] = vedo_mesh_obj.volume()

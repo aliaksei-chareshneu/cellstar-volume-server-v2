@@ -191,8 +191,7 @@ class GeometricSegmentationInput(InputT):
 
 
 class TaskBase(typing.Protocol):
-    def execute(self) -> None:
-        ...
+    def execute(self) -> None: ...
 
 
 class CustomAnnotationsCollectionTask(TaskBase):

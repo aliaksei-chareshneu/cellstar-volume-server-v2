@@ -158,9 +158,9 @@ def geometric_segmentation_preprocessing(internal_segmentation: InternalSegmenta
         RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS
     ]
     raw_geometric_segmentation_input[set_id] = data
-    zarr_structure.attrs[
-        RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS
-    ] = raw_geometric_segmentation_input
+    zarr_structure.attrs[RAW_GEOMETRIC_SEGMENTATION_INPUT_ZATTRS] = (
+        raw_geometric_segmentation_input
+    )
 
     # put to zattrs
     # instead of append, add to existing one
@@ -168,8 +168,8 @@ def geometric_segmentation_preprocessing(internal_segmentation: InternalSegmenta
         GEOMETRIC_SEGMENTATIONS_ZATTRS
     ]
     existing_geometric_segmentations.append(geometric_segmentation_data)
-    zarr_structure.attrs[
-        GEOMETRIC_SEGMENTATIONS_ZATTRS
-    ] = existing_geometric_segmentations
+    zarr_structure.attrs[GEOMETRIC_SEGMENTATIONS_ZATTRS] = (
+        existing_geometric_segmentations
+    )
 
     print("Shape primitives processed")

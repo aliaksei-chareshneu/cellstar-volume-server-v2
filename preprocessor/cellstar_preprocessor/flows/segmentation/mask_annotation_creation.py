@@ -39,12 +39,12 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
         source_db_name=internal_segmentation.entry_data.source_db_name,
     )
 
-    d[
-        "details"
-    ] = f"Segmentation of {internal_segmentation.entry_data.source_db_id} based on EMDB mask(s)"
-    d[
-        "name"
-    ] = f"Segmentation of {internal_segmentation.entry_data.source_db_id} based on EMDB mask(s)"
+    d["details"] = (
+        f"Segmentation of {internal_segmentation.entry_data.source_db_id} based on EMDB mask(s)"
+    )
+    d["name"] = (
+        f"Segmentation of {internal_segmentation.entry_data.source_db_id} based on EMDB mask(s)"
+    )
 
     # create palette of length = lattices x segments
     # have count variable = 0
@@ -74,9 +74,9 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
             # e.g. "1": 1
             # need to make "1": "Segment 1"
             # {k: '_'+ v for k,v in signames.items()}
-            value_to_segment_id_dict: dict[
-                int, int
-            ] = internal_segmentation.value_to_segment_id_dict[lattice_id]
+            value_to_segment_id_dict: dict[int, int] = (
+                internal_segmentation.value_to_segment_id_dict[lattice_id]
+            )
             mapping_for_lattice: dict[str, str] = {
                 str(k): "Segment " + str(v) for k, v in value_to_segment_id_dict.items()
             }
@@ -85,9 +85,9 @@ def mask_annotation_creation(internal_segmentation: InternalSegmentation):
                 str(lattice_id)
             ] = mapping_for_lattice
 
-    custom_segment_ids_mapping: dict[
-        str, dict[str, str]
-    ] = internal_segmentation.custom_data["custom_segment_ids_mapping"]
+    custom_segment_ids_mapping: dict[str, dict[str, str]] = (
+        internal_segmentation.custom_data["custom_segment_ids_mapping"]
+    )
     # segmentation_ids_mapping: dict[str, str] = internal_segmentation.custom_data['segmentation_ids_mapping']
 
     count = 0

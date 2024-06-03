@@ -1,6 +1,3 @@
-import shutil
-from cellstar_preprocessor.tests.input_for_tests import WORKING_FOLDER_FOR_TESTS, OMEZARR_TEST_INPUTS, TestInput
-from cellstar_preprocessor.tests.test_context import TestContext, context_for_tests
 import pytest
 from cellstar_db.models import (
     AnnotationsMetadata,
@@ -19,24 +16,30 @@ from cellstar_preprocessor.flows.volume.extract_omezarr_annotations import (
 )
 from cellstar_preprocessor.tests.helper_methods import (
     get_internal_volume_from_input,
-    get_omezarr_internal_segmentation
+    get_omezarr_internal_segmentation,
 )
+from cellstar_preprocessor.tests.input_for_tests import (
+    OMEZARR_TEST_INPUTS,
+    WORKING_FOLDER_FOR_TESTS,
+    TestInput,
+)
+from cellstar_preprocessor.tests.test_context import TestContext, context_for_tests
+
 
 @pytest.mark.parametrize("omezar_test_input", OMEZARR_TEST_INPUTS)
-def test_extract_omezarr_annotations(
-    omezar_test_input: TestInput
-):
-    with context_for_tests(
-        omezar_test_input, WORKING_FOLDER_FOR_TESTS
-    ) as ctx:
+def test_extract_omezarr_annotations(omezar_test_input: TestInput):
+    with context_for_tests(omezar_test_input, WORKING_FOLDER_FOR_TESTS) as ctx:
         ctx: TestContext
         # suppose to open context with files and zarr structures
         # then here create internal volumes, segmentations etc.
         # initialize_intermediate_zarr_structure_for_tests()
-        
-        internal_volume = get_internal_volume_from_input(omezar_test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path)
-        internal_segmentation = get_omezarr_internal_segmentation(omezar_test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path)
-        
+
+        internal_volume = get_internal_volume_from_input(
+            omezar_test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path
+        )
+        internal_segmentation = get_omezarr_internal_segmentation(
+            omezar_test_input, ctx.test_file_path, ctx.intermediate_zarr_structure_path
+        )
 
         ome_zarr_labels_preprocessing(internal_segmentation=internal_segmentation)
         d: AnnotationsMetadata = extract_omezarr_annotations(
@@ -53,7 +56,9 @@ def test_extract_omezarr_annotations(
         # d = root.attrs["annotations_dict"]
 
         assert d["entry_id"]["source_db_id"] == internal_volume.entry_data.source_db_id
-        assert d["entry_id"]["source_db_name"] == internal_volume.entry_data.source_db_name
+        assert (
+            d["entry_id"]["source_db_name"] == internal_volume.entry_data.source_db_name
+        )
 
         description_items = list(d["descriptions"].items())
 
@@ -110,7 +115,10 @@ def test_extract_omezarr_annotations(
 
                     # check that
                     assert description_item["target_id"]["segment_id"] == label_value
-                    assert description_item["target_id"]["segmentation_id"] == label_gr_name
+                    assert (
+                        description_item["target_id"]["segmentation_id"]
+                        == label_gr_name
+                    )
                     assert description_item["target_kind"] == "lattice"
 
                     # find segment annotation
@@ -131,7 +139,9 @@ def test_extract_omezarr_annotations(
                     )
 
                     # check each field
-                    assert segment_annotation_item["color"] == ind_label_color_fractional
+                    assert (
+                        segment_annotation_item["color"] == ind_label_color_fractional
+                    )
                     assert segment_annotation_item["segment_id"] == label_value
                     assert segment_annotation_item["segment_kind"] == "lattice"
                     # can be not 0
