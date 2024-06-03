@@ -54,7 +54,7 @@ def get_internal_XYZ_volume(intermediate_zarr_structure_for_tests: Path):
 
 def get_internal_ZYX_volume(intermediate_zarr_structure_for_tests: Path):
     return InternalVolume(
-        intermediate_zarr_structure_path=WORKING_FOLDER_FOR_TESTS,
+        intermediate_zarr_structure_path=intermediate_zarr_structure_for_tests,
         volume_input_path=TEST_MAP_PATH_ZYX_ORDER,
         params_for_storing=StoringParams(),
         volume_force_dtype="f2",
