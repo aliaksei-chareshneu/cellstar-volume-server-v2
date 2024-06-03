@@ -1,5 +1,7 @@
 ### Custom
+preprocessor/cellstar_preprocessor/tests/test_data/working_folder/*
 non-preprocessed_data/
+vs_toolkit/tests/test_data/query_parameters/*
 test-data/preprocessor/sample_volumes
 test-data/preprocessor/sample_segmentations
 test-data/preprocessor/sample_ome_tiff
