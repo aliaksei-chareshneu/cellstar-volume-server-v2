@@ -12,39 +12,42 @@ from cellstar_db.models import (
 )
 from cellstar_preprocessor.preprocess import main_preprocessor
 
-TEST_DB_FOLDER = Path("db/cellstar_db/tests/test_data/testing_db")
+TEST_DB_FOLDER = "db/cellstar_db/tests/test_data/testing_db"
 TEST_ENTRY_INPUT_PATHS = [
-    Path("test-data/preprocessor/sample_volumes/emdb_sff/EMD-1832.map"),
-    Path("test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff"),
+    "test-data/preprocessor/sample_volumes/emdb/EMD-1832.map",
+    "test-data/preprocessor/sample_segmentations/emdb_sff/emd_1832.hff",
 ]
 TEST_ENTRY_INPUT_KINDS = ["map", "sff"]
 
 TEST_ENTRY_PREPROCESSOR_INPUT = dict(
     mode="add",
-    quantize_dtype_str=None,
-    quantize_downsampling_levels=None,
-    force_volume_dtype=None,
-    max_size_per_downsampling_lvl_mb=None,
-    min_downsampling_level=None,
-    max_downsampling_level=None,
     entry_id="emd-1832",
     source_db="emdb",
     source_db_id="emd-1832",
     source_db_name="emdb",
-    working_folder=Path("db/cellstar_db/tests/test_data/testing_working_folder"),
+    working_folder="db/cellstar_db/tests/test_data/testing_working_folder",
     db_path=TEST_DB_FOLDER,
     input_paths=TEST_ENTRY_INPUT_PATHS,
     input_kinds=TEST_ENTRY_INPUT_KINDS,
+    quantize_dtype_str=None,
+    quantize_downsampling_levels=None,
+    force_volume_dtype=None,
+    max_size_per_downsampling_lvl_mb=None,
+    min_size_per_downsampling_lvl_mb=None,
+    min_downsampling_level=None,
+    max_downsampling_level=None,
+    remove_original_resolution=None,
 )
 
 
 @pytest.fixture(scope="module")
 def testing_db():
     # create db
-    if TEST_DB_FOLDER.is_dir() == False:
-        TEST_DB_FOLDER.mkdir()
+    test_db_path = Path(TEST_ENTRY_PREPROCESSOR_INPUT['db_path']) 
+    if (test_db_path).is_dir() == False:
+        test_db_path.mkdir(parents=True)
 
-    db = FileSystemVolumeServerDB(folder=TEST_DB_FOLDER, store_type="zip")
+    db = FileSystemVolumeServerDB(folder=test_db_path, store_type="zip")
 
     # remove previous test entry if it exists
     exists = asyncio.run(
@@ -69,26 +72,6 @@ def testing_db():
 
     yield db
 
-
-# to modify annotations we need to know annotation ids
-# how to get them?
-# from annotations of testing entry
-# can be done in conftest as well
-# via another function with fixture
-
-# test data may look like dictionary
-# with fields
-# modify annotations
-# add annotations
-# modify descriptions
-# add descriptions
-# for now just a single field - modify annotations
-
-# TEST_DATA: list[SegmentAnnotationData] = [
-#     SegmentAnnotationData(
-#         id=
-#     )
-# ]
 
 FAKE_SEGMENT_ANNOTATIONS: list[SegmentAnnotationData] = [
     {
